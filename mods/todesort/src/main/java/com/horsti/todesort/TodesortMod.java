@@ -32,7 +32,7 @@ public class TodesortMod implements ModInitializer {
 				.append(Component.literal(sp.getName().getString() + " starb bei ").withStyle(ChatFormatting.GRAY))
 				.append(Component.literal(koordinaten)
 					.withStyle(style -> style.withColor(ChatFormatting.YELLOW)
-						.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, koordinaten))));
+						.withClickEvent(new ClickEvent.CopyToClipboard(koordinaten))));
 			if (dimension.get()) {
 				msg.append(Component.literal(" (" + dimensionsName(sp.level()) + ")").withStyle(ChatFormatting.GRAY));
 			}

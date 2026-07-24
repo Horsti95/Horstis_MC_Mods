@@ -14,7 +14,8 @@ import net.minecraft.network.chat.MutableComponent;
 
 /** Generiert aus einem HorstiMod den kompletten /<mod>-Command-Baum. */
 public final class HorstiCommands {
-	public static final int OP_LEVEL = 2;
+	/** OP-Level 2 in der 26.x-Permission-API. */
+	public static final net.minecraft.server.permissions.PermissionCheck OP_LEVEL = Commands.LEVEL_GAMEMASTERS;
 
 	private HorstiCommands() {
 	}

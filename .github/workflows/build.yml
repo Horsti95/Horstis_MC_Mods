@@ -22,56 +22,66 @@ jobs:
         run: |
           ./gradlew :core:printCoreClasspath -q || true
           CP=$(cat build/core-classpath.txt)
-          for c in \
-            'net.minecraft.commands.Commands' \
-            'net.minecraft.commands.PermissionCheck' \
-            'net.minecraft.commands.permissions.PermissionCheck' \
-            'net.minecraft.commands.PermissionSource' \
-            'net.minecraft.commands.CommandSourceStack' \
-            'net.minecraft.network.chat.ClickEvent' \
-            'net.minecraft.network.chat.ClickEvent$Action' \
-            'net.minecraft.network.chat.ClickEvent$CopyToClipboard' \
-            'net.minecraft.server.level.ServerPlayer' \
-            'net.minecraft.world.entity.LivingEntity' \
-            'net.minecraft.world.entity.Entity' \
-            'net.minecraft.world.entity.Relative' \
-            'net.minecraft.world.entity.decoration.ArmorStand' \
-            'net.minecraft.world.entity.item.ItemEntity' \
-            'net.minecraft.world.entity.ExperienceOrb' \
-            'net.minecraft.world.entity.player.Player' \
-            'net.minecraft.world.entity.player.Inventory' \
-            'net.minecraft.world.food.FoodData' \
-            'net.minecraft.world.effect.MobEffects' \
-            'net.minecraft.world.effect.MobEffectInstance' \
-            'net.minecraft.world.damagesource.DamageSources' \
-            'net.minecraft.server.level.ServerBossEvent' \
-            'net.minecraft.world.BossEvent$BossBarColor' \
-            'net.minecraft.world.BossEvent$BossBarOverlay' \
-            'net.minecraft.world.InteractionResult' \
-            'net.minecraft.world.scores.Scoreboard' \
-            'net.minecraft.world.scores.PlayerTeam' \
-            'net.minecraft.world.inventory.AnvilMenu' \
-            'net.minecraft.world.inventory.DataSlot' \
-            'net.minecraft.world.level.GameRules' \
-            'net.minecraft.world.level.Level$ExplosionInteraction' \
-            'net.minecraft.world.level.block.CropBlock' \
-            'net.minecraft.world.level.block.Block' \
-            'net.minecraft.world.level.block.SoundType' \
-            'net.minecraft.tags.DamageTypeTags' \
-            'net.minecraft.core.Registry' \
-            'net.minecraft.core.registries.BuiltInRegistries' \
-            'net.minecraft.commands.arguments.EntityArgument' \
-            'net.minecraft.commands.arguments.item.ItemArgument' \
-            'net.minecraft.server.MinecraftServer' \
-            'net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents' \
-            'net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents' \
-            'net.fabricmc.fabric.api.event.player.AttackEntityCallback' \
-            'net.fabricmc.fabric.api.event.player.UseBlockCallback' \
-            'net.fabricmc.fabric.api.resource.ResourceManagerHelper' \
-          ; do
-            echo "=====CLASS $c"
-            javap -classpath "$CP" "$c" 2>&1 | head -90
-          done
+          d() { echo "=====CLASS $1"; javap -classpath "$CP" "$1" 2>&1 | grep -E "$2" | head -30; }
+          d 'net.minecraft.world.entity.LivingEntity' 'hurt|addEffect|removeEffect|removeAllEffects|isDeadOrDying|setHealth|getMainHandItem|isAlive'
+          d 'net.minecraft.world.entity.Entity' 'teleportTo|position\(|getBlockX|getBlockY|getBlockZ| level\(|addTag|discard|isPassenger|stopRiding|startRiding|setPos|getXRot|getYRot|damageSources|isShiftKeyDown|getUUID|isRemoved|ejectPassengers|isVehicle|getVehicle|getX\(|getName|setInvisible|setNoGravity|setInvulnerable'
+          d 'net.minecraft.world.entity.player.Player' 'drop\(|isCreative|getInventory|getFoodData'
+          d 'net.minecraft.world.entity.player.Inventory' ' add\(|getItem\(|getContainerSize'
+          d 'net.minecraft.world.food.FoodData' 'addExhaustion'
+          d 'net.minecraft.world.effect.MobEffects' 'SPEED|GLOWING|REGENERATION|ABSORPTION|FIRE_RES|WITHER|MOVEMENT'
+          d 'net.minecraft.world.effect.MobEffectInstance' 'public net.minecraft.world.effect.MobEffectInstance'
+          d 'net.minecraft.world.damagesource.DamageSources' 'generic|magic'
+          d 'net.minecraft.world.damagesource.DamageSource' 'getEntity|is\('
+          d 'net.minecraft.server.level.ServerBossEvent' '.'
+          d 'net.minecraft.world.BossEvent' 'setName|setProgress|BossBarColor|BossBarOverlay'
+          d 'net.minecraft.world.InteractionResult' '.'
+          d 'net.minecraft.world.scores.Scoreboard' 'addPlayerTeam|getPlayerTeam|addPlayerToTeam|removePlayerFromTeam'
+          d 'net.minecraft.world.scores.PlayerTeam' 'setColor|setSuffix'
+          d 'net.minecraft.world.inventory.AnvilMenu' 'createResult|calculateIncreasedRepairCost|cost|onTake'
+          d 'net.minecraft.world.inventory.DataSlot' '.'
+          d 'net.minecraft.world.level.GameRules' 'getBoolean|RULE_MOBGRIEFING'
+          d 'net.minecraft.world.level.Level' 'explode|ExplosionInteraction|playSound|getBlockState|setBlock\('
+          d 'net.minecraft.server.level.ServerLevel' 'explode|addFreshEntity|broadcastEntityEvent|getEntitiesOfClass'
+          d 'net.minecraft.world.level.Level$ExplosionInteraction' '.'
+          d 'net.minecraft.world.level.block.CropBlock' 'isMaxAge|getStateForAge|AGE'
+          d 'net.minecraft.world.level.block.NetherWartBlock' 'AGE'
+          d 'net.minecraft.world.level.block.CocoaBlock' 'AGE'
+          d 'net.minecraft.world.level.block.Block' 'getDrops|popResource|asItem'
+          d 'net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase' 'getSoundType|isAir|setValue|getValue|is\(|getBlock\('
+          d 'net.minecraft.world.level.block.SoundType' 'getBreakSound'
+          d 'net.minecraft.world.level.block.StairBlock' 'HALF'
+          d 'net.minecraft.world.level.block.SlabBlock' 'TYPE'
+          d 'net.minecraft.tags.DamageTypeTags' 'BYPASSES'
+          d 'net.minecraft.core.Registry' 'getValue|getKey'
+          d 'net.minecraft.core.registries.BuiltInRegistries' 'ITEM'
+          d 'net.minecraft.commands.arguments.EntityArgument' 'player|getPlayer'
+          d 'net.minecraft.commands.arguments.item.ItemArgument' '.'
+          d 'net.minecraft.commands.arguments.item.ItemInput' 'createItemStack|getItem'
+          d 'net.minecraft.server.MinecraftServer' 'reloadResources|getPackRepository|getScoreboard|getPlayerList|getAllLevels'
+          d 'net.minecraft.server.packs.repository.PackRepository' 'getSelectedIds|getAvailableIds'
+          d 'net.minecraft.server.players.PlayerList' 'broadcastSystemMessage|getPlayers|getPlayer\('
+          d 'net.minecraft.server.network.ServerGamePacketListenerImpl' 'send\(|disconnect'
+          d 'net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket' 'public'
+          d 'net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket' 'public'
+          d 'net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket' 'public'
+          d 'net.minecraft.world.entity.decoration.ArmorStand' 'public|setSmall|setMarker'
+          d 'net.minecraft.world.entity.item.ItemEntity' 'PickUp|getItem'
+          d 'net.minecraft.world.level.GameType' '.'
+          d 'net.minecraft.network.chat.Component' 'literal|empty'
+          d 'net.minecraft.network.chat.MutableComponent' 'append|withStyle'
+          d 'net.minecraft.network.chat.Style' 'withClickEvent|withColor'
+          d 'net.minecraft.resources.ResourceLocation' 'fromNamespaceAndPath|parse'
+          d 'net.minecraft.world.phys.AABB' 'ofSize|inflate'
+          d 'net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents' '.'
+          d 'net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents' '.'
+          d 'net.fabricmc.fabric.api.event.player.AttackEntityCallback' '.'
+          d 'net.fabricmc.fabric.api.event.player.UseBlockCallback' '.'
+          d 'net.fabricmc.fabric.api.resource.ResourceManagerHelper' 'registerBuiltinResourcePack'
+          d 'net.fabricmc.fabric.api.resource.ResourcePackActivationType' '.'
+          d 'net.fabricmc.fabric.api.message.v1.ServerMessageEvents' 'CHAT'
+          d 'net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents' 'JOIN|DISCONNECT'
+          d 'net.minecraft.server.permissions.PermissionCheck' '.'
+          d 'net.minecraft.server.permissions.PermissionSet' 'hasPermission|contains'
 
       - name: Build all mods
         run: ./gradlew build --continue --stacktrace
