@@ -17,6 +17,62 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: API dump (temporaer, fuer 26.2-Signaturen)
+        continue-on-error: true
+        run: |
+          ./gradlew :printCoreClasspath -q || true
+          CP=$(cat build/core-classpath.txt)
+          for c in \
+            'net.minecraft.commands.Commands' \
+            'net.minecraft.commands.PermissionCheck' \
+            'net.minecraft.commands.permissions.PermissionCheck' \
+            'net.minecraft.commands.PermissionSource' \
+            'net.minecraft.commands.CommandSourceStack' \
+            'net.minecraft.network.chat.ClickEvent' \
+            'net.minecraft.network.chat.ClickEvent$Action' \
+            'net.minecraft.network.chat.ClickEvent$CopyToClipboard' \
+            'net.minecraft.server.level.ServerPlayer' \
+            'net.minecraft.world.entity.LivingEntity' \
+            'net.minecraft.world.entity.Entity' \
+            'net.minecraft.world.entity.Relative' \
+            'net.minecraft.world.entity.decoration.ArmorStand' \
+            'net.minecraft.world.entity.item.ItemEntity' \
+            'net.minecraft.world.entity.ExperienceOrb' \
+            'net.minecraft.world.entity.player.Player' \
+            'net.minecraft.world.entity.player.Inventory' \
+            'net.minecraft.world.food.FoodData' \
+            'net.minecraft.world.effect.MobEffects' \
+            'net.minecraft.world.effect.MobEffectInstance' \
+            'net.minecraft.world.damagesource.DamageSources' \
+            'net.minecraft.server.level.ServerBossEvent' \
+            'net.minecraft.world.BossEvent$BossBarColor' \
+            'net.minecraft.world.BossEvent$BossBarOverlay' \
+            'net.minecraft.world.InteractionResult' \
+            'net.minecraft.world.scores.Scoreboard' \
+            'net.minecraft.world.scores.PlayerTeam' \
+            'net.minecraft.world.inventory.AnvilMenu' \
+            'net.minecraft.world.inventory.DataSlot' \
+            'net.minecraft.world.level.GameRules' \
+            'net.minecraft.world.level.Level$ExplosionInteraction' \
+            'net.minecraft.world.level.block.CropBlock' \
+            'net.minecraft.world.level.block.Block' \
+            'net.minecraft.world.level.block.SoundType' \
+            'net.minecraft.tags.DamageTypeTags' \
+            'net.minecraft.core.Registry' \
+            'net.minecraft.core.registries.BuiltInRegistries' \
+            'net.minecraft.commands.arguments.EntityArgument' \
+            'net.minecraft.commands.arguments.item.ItemArgument' \
+            'net.minecraft.server.MinecraftServer' \
+            'net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents' \
+            'net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents' \
+            'net.fabricmc.fabric.api.event.player.AttackEntityCallback' \
+            'net.fabricmc.fabric.api.event.player.UseBlockCallback' \
+            'net.fabricmc.fabric.api.resource.ResourceManagerHelper' \
+          ; do
+            echo "=====CLASS $c"
+            javap -classpath "$CP" "$c" 2>&1 | head -90
+          done
+
       - name: Build all mods
         run: ./gradlew build --continue --stacktrace
 
