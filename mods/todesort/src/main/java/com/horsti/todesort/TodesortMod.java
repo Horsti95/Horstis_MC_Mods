@@ -11,7 +11,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
@@ -46,12 +45,15 @@ public class TodesortMod implements ModInitializer {
 	}
 
 	private static String dimensionsName(Level level) {
-		Identifier id = level.dimension().location();
-		return switch (id.toString()) {
-			case "minecraft:overworld" -> "Oberwelt";
-			case "minecraft:the_nether" -> "Nether";
-			case "minecraft:the_end" -> "Ende";
-			default -> id.getPath();
-		};
+		if (level.dimension() == Level.NETHER) {
+			return "Nether";
+		}
+		if (level.dimension() == Level.END) {
+			return "Ende";
+		}
+		if (level.dimension() == Level.OVERWORLD) {
+			return "Oberwelt";
+		}
+		return "andere Dimension";
 	}
 }

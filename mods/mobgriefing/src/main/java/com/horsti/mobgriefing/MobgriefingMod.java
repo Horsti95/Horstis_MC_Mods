@@ -7,7 +7,7 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -51,10 +51,11 @@ public class MobgriefingMod implements ModInitializer {
 		if (quelle instanceof Creeper) {
 			return "creeper";
 		}
-		if (quelle.getType() == EntityType.WITHER_SKULL || quelle instanceof WitherBoss) {
+		String typId = BuiltInRegistries.ENTITY_TYPE.getKey(quelle.getType()).toString();
+		if (typId.equals("minecraft:wither_skull") || quelle instanceof WitherBoss) {
 			return "wither";
 		}
-		if (quelle.getType() == EntityType.FIREBALL || quelle.getType() == EntityType.SMALL_FIREBALL) {
+		if (typId.endsWith("fireball")) { // fireball, small_fireball, dragon_fireball
 			return "ghast";
 		}
 		return null;
