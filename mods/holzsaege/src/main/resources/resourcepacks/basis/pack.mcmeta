@@ -1,0 +1,10 @@
+{
+	"pack": {
+		"pack_format": 48,
+		"supported_formats": {
+			"min_inclusive": 15,
+			"max_inclusive": 9999
+		},
+		"description": "Holzs\u00e4ge: St\u00e4mme\u2192Bretter, Treppen, Stufen, Z\u00e4une, Tore, Schilder"
+	}
+}

@@ -3,9 +3,9 @@
 > **Dies ist die einzige Wahrheitsquelle** für aktuellen Stand, Mod-Liste und nächste Schritte.
 > Mod-Ordner-READMEs = reine Nutzungs-/Spec-Doku (kein Status). Keine Ideen in verstreuten .md-Dateien.
 >
-> **Status: GO erteilt.** Plan v1+v2 freigegeben; v3 setzt Horstis Auftrag um: Community-Wünsche als einzeln
-> shippbare Mods, Modularitäts-Prinzip, Sub-Folder + READMEs für alle bestätigten Ideen (noch kein Code).
-> **Nächster Schritt: Durchgang 1** (Gradle-Gerüst + `core` + erster Mod, siehe Abschnitt 5).
+> **Status: Durchgang 1–13 gebaut** (Gradle-Monorepo, `core` mit Settings-Registry, Mods Rang 1–13, CI).
+> Kompilierung läuft über GitHub Actions (der Build-Container hier blockiert Mojang-/Fabric-Downloads,
+> die CI-Runner nicht). Nächster Schritt nach grünem CI: Horstis Playtest + GO für Rang 14–21.
 
 ---
 
@@ -51,19 +51,19 @@ Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame �
 
 | Rang | Mod (Ordner) | Kat. | Kurzbeschreibung | Aufwand | Öffentlich? | Status |
 |--:|--------------|------|------------------|---------|-------------|--------|
-| 1 | `todesort` | QoL | Todeskoordinaten privat im Chat (klickbar) | Trivial | Kandidat | 📋 geplant |
-| 2 | `afk` | QoL | AFK-Markierung in der Tab-Liste | Trivial | Kandidat | 📋 geplant |
-| 3 | `killmagnet` | Twist | Drops deiner Kills fliegen zu dir | Trivial | Kandidat | 📋 geplant |
-| 4 | `anvilfix` | QoL | „Too Expensive“ aus, Kosten regelbar | Leicht | **Kandidat ⭐** | 📋 geplant |
-| 5 | `keepmoving` | Twist | Stillstand = Schaden (nach Karenz) | Leicht | Kandidat (Lücke) | 📋 geplant |
-| 6 | `totem` | QoL | Totem wirkt aus dem Inventar | Leicht | Kandidat | 📋 geplant |
-| 7 | `holzsaege` | QoL | Steinsäge verarbeitet Holz | Leicht | Kandidat | 📋 geplant |
-| 8 | `deathswap` | Spiel | Alle N Min. Positions-Tausch | Leicht | erst Playtest | 📋 geplant |
-| 9 | `tag` | Spiel | Fangen: „Es“ mit Speed+Glow, Timer, Punkte | Leicht–mittel | Kandidat (Lücke) | 📋 geplant |
-| 10 | `sit` | QoL | Sitzen auf Treppen/Stufen + /sit | Leicht–mittel | erst Playtest | 📋 geplant |
-| 11 | `bounty` | Spiel | Kopfgeld auf Zufallsspieler (Glow) | Leicht–mittel | Kandidat (Lücke) | 📋 geplant |
-| 12 | `mobgriefing` | QoL | mobGriefing pro Mob-Typ statt global | Leicht–mittel | Kandidat | 📋 geplant |
-| 13 | `ernte` | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | 📋 geplant |
+| 1 | `todesort` | QoL | Todeskoordinaten privat im Chat (klickbar) | Trivial | Kandidat | 🔨 gebaut, CI-Check |
+| 2 | `afk` | QoL | AFK-Markierung in der Tab-Liste | Trivial | Kandidat | 🔨 gebaut, CI-Check |
+| 3 | `killmagnet` | Twist | Drops deiner Kills fliegen zu dir | Trivial | Kandidat | 🔨 gebaut, CI-Check |
+| 4 | `anvilfix` | QoL | „Too Expensive“ aus, Kosten regelbar | Leicht | **Kandidat ⭐** | 🔨 gebaut, CI-Check |
+| 5 | `keepmoving` | Twist | Stillstand = Schaden (nach Karenz) | Leicht | Kandidat (Lücke) | 🔨 gebaut, CI-Check |
+| 6 | `totem` | QoL | Totem wirkt aus dem Inventar | Leicht | Kandidat | 🔨 gebaut, CI-Check |
+| 7 | `holzsaege` | QoL | Steinsäge verarbeitet Holz | Leicht | Kandidat | 🔨 gebaut, CI-Check |
+| 8 | `deathswap` | Spiel | Alle N Min. Positions-Tausch | Leicht | erst Playtest | 🔨 gebaut, CI-Check |
+| 9 | `tag` | Spiel | Fangen: „Es“ mit Speed+Glow, Timer, Punkte | Leicht–mittel | Kandidat (Lücke) | 🔨 gebaut, CI-Check |
+| 10 | `sit` | QoL | Sitzen auf Treppen/Stufen + /sit | Leicht–mittel | erst Playtest | 🔨 gebaut, CI-Check |
+| 11 | `bounty` | Spiel | Kopfgeld auf Zufallsspieler (Glow) | Leicht–mittel | Kandidat (Lücke) | 🔨 gebaut, CI-Check |
+| 12 | `mobgriefing` | QoL | mobGriefing pro Mob-Typ statt global | Leicht–mittel | Kandidat | 🔨 gebaut, CI-Check |
+| 13 | `ernte` | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | 🔨 gebaut, CI-Check |
 | 14 | `juggernaut` | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | 📋 geplant |
 | 15 | `pets` | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | 📋 geplant |
 | 16 | `gabe-buerde` | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | 📋 geplant |

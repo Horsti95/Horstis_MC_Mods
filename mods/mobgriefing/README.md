@@ -17,7 +17,8 @@ Schaf-Grasfresser. Dieser Mod entkoppelt das — jede Mob-Kategorie einzeln scha
 | `wither` | Wither zerstört Blöcke | on |
 | `villager` | Villager ernten/säen (Farmen!) | on |
 | `schaf` | Schafe fressen Gras | on |
-| `sonstige` | Alles Übrige (Ravager, Silverfish, Fuchs …) | on |
+
+*(v1 deckt die sechs genannten Typen ab; Ravager/Silverfish & Co. bleiben Vanilla und kommen bei Bedarf dazu.)*
 
 Die Vanilla-Gamerule bleibt unberührt auf `true`; der Mod fängt gezielt die Einzelfälle ab.
 

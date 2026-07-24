@@ -1,0 +1,19 @@
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
+rootProject.name = 'horstis-mc-mods'
+
+include ':core'
+
+[
+	'todesort', 'afk', 'killmagnet', 'anvilfix', 'keepmoving', 'totem', 'holzsaege',
+	'deathswap', 'tag', 'sit', 'bounty', 'mobgriefing', 'ernte'
+].each { include ":mods:${it}" }

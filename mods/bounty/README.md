@@ -19,10 +19,10 @@ Spieler haben Karenz.
 | `/bounty` | Status + aktuelle Werte |
 | `/bounty on \| off` | Automatik an/aus |
 | `/bounty jetzt [<Spieler>]` | Sofort ein Kopfgeld (zufällig oder gezielt) |
+| `/bounty belohnung <item> <anzahl>` | Belohnung setzen, mit Item-Autovervollständigung (Default: **3× Diamant**) |
 | `/bounty set intervallMin <10–240>` | Abstand zwischen Kopfgeldern (Default: **45**) |
 | `/bounty set dauerMin <5–60>` | Jagd-Frist (Default: **15**) |
 | `/bounty set glow on\|off` | Ziel leuchtet (Default: **on**) |
-| `/bounty set belohnung <item> <anzahl>` | Belohnung, mehrfach aufrufbar = Liste (Default: **3× Diamant**) |
 | `/bounty set minSpieler <2–16>` | Automatik erst ab X Online-Spielern (Default: **3**) |
 | `/bounty set ueberlebensPraemie on\|off` | Ziel kassiert bei Überleben (Default: **on**) |
 

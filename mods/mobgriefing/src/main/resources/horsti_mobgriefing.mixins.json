@@ -1,0 +1,16 @@
+{
+	"required": false,
+	"package": "com.horsti.mobgriefing.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"LevelExplosionMixin",
+		"EndermanTakeMixin",
+		"EndermanLeaveMixin",
+		"EatBlockGoalMixin",
+		"HarvestFarmlandMixin",
+		"WitherBossMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

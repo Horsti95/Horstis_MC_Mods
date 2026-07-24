@@ -17,8 +17,12 @@ sehen einfach die neuen Kosten.
 |---|---|
 | `/anvilfix` | Status + aktuelle Werte |
 | `/anvilfix on \| off` | Mod an/aus (off = Vanilla-Verhalten) |
-| `/anvilfix set levelCap <0–1000>` | Kostenobergrenze, 0 = kein Limit (Default: **0**) |
+| `/anvilfix set maxKosten <1–39>` | Kostendeckel in Leveln; 39 = nie „Zu teuer“ (Default: **39**) |
 | `/anvilfix set priorWork vanilla\|halb\|aus` | Verdopplungs-Strafe (Default: **halb**) |
+
+*Warum max. 39? Vanilla-Clients verweigern ab 40 client-seitig die Entnahme — der Deckel bleibt darunter,
+damit auch ungemoddete Clients das Ergebnis nehmen können. Effekt: „Zu teuer“ existiert nicht mehr,
+teure Aktionen kosten höchstens `maxKosten` Level.*
 
 ## Installation
 

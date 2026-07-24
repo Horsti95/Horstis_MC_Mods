@@ -1,0 +1,20 @@
+{
+	"schemaVersion": 1,
+	"id": "horsti_anvilfix",
+	"version": "${version}",
+	"name": "Horsti Anvilfix",
+	"description": "Kein 'Zu teuer!' mehr am Amboss; Kosten und Prior-Work-Strafe regelbar.",
+	"authors": ["Horsti", "Claude"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.horsti.anvilfix.AnvilfixMod"]
+	},
+	"mixins": ["horsti_anvilfix.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.19.0",
+		"fabric-api": "*",
+		"minecraft": "~26.2",
+		"horsti_core": "*"
+	}
+}

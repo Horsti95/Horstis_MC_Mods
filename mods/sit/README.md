@@ -23,6 +23,7 @@ Für alle Spieler: Rechtsklick auf Treppe/Stufe · `/sitz` (wenn aktiviert).
 | `/sit set stufen on\|off` | Stufen klickbar (Default: **on**) |
 | `/sit set command on\|off` | `/sitz` für alle erlauben (Default: **off**) |
 | `/sit set nurLeereHand on\|off` | Nur mit leerer Hand (Default: **on** — verhindert Fehlklicks beim Bauen) |
+| `/sit set aufstehenBeiSchaden on\|off` | Bei Schaden automatisch aufstehen (Default: **on**) |
 
 ## Installation
 

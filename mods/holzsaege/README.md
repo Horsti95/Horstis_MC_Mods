@@ -16,10 +16,12 @@ gesynct — Vanilla-Clients sehen sie ganz normal in der Säge. Keine neuen Blö
 | Command | Wirkung |
 |---|---|
 | `/holzsaege` | Status + aktuelle Werte |
-| `/holzsaege on \| off` | Rezepte aktiv/inaktiv (Re-Sync automatisch, dauert 1 Tick) |
-| `/holzsaege set stammZuBretter <2–6>` | Bretter pro Stamm in der Säge (Default: **4**, wie Crafting) |
+| `/holzsaege on \| off` | Rezepte aktiv/inaktiv (lädt die Rezeptliste live neu) |
 | `/holzsaege set tueren on\|off` | Auch Türen/Falltüren (Default: **on**) |
 | `/holzsaege set redstone on\|off` | Auch Knöpfe/Druckplatten (Default: **on**) |
+
+*Technik: Die Rezepte stecken in drei eingebauten Datapacks (Basis/Türen/Redstone); Toggles schalten die
+Packs um und laden live neu. Erträge fest an Vanilla angelehnt (Stamm→4 Bretter, Bambus-Block→2).*
 
 ## Installation
 

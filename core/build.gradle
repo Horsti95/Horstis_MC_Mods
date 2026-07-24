@@ -1,0 +1,2 @@
+// horsti-core: gemeinsame Mini-Lib, wird per Jar-in-Jar in jede Mod eingebettet.
+// Alle Einstellungen kommen aus dem Root-build.gradle.

@@ -1,0 +1,10 @@
+{
+	"pack": {
+		"pack_format": 48,
+		"supported_formats": {
+			"min_inclusive": 15,
+			"max_inclusive": 9999
+		},
+		"description": "Holzs\u00e4ge: T\u00fcren und Fallt\u00fcren"
+	}
+}
