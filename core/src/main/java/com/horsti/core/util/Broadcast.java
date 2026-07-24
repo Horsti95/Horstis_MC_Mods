@@ -1,6 +1,7 @@
 package com.horsti.core.util;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.server.MinecraftServer;
@@ -15,7 +16,7 @@ public final class Broadcast {
 	}
 
 	public static void actionbar(ServerPlayer player, Component msg) {
-		player.displayClientMessage(msg, true);
+		player.connection.send(new ClientboundSetActionBarTextPacket(msg));
 	}
 
 	public static void titel(ServerPlayer player, Component titel, Component untertitel) {

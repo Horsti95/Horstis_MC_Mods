@@ -18,7 +18,7 @@ public class HorstiCore implements ModInitializer {
 
 			// /horsti = Uebersicht
 			dispatcher.register(Commands.literal("horsti")
-				.requires(src -> src.hasPermission(HorstiCommands.OP_LEVEL))
+				.requires(Commands.hasPermission(HorstiCommands.OP_LEVEL))
 				.executes(c -> {
 					MutableComponent msg = Component.literal("Horstis Mods:").withStyle(ChatFormatting.GOLD);
 					for (HorstiMod mod : HorstiRegistry.alle()) {

@@ -21,7 +21,7 @@ public final class HorstiCommands {
 
 	public static void registrieren(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext ctx, HorstiMod mod) {
 		LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal(mod.commandName)
-			.requires(src -> src.hasPermission(OP_LEVEL))
+			.requires(Commands.hasPermission(OP_LEVEL))
 			.executes(c -> status(c.getSource(), mod));
 
 		root.then(Commands.literal("on").executes(c -> setzeAktiv(c.getSource(), mod, true)));
