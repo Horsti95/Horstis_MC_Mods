@@ -43,13 +43,3 @@ subprojects.findAll { it.path.startsWith(':mods:') }.each { p ->
 		include p.project(':core')
 	}
 }
-
-// Hilfstask fuer CI-API-Inspektion: schreibt den Compile-Klassenpfad von :core,
-// damit ein Workflow-Schritt per javap echte 26.2-Signaturen ausgeben kann.
-tasks.register('printCoreClasspath') {
-	doLast {
-		def core = project(':core')
-		file('build').mkdirs()
-		file('build/core-classpath.txt').text = core.sourceSets.main.compileClasspath.asPath
-	}
-}

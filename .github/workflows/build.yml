@@ -20,7 +20,7 @@ jobs:
       - name: API dump (temporaer, fuer 26.2-Signaturen)
         continue-on-error: true
         run: |
-          ./gradlew :printCoreClasspath -q || true
+          ./gradlew :core:printCoreClasspath -q || true
           CP=$(cat build/core-classpath.txt)
           for c in \
             'net.minecraft.commands.Commands' \

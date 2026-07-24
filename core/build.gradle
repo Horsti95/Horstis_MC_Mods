@@ -1,2 +1,11 @@
 // horsti-core: gemeinsame Mini-Lib, wird per Jar-in-Jar in jede Mod eingebettet.
 // Alle Einstellungen kommen aus dem Root-build.gradle.
+
+// Hilfstask fuer CI-API-Inspektion: schreibt den eigenen Compile-Klassenpfad,
+// damit ein Workflow-Schritt per javap echte 26.2-Signaturen ausgeben kann.
+tasks.register('printCoreClasspath') {
+	doLast {
+		rootProject.file('build').mkdirs()
+		rootProject.file('build/core-classpath.txt').text = sourceSets.main.compileClasspath.asPath
+	}
+}
