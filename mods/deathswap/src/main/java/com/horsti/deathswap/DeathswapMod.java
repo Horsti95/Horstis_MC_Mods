@@ -1,6 +1,7 @@
 package com.horsti.deathswap;
 
 import com.horsti.core.HorstiMod;
+import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.BoolSetting;
 import com.horsti.core.settings.IntSetting;
 import com.horsti.core.settings.ModSettings;
@@ -60,8 +61,8 @@ public class DeathswapMod implements ModInitializer {
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (laeuft && entity instanceof ServerPlayer sp && teilnehmer.remove(sp.getUUID())) {
 				ausgeschieden.add(sp.getUUID());
-				Broadcast.chat(sp.getServer(), Component.literal(sp.getName().getString() + " ist raus!").withStyle(ChatFormatting.RED));
-				pruefeSieg(sp.getServer());
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist raus!").withStyle(ChatFormatting.RED));
+				pruefeSieg(HorstiServer.get());
 			}
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((alt, neu, lebt) -> {
@@ -124,7 +125,7 @@ public class DeathswapMod implements ModInitializer {
 		List<ServerPlayer> reihenfolge = new ArrayList<>(aktive);
 		Collections.shuffle(reihenfolge, random);
 		List<Ort> orte = reihenfolge.stream()
-			.map(p -> new Ort(p.serverLevel(), p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot()))
+			.map(p -> new Ort((ServerLevel) p.level(), p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot()))
 			.toList();
 		for (int i = 0; i < reihenfolge.size(); i++) {
 			Ort ziel = orte.get((i + 1) % orte.size());

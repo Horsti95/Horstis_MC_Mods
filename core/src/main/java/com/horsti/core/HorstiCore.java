@@ -2,6 +2,7 @@ package com.horsti.core;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -10,6 +11,9 @@ import net.minecraft.network.chat.MutableComponent;
 public class HorstiCore implements ModInitializer {
 	@Override
 	public void onInitialize() {
+		ServerLifecycleEvents.SERVER_STARTED.register(HorstiServer::setzen);
+		ServerLifecycleEvents.SERVER_STOPPED.register(s -> HorstiServer.setzen(null));
+
 		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) -> {
 			// /<mod> fuer jeden angemeldeten Mod
 			for (HorstiMod mod : HorstiRegistry.alle()) {

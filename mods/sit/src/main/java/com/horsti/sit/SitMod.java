@@ -85,7 +85,7 @@ public class SitMod implements ModInitializer {
 			if (!level.getBlockState(pos.above()).isAir()) {
 				return InteractionResult.PASS;
 			}
-			hinsetzen(sp, pos.getX() + 0.5, pos.getY() + sitzHoehe - 0.6, pos.getZ() + 0.5);
+			hinsetzen(sp, pos.getX() + 0.5, pos.getY() + sitzHoehe - 1.05, pos.getZ() + 0.5);
 			return InteractionResult.SUCCESS;
 		});
 
@@ -115,17 +115,16 @@ public class SitMod implements ModInitializer {
 	}
 
 	private void hinsetzen(ServerPlayer sp, double x, double y, double z) {
-		ServerLevel level = sp.serverLevel();
+		ServerLevel level = (ServerLevel) sp.level();
 		ArmorStand sitz = new ArmorStand(level, x, y, z);
 		sitz.setInvisible(true);
 		sitz.setNoGravity(true);
 		sitz.setInvulnerable(true);
-		sitz.setSmall(true);
 		sitz.addTag(SITZ_TAG);
 		level.addFreshEntity(sitz);
 		sitze.add(sitz);
 		sitzIds.add(sitz.getUUID());
-		sp.startRiding(sitz, true);
+		sp.startRiding(sitz);
 	}
 
 	private void alleAufstehen() {

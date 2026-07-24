@@ -73,7 +73,7 @@ public class KeepmovingMod implements ModInitializer {
 				continue;
 			}
 			switch (modus.get()) {
-				case "schaden" -> sp.hurtServer(sp.serverLevel(), sp.damageSources().generic(), staerke.get());
+				case "schaden" -> sp.hurtServer((net.minecraft.server.level.ServerLevel) sp.level(), sp.damageSources().generic(), staerke.get());
 				case "hunger" -> sp.getFoodData().addExhaustion(staerke.get() * 4.0f);
 				case "wither" -> sp.addEffect(new MobEffectInstance(MobEffects.WITHER, 40, staerke.get() - 1));
 			}

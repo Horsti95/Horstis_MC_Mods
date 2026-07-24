@@ -1,6 +1,7 @@
 package com.horsti.todesort;
 
 import com.horsti.core.HorstiMod;
+import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.BoolSetting;
 import com.horsti.core.settings.ModSettings;
 import com.horsti.core.util.Broadcast;
@@ -10,7 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
@@ -37,7 +38,7 @@ public class TodesortMod implements ModInitializer {
 				msg.append(Component.literal(" (" + dimensionsName(sp.level()) + ")").withStyle(ChatFormatting.GRAY));
 			}
 			if (oeffentlich.get()) {
-				Broadcast.chat(sp.getServer(), msg);
+				Broadcast.chat(HorstiServer.get(), msg);
 			} else {
 				sp.sendSystemMessage(msg);
 			}
@@ -45,7 +46,7 @@ public class TodesortMod implements ModInitializer {
 	}
 
 	private static String dimensionsName(Level level) {
-		ResourceLocation id = level.dimension().location();
+		Identifier id = level.dimension().location();
 		return switch (id.toString()) {
 			case "minecraft:overworld" -> "Oberwelt";
 			case "minecraft:the_nether" -> "Nether";

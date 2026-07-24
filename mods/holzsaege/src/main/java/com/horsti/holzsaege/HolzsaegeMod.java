@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class HolzsaegeMod implements ModInitializer {
 		ModContainer container = FabricLoader.getInstance().getModContainer("horsti_holzsaege").orElseThrow();
 		for (String pack : PACKS) {
 			ResourceManagerHelper.registerBuiltinResourcePack(
-				ResourceLocation.fromNamespaceAndPath("horsti_holzsaege", pack),
+				Identifier.fromNamespaceAndPath("horsti_holzsaege", pack),
 				container,
 				Component.literal("Horsti Holzsäge (" + pack + ")"),
 				ResourcePackActivationType.DEFAULT_ENABLED);

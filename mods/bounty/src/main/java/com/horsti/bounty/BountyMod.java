@@ -1,6 +1,7 @@
 package com.horsti.bounty;
 
 import com.horsti.core.HorstiMod;
+import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.BoolSetting;
 import com.horsti.core.settings.IntSetting;
 import com.horsti.core.settings.ModSettings;
@@ -16,7 +17,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -66,7 +67,7 @@ public class BountyMod implements ModInitializer {
 					.then(Commands.argument("item", ItemArgument.item(ctx))
 						.then(Commands.argument("anzahl", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 64))
 							.executes(c -> {
-								ItemStack stack = ItemArgument.getItem(c, "item").createItemStack(1, false);
+								ItemStack stack = ItemArgument.getItem(c, "item").createItemStack(1);
 								belohnungItem.set(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
 								belohnungAnzahl.set(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "anzahl"));
 								settings.speichern();
@@ -89,7 +90,7 @@ public class BountyMod implements ModInitializer {
 				return;
 			}
 			ServerPlayer killer = source.getEntity() instanceof ServerPlayer k && !k.getUUID().equals(ziel) ? k : null;
-			beenden(opfer.getServer(), killer, false);
+			beenden(HorstiServer.get(), killer, false);
 		});
 
 		Ticker.alleTicks(20, this::sekundenTick);
@@ -148,7 +149,7 @@ public class BountyMod implements ModInitializer {
 		}
 		ziel = neuesZiel.getUUID();
 		endTick = jetztTick + dauerMin.get() * 1200L;
-		bossBar = new ServerBossEvent(Component.literal("Kopfgeld!"), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
+		bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), Component.literal("Kopfgeld!"), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
 		server.getPlayerList().getPlayers().forEach(bossBar::addPlayer);
 		Broadcast.titelAlle(server, Component.literal("KOPFGELD!").withStyle(ChatFormatting.RED),
 			Component.literal(neuesZiel.getName().getString() + " ist zum Abschuss freigegeben — " + belohnungAnzahl.get() + "× " + hübsch(belohnungItem.get())));
@@ -178,7 +179,7 @@ public class BountyMod implements ModInitializer {
 	}
 
 	private void auszahlen(ServerPlayer empfaenger) {
-		Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(belohnungItem.get()));
+		Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(belohnungItem.get()));
 		if (item == Items.AIR) {
 			item = Items.DIAMOND;
 		}

@@ -1,6 +1,7 @@
 package com.horsti.tag;
 
 import com.horsti.core.HorstiMod;
+import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.BoolSetting;
 import com.horsti.core.settings.IntSetting;
 import com.horsti.core.settings.ModSettings;
@@ -99,7 +100,7 @@ public class TagMod implements ModInitializer {
 		endTick = jetztTick + rundenMin.get() * 1200L;
 		ServerPlayer erster = spieler.get(random.nextInt(spieler.size()));
 		setzeEs(erster);
-		bossBar = new ServerBossEvent(Component.literal("Tag"), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
+		bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), Component.literal("Tag"), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
 		spieler.forEach(bossBar::addPlayer);
 		Broadcast.titelAlle(server, Component.literal("FANGEN!").withStyle(ChatFormatting.YELLOW),
 			Component.literal(erster.getName().getString() + " ist Es — lauft!"));
@@ -115,7 +116,7 @@ public class TagMod implements ModInitializer {
 	private void uebergeben(ServerPlayer alt, ServerPlayer neu) {
 		effekteEntfernen(alt);
 		setzeEs(neu);
-		Broadcast.chat(alt.getServer(), Component.literal(neu.getName().getString() + " ist jetzt Es!").withStyle(ChatFormatting.YELLOW));
+		Broadcast.chat(HorstiServer.get(), Component.literal(neu.getName().getString() + " ist jetzt Es!").withStyle(ChatFormatting.YELLOW));
 	}
 
 	private void effekteEntfernen(ServerPlayer sp) {

@@ -1,6 +1,7 @@
 package com.horsti.afk;
 
 import com.horsti.core.HorstiMod;
+import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.BoolSetting;
 import com.horsti.core.settings.IntSetting;
 import com.horsti.core.settings.ModSettings;
@@ -16,9 +17,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.TeamColor;
 import net.minecraft.world.scores.Scoreboard;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Map;
 import java.util.UUID;
 
@@ -114,15 +117,15 @@ public class AfkMod implements ModInitializer {
 		z.afk = afk;
 		if (afk) {
 			z.inaktivTicks = Math.max(z.inaktivTicks, minuten.get() * 1200L);
-			teamHinzufuegen(sp.getServer(), sp);
+			teamHinzufuegen(HorstiServer.get(), sp);
 			if (ansage.get()) {
-				Broadcast.chat(sp.getServer(), Component.literal(sp.getName().getString() + " ist jetzt AFK").withStyle(ChatFormatting.GRAY));
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist jetzt AFK").withStyle(ChatFormatting.GRAY));
 			}
 		} else {
 			z.inaktivTicks = 0;
-			teamEntfernen(sp.getServer(), sp);
+			teamEntfernen(HorstiServer.get(), sp);
 			if (ansage.get()) {
-				Broadcast.chat(sp.getServer(), Component.literal(sp.getName().getString() + " ist zurueck").withStyle(ChatFormatting.GRAY));
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist zurueck").withStyle(ChatFormatting.GRAY));
 			}
 		}
 	}
@@ -132,8 +135,7 @@ public class AfkMod implements ModInitializer {
 		PlayerTeam team = scoreboard.getPlayerTeam(TEAM_NAME);
 		if (team == null) {
 			team = scoreboard.addPlayerTeam(TEAM_NAME);
-			team.setColor(ChatFormatting.GRAY);
-			team.setSuffix(Component.literal(" [AFK]").withStyle(ChatFormatting.DARK_GRAY));
+			team.setColor(Optional.of(TeamColor.GRAY));
 		}
 		return team;
 	}
