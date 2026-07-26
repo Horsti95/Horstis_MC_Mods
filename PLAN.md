@@ -123,11 +123,34 @@ Horstis_MC_Mods/
   Push → **Stopp** für Horstis Token-Check). Ausnahme auf Wunsch: Rang 1–3 (Trivial) als ein Durchgang.
 - Durchgang 1 enthält zusätzlich: Gradle-Gerüst + `core` + CI-Workflow.
 
-## 6. Veröffentlichung (privat → öffentlich)
+## 6. Veröffentlichung (privat → öffentlich) + Modrinth
 
 Alle Mods entstehen hier (privates Test-Repo). Horsti playtestet; bei „OK/GO“ pro Mod → Copy des
-Sub-Folders in ein eigenes Public-Repo (dank Prinzip 5 ohne Umbau möglich), dann optional
-Modrinth-Publishing (hilft auch Aternos-Ein-Klick). „Erst Playtest“-Mods bleiben ggf. dauerhaft privat.
+Sub-Folders in ein eigenes Public-Repo (dank Prinzip 5 ohne Umbau möglich), dann Modrinth-Publishing
+(hilft auch der Aternos-Ein-Klick-Installation). „Erst Playtest“-Mods bleiben ggf. dauerhaft privat.
+
+### 6.1 Modrinth-Upload — geprüft, machbar (Stand Juli 2026)
+
+**Zulässig:** Kein Freigabe-Prozess für normale Mods (nur Modpacks mit fremden Inhalten werden geprüft).
+Modrinths Content Rules verlangen: eigene Rechte am Inhalt ✅ (alles selbst geschrieben, MIT-Lizenz),
+keine Cheats/Unfair-Advantage ✅ (server-seitige Mods, vom Admin gesteuert), **englischsprachige
+Projektbeschreibung** ⚠️ (unsere READMEs sind deutsch → englische Beschreibung nötig).
+
+**Automatisierbar:** GitHub Action `cloudnode-pro/modrinth-publish@v2` lädt Jars nach jedem Release hoch.
+Braucht: Modrinth-Account, pro Mod ein Projekt (einmalig manuell anlegen → Projekt-ID), einen
+API-Token mit „Create versions“-Scope als GitHub-Secret `MODRINTH_TOKEN`.
+
+**Offene To-dos vor dem ersten Upload** (nichts davon ist ein Blocker, alles Fleißarbeit):
+1. Pro Mod eine **englische Kurzbeschreibung** (~5 Sätze) + Feature-Liste.
+2. **Projekt-Icons** — Modrinth zeigt sonst einen Platzhalter. Achtung No-Asset-Regel: Icons sind
+   Store-Grafik, kein Spiel-Asset — trotzdem braucht es 21× ein Bild (oder ein gemeinsames Logo).
+3. Entscheidung **Einzelprojekte vs. Sammelprojekt**: 21 Einzelprojekte = maximale Auffindbarkeit,
+   aber 21× Pflege. Empfehlung: **erst 3–5 Flaggschiffe einzeln** (nemesis, anvilfix, tag, bounty,
+   juggernaut), Rest später oder als Sammel-Modpack.
+4. Versions-Schema festlegen (z. B. `0.2.0+26.2`) und `mod_version` in `gradle.properties` pflegen.
+
+**Wichtig:** Der Upload ist eine öffentliche, schwer rückholbare Aktion (Modrinth cached/indexiert).
+Er passiert erst nach Horstis ausdrücklichem OK pro Mod — und nach dem Playtest.
 
 ## 7. Installation / Deployment (freigegeben: E + C + D)
 
@@ -147,3 +170,41 @@ README-Fallback (D). Installer/PowerShell: abgelehnt (SmartScreen/Pfade/Wartung)
    Clean-Room-Nachbau der Funktion; KI-Kosten wären nicht der Engpass [~5–20 $ klein / 20–80 $ mittel pro
    Anlauf via API, mit Flatrate inklusive], sondern Test/Maintenance). **Selektiv ja:** Einzelfälle mit
    echter Lücke sammeln wir nach den Basis-Mods.
+
+## 9. Research-Runde 2 (Juli 2026) — Kandidaten für Welle 3
+
+### 9.1 Neue eigene QoL-Ideen (geprüft gegen den Markt)
+
+| Idee | Was | Nachfrage | Gibt’s das schon? | Verdikt |
+|---|---|---|---|---|
+| **`wrapped`** ⭐ | Wöchentliche Server-Highlights aus Vanilla-Statistiken: „meiste Blöcke gelaufen“, „meiste Tode“, „größter Bergmann“ — Ansage im Chat + `/wrapped` jederzeit | Mittel, aber hoher Wow-Effekt | Nur Bukkit-Plugins (PlayerStats) + externe Web-Tools; **als Fabric-Server-Mod nichts gefunden** | **Bauen — größte neue Lücke** |
+| **`werkzeugschutz`** | Werkzeug blockiert bei kritischer Haltbarkeit + Warnung, statt zu zerbrechen | Hoch (Dauerärgernis) | Existiert — aber **fast alles client-seitig** (jeder Spieler muss selbst installieren) | **Bauen** — server-seitig = gilt für alle, echter Mehrwert |
+| **`heim`** | `/heim`, `/warp`, `/tpa`, `/zurueck` (nach Tod/Teleport) | Sehr hoch („jeder Server braucht das“) | Viel vorhanden (Essentials-artig, auch für Fabric) | **Nur privat** — Mehrwert wäre nur die Integration ins Horsti-Schema |
+| **`nachschub`** | Leerer Block-Stack wird automatisch aus dem Inventar nachgefüllt | Mittel-hoch | Meist client-seitig | Kandidat, zweite Reihe |
+| **`spawnschutz`** | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Mittel | Teils vorhanden | Kandidat, zweite Reihe |
+| ~~`wegpunkte`~~ | Waypoints + Peilung für Vanilla-Clients | Hoch | **Mehrfach server-seitig vorhanden** (ServerPoints, Better Waypoints, Server-Side Waypoints) | **Gestrichen** — kein Mehrwert |
+
+### 9.2 Cobblemon — geprüft, aber blockiert
+
+**Kernbefund: Cobblemon läuft auf Minecraft 1.21.1, nicht auf unserer Zielversion 26.2.** Aktuell ist
+v1.7.3 (Jan 2026); das kommende 1.8.0 (TMs, Alpha-Pokémon, Habitate) war im Juli 2026 noch nicht
+veröffentlicht und zielt ebenfalls auf 1.21.1. Ein Cobblemon-Addon von uns bräuchte also einen
+**eigenen 1.21.1-Build-Zweig** — zweite Toolchain, zweite Testumgebung, doppelte Pflege.
+
+**Zweiter Befund:** Horstis konkrete Wünsche (XP-Leiste, Keybind-Übersicht per Hotkey) sind
+**HUD-Rendering = reine Client-Mods**. Das widerspricht Prinzip 3 (server-seitig, Vanilla-Clients) und
+wäre eine komplett neue Mod-Kategorie mit Mod-Menu/Cloth-Config und Client-Rendering-Code — genau der
+Bereich, den der 26.2-Grafikumbau (Vulkan/Blaze3D) instabil macht.
+
+**Vorhandene Sidemods** (Auswahl): Cobbledex (Pokédex-Infos), Mega Showdown, Capture XP, Myths and
+Legends, Server-Side Commands, Rider, Pasture Collector — die Szene ist aktiv und deckt viel ab.
+
+**Verdikt: zurückgestellt.** Empfehlung: abwarten, bis Cobblemon auf eine 26.x-Version zieht. Falls
+Horsti trotzdem will, ist der sinnvollste Einstieg ein **server-seitiges** Cobblemon-Addon für 1.21.1
+(z. B. Team-Wettkampf-Logik, Fang-Statistiken, Turnier-Modus) statt HUD-Features.
+
+### 9.3 Community-Wünsche, zweite Runde
+
+Der Wunschzettel-Research aus v2 hat sich bestätigt — die Evergreens (Anvil, Ernte, Gräber, Sitzen)
+haben wir gebaut. Neu aufgefallen ist nur die **Server-Admin-Ecke** (Homes/Warps/TPA/Back als
+„jeder Server braucht das“), die aber gut abgedeckt ist → siehe `heim` oben: privat ja, öffentlich nein.
