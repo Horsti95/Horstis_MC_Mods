@@ -19,7 +19,8 @@ jobs:
 
       # Bei Bedarf (neue Mods, unbekannte 26.x-APIs) aktivierbar: if: false entfernen
       # und die Klassenliste anpassen.
-      - name: API dump
+      - name: API dump (deaktiviert)
+        if: false
         continue-on-error: true
         run: |
           ./gradlew :core:printCoreClasspath -q || true

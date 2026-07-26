@@ -1,43 +1,46 @@
 # Horsti Anvilfix
 
-**`horsti-anvilfix` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-anvilfix` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Schluss mit „Zu teuer!“ — der Amboss-Klassiker unter den Community-Wünschen, endlich regelbar.
+> No more "Too Expensive!" — the longest-running anvil complaint in Minecraft, finally adjustable.
 
-## Was macht der Mod?
+## What it does
 
-Entfernt das „Too Expensive“-Limit (Vanilla: ab 40 Leveln blockiert) und macht die Amboss-Kosten
-konfigurierbar. Die „Prior Work Penalty“ (jede Reparatur verdoppelt künftige Kosten) lässt sich dämpfen
-oder abschalten. Alles reine Server-Logik — das Amboss-Menü wird server-seitig berechnet, Vanilla-Clients
-sehen einfach die neuen Kosten.
+Removes the "Too Expensive" wall (vanilla blocks anything above 40 levels) and makes anvil costs
+configurable. The prior-work penalty — every repair doubling future costs — can be softened to linear
+growth or frozen entirely.
 
-## In-Game-Steuerung (OP-Level 2)
+This is pure server-side logic: the anvil menu is calculated on the server, so vanilla clients simply
+see the new prices. Nobody needs to install anything.
 
-| Command | Wirkung |
+## In-game control (OP level 2)
+
+| Command | Effect |
 |---|---|
-| `/anvilfix` | Status + aktuelle Werte |
-| `/anvilfix on \| off` | Mod an/aus (off = Vanilla-Verhalten) |
-| `/anvilfix set maxKosten <1–39>` | Kostendeckel in Leveln; 39 = nie „Zu teuer“ (Default: **39**) |
-| `/anvilfix set priorWork vanilla\|halb\|aus` | Verdopplungs-Strafe (Default: **halb**) |
+| `/anvilfix` | Status and current values |
+| `/anvilfix on \| off` | Enable/disable (off = vanilla behaviour) |
+| `/anvilfix set maxKosten <1–39>` | Cost cap in levels; 39 means "never too expensive" (default: **39**) |
+| `/anvilfix set priorWork vanilla\|halb\|aus` | Prior-work penalty: doubling / linear / frozen (default: **halb** = linear) |
 
-*Warum max. 39? Vanilla-Clients verweigern ab 40 client-seitig die Entnahme — der Deckel bleibt darunter,
-damit auch ungemoddete Clients das Ergebnis nehmen können. Effekt: „Zu teuer“ existiert nicht mehr,
-teure Aktionen kosten höchstens `maxKosten` Level.*
+*Why cap at 39? Vanilla clients refuse to take the result at 40 levels or more, client-side. Staying
+below that means the fix works for everyone, including unmodded players. The effect: "Too Expensive"
+no longer exists, and expensive operations cost at most `maxKosten` levels.*
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ [Fabric API](https://modrinth.com/mod/fabric-api)) into the server's `mods` folder, or
+into a single-player instance. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/anvilfix.json`, live per `/anvilfix reload`.
+`config/horsti/anvilfix.json`, reloadable with `/anvilfix reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | **Sehr hoch** — einer der langlebigsten Vanilla-Beschwerdepunkte überhaupt |
-| Gibt’s das schon? / Mehrwert | Meist Teil größerer Anvil-Rework-Mods (oft mit Client-Teil). Mehrwert: Mini-Standalone, rein server-seitig, live regelbar |
-| Geschätzter Aufwand | Leicht |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | **Very high** — one of the most persistent complaints about vanilla |
+| Does this exist? / our edge | Usually part of larger anvil-rework mods, often with a client component. Our edge: a single-purpose mod, purely server-side, adjustable live without a restart |
+| Estimated effort | Low |
+| Target | SP + MP |
+| Horsti priority | TBD |

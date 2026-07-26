@@ -1,50 +1,54 @@
 # Horsti Mobgriefing
 
-**`horsti-mobgriefing` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-mobgriefing` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> `mobGriefing` ist alles-oder-nichts. Hier stellst du es **pro Mob-Typ** ein: Creeper nein, Villager ja.
+> `mobGriefing` is all-or-nothing. Here you set it **per mob type**: creepers no, villagers yes.
 
-## Was macht der Mod?
+## What it does
 
-Vanilla kennt nur eine globale Gamerule: `mobGriefing` aus heißt auch keine Villager-Farmen, keine
-Schaf-Grasfresser. Dieser Mod entkoppelt das — jede Mob-Kategorie einzeln schaltbar:
+Vanilla gives you one game rule: turn `mobGriefing` off and you also lose villager farms and
+grass-eating sheep. This mod decouples them — each mob category has its own switch:
 
-| Schalter | Steuert | Default |
+| Switch | Controls | Default |
 |---|---|---|
-| `creeper` | Creeper-Explosionen zerstören Blöcke | **off** ✋ |
-| `enderman` | Endermen tragen Blöcke weg | **off** ✋ |
-| `ghast` | Ghast-Feuerbälle zerstören Blöcke | on |
-| `wither` | Wither zerstört Blöcke | on |
-| `villager` | Villager ernten/säen (Farmen!) | on |
-| `schaf` | Schafe fressen Gras | on |
+| `creeper` | Creeper explosions destroy blocks | **off** ✋ |
+| `enderman` | Endermen pick up blocks | **off** ✋ |
+| `ghast` | Ghast fireballs destroy blocks | on |
+| `wither` | Wither explosions destroy blocks | on |
+| `villager` | Villagers harvest and plant (farms!) | on |
+| `schaf` | Sheep eat grass | on |
 
-*(v1 deckt die sechs genannten Typen ab; Ravager/Silverfish & Co. bleiben Vanilla und kommen bei Bedarf dazu.)*
+The vanilla game rule stays untouched at `true`; the mod only intercepts the specific cases.
 
-Die Vanilla-Gamerule bleibt unberührt auf `true`; der Mod fängt gezielt die Einzelfälle ab.
+## In-game control (OP level 2)
 
-## In-Game-Steuerung (OP-Level 2)
-
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/mobgriefing` | Status: Tabelle aller Schalter |
-| `/mobgriefing on \| off` | Mod an/aus (off = pures Vanilla) |
-| `/mobgriefing set <schalter> on\|off` | Einzelnen Mob-Typ schalten (siehe Tabelle) |
-| `/mobgriefing reset` | Defaults wiederherstellen |
+| `/mobgriefing` | Status: table of all switches |
+| `/mobgriefing on \| off` | Enable/disable (off = pure vanilla) |
+| `/mobgriefing set <switch> on\|off` | Toggle a single mob type (see table) |
+| `/mobgriefing reset` | Restore defaults |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ [Fabric API](https://modrinth.com/mod/fabric-api)) into the server's `mods` folder, or
+into a single-player instance. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/mobgriefing.json`, live per `/mobgriefing reload`.
+`config/horsti/mobgriefing.json`, reloadable with `/mobgriefing reload`.
 
-## Steckbrief
+## Known limitation
+
+For the wither, only explosions are covered in v1 — its block-chewing behaviour hangs off a class that
+moved in the 26.x rewrite. Ravagers, silverfish and foxes stay vanilla for now and can be added later.
+
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel-hoch (klassischer Feedback-Portal-Wunsch: „per-mob gamerule“) |
-| Gibt’s das schon? / Mehrwert | Als Datapack/Plugin verstreut. Mehrwert: ein Command, klare Tabelle, Fabric-Mini-Mod |
-| Geschätzter Aufwand | Leicht–mittel (mehrere saubere Eingriffspunkte) |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium–high — a classic feedback-portal request ("per-mob game rule") |
+| Does this exist? / our edge | Scattered across datapacks and Bukkit plugins. Our edge: one command, a clear table, a small Fabric mod that does only this |
+| Estimated effort | Low–medium |
+| Target | SP + MP |
+| Horsti priority | TBD |

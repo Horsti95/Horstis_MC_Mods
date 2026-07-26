@@ -1,51 +1,55 @@
-# Horsti Gabe & Bürde
+# Horsti Gift & Burden
 
-**`horsti-gabe-buerde` · SMP-Twist · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-gabe-buerde` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Jeder Spieler bekommt ein festes, zufälliges Paar: eine Gabe und eine Bürde. Wer bist du?
+> Every player gets one fixed random pair: a gift and a burden. Who are you?
 
-## Was macht der Mod?
+## What it does
 
-Beim ersten Join zieht jeder Spieler (seed-fest, also reproduzierbar pro Welt+Name) eine **Gabe** und eine
-**Bürde** aus getrennten Pools — nur Vanilla-Mechanik, z. B.:
+On first join, every player draws a **gift** and a **burden** from two separate pools — permanent,
+persisted, and announced with a title screen ("You are: Nimble, but greedy"). Everything is built from
+plain vanilla attributes, so no client installation and no new content:
 
-- **Gaben:** +2 Herzen · +10 % Speed · stärkerer Sprung · schnellerer Abbau · Wasseratmung · zäher Magen
-  (Essen sättigt mehr) · Feder-Fall
-- **Bürden:** −2 Herzen · −10 % Speed · mehr Hunger · Skelette zielen besser auf dich · kein Sprint-Sprung-
-  Bonus · Angst im Dunkeln (kurze Slowness bei Licht < 4)
+**Gifts:** Tough (+health) · Nimble (+speed) · Armoured (+armour) · Hard-hitting (+attack damage) ·
+Miner (+block break speed) · Feather-light (+safe fall distance) · Padded (+absorption) ·
+Steadfast (+knockback resistance)
 
-Die Kombination wird beim Join per Titel angezeigt („Du bist: Flink, aber verfressen“). Ein **Reroll** ist
-über ein konfigurierbares Opfer möglich (Default: 30 XP-Level an einem Verzauberungstisch entwerten —
-alternativ Nether-Stern, einstellbar). Origins-artig, aber ohne Origins, ohne Client, ohne neue Assets.
+**Burdens:** fragile (−health) · sluggish (−speed) · soft (−armour) · weak (−attack damage) ·
+blunt at digging (−break speed) · glass-boned (+fall damage) · greedy (drains hunger faster) ·
+hydrophobic (slowness in water)
 
-## In-Game-Steuerung (OP-Level 2)
+That is 64 combinations. Players can reroll for a configurable price, admins can reroll anyone for free.
+Think Origins, but without Origins, without a client mod and without new assets.
 
-| Command | Wirkung |
+## In-game control (OP level 2)
+
+| Command | Effect |
 |---|---|
-| `/gabe` | Status + aktuelle Werte |
-| `/gabe on \| off` | Mod an/aus (Attribute werden sauber entfernt/wiederhergestellt) |
-| `/gabe reroll <Spieler>` | Admin-Reroll ohne Kosten |
-| `/gabe set staerke <1–3>` | Wirkungsgrad aller Gaben/Bürden (Default: **1**) |
-| `/gabe set rerollKosten xp30\|netherstern\|aus` | Spieler-Reroll-Preis (Default: **xp30**) |
-| `/gabe set ansage on\|off` | Titel-Ansage beim Join (Default: **on**) |
+| `/gabe` | Status and current values |
+| `/gabe on \| off` | Enable/disable (attributes are cleanly removed and restored) |
+| `/gabe reroll <player>` | Admin reroll, free |
+| `/gabe set staerke <1–3>` | Strength multiplier for all gifts and burdens (default: **1**) |
+| `/gabe set rerollKosten xp30\|netherstern\|aus` | Player reroll price (default: **xp30**) |
+| `/gabe set ansage on\|off` | Title announcement on join (default: **on**) |
 
-Für alle Spieler: **`/meinegabe`** (eigene Kombination) und **`/gabereroll`** (neu würfeln gegen den
-eingestellten Preis).
+Any player: **`/meinegabe`** (see your own pair) and **`/gabereroll`** (reroll for the set price).
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ [Fabric API](https://modrinth.com/mod/fabric-api)) into the server's `mods` folder, or
+into a single-player instance. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/gabe-buerde.json`, live per `/gabe reload`. Pools sind in der Config erweiter-/kürzbar.
+`config/horsti/gabe-buerde.json`, reloadable with `/gabe reload`.
+Player assignments live in `config/horsti/daten/gabe-buerde.json`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (Origins ist riesig; „Random-Light“-Varianten gefragt für SMP-Starts) |
-| Gibt’s das schon? / Mehrwert | „Origins Randomiser“ braucht Origins + Client. Mehrwert: dependency-frei, Vanilla-Clients, seed-fest, Reroll als Spielmechanik |
-| Geschätzter Aufwand | Mittel |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — Origins is huge, and "random light" variants are popular for SMP starts |
+| Does this exist? / our edge | "Origins Randomiser" requires Origins and therefore a client mod. Our edge: dependency-free, vanilla clients, persistent, reroll as a gameplay mechanic |
+| Estimated effort | Medium |
+| Target | SP + MP |
+| Horsti priority | TBD |

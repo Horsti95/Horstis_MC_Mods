@@ -8,8 +8,8 @@
 > Artefakt „horsti-mods“ am Actions-Run.
 > Kompilierung läuft über GitHub Actions (der Build-Container der Claude-Session blockiert
 > Mojang-/Fabric-Downloads, die CI-Runner nicht).
-> **Welle 3 geplant** (Abschnitt 9): 5 neue eigene Mods + 3 Cobblemon-Addons — Ordner und englische
-> READMEs stehen, Code folgt nach Horstis GO.
+> **Welle 3 läuft** (Abschnitt 9): `wrapped` und `toolguard` sind **gebaut (CI Run #13 grün)** — damit
+> 23 Mods. `refill`, `spawnguard`, `horstihud` + 3 Cobblemon-Addons: Ordner und englische READMEs stehen.
 > **Nächster Schritt: Horstis Playtest der 21 fertigen Mods → pro Mod entscheiden: privat behalten
 > oder veröffentlichen (Abschnitt 6.1). Parallel: GO für Welle 3 und die Sprach-Umstellung (Abschnitt 10).**
 
@@ -204,8 +204,8 @@ Nach der Client-Freigabe (Prinzip 3, 26.07.2026) neu bewertet. Alle Ordner liege
 
 | Mod | Umgebung | Was | Gibt’s das schon? | Priorität |
 |---|---|---|---|---|
-| **`wrapped`** ⭐ | 🖥️ Server | Wöchentliche Server-Highlights aus Vanilla-Statistiken („meiste Blöcke gelaufen“, „größter Bergmann“) + `/wrapped` jederzeit | Nur Bukkit-Plugins + Web-Tools; **als Fabric-Mod nichts gefunden** | **Hoch — größte Lücke** |
-| **`toolguard`** | 🖥️ Server | Werkzeug blockiert bei kritischer Haltbarkeit statt zu zerbrechen | Existiert, aber **fast nur client-seitig** (jeder müsste selbst installieren) | Hoch |
+| **`wrapped`** ⭐ | 🖥️ Server | Wöchentliche Server-Highlights aus Vanilla-Statistiken + `/wrapped` jederzeit; Kategorien als Module, andere Mods können eigene registrieren | Nur Bukkit-Plugins + Web-Tools; **als Fabric-Mod nichts gefunden** | ✅ **gebaut (CI grün)** |
+| **`toolguard`** | 🖥️ Server | Werkzeug blockiert bei kritischer Haltbarkeit statt zu zerbrechen | Existiert, aber **fast nur client-seitig** | ✅ **gebaut (CI grün)** |
 | **`horstihud`** | 💻 Client | Begleiter für unsere Server-Mods: Nemesis-Status, Manhunt-Peilung als Pfeil, Bounty-Timer — nur Text + Vanilla-Widgets | — (spezifisch für unsere Mods) | Mittel |
 | **`refill`** | 🖥️ Server | Leerer Block-Stack wird aus dem Inventar nachgefüllt | Meist client-seitig | Mittel |
 | **`spawnguard`** | 🖥️ Server | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Teils vorhanden | Niedrig |
@@ -241,6 +241,39 @@ Der Wunschzettel aus Welle 2 hat sich bestätigt — die Evergreens (Anvil, Ernt
 gebaut. Neu aufgefallen ist die **Server-Admin-Ecke** (Homes/Warps/TPA), die aber dicht besetzt ist.
 Die Client-Freigabe eröffnet vor allem **HUD-Begleiter** für eigene Server-Logik — genau das, was
 `horstihud` und die beiden Cobblemon-Client-Mods abdecken.
+
+## 9.3 PUBLISH-EMPFEHLUNG (Research-Runde 3, Juli 2026)
+
+Horstis Haltung: „dicht besetzt ist positiv — was gut existiert, nutzen wir einfach.“ Genau danach
+sortiert. Veröffentlicht wird nur, wo wir etwas liefern, das es so **nicht** gibt.
+
+### ✅ Veröffentlichen (7) — englische README fertig
+
+| Mod | Warum es eine Lücke füllt |
+|---|---|
+| **`nemesis`** ⭐ | Als leichtes Server-Mod auf Vanilla-Mobs **praktisch einzigartig**. Die Konkurrenz ist ein großes Custom-Mob-Mod. Unser stärkstes Argument überhaupt |
+| **`wrapped`** ⭐ | Kein Fabric-Server-Mod gefunden — nur Bukkit-Plugins und Web-Tools. Dazu erweiterbar (Cobblemon-Saison) |
+| **`toolguard`** | Existiert, aber **fast nur client-seitig**. Server-seitig = schützt alle, einmal vom Admin gesetzt |
+| **`anvilfix`** | Der meistgenannte Vanilla-Ärger. Konkurrenz sind große Rework-Mods, oft mit Client-Teil — wir sind ein Ein-Zweck-Mod |
+| **`gabe-buerde`** | Origins-Randomiser braucht Origins **und** Client. Unsere Variante ist dependency-frei |
+| **`tag`** | Als leichte Fabric-Server-Mod kaum vorhanden (sonst Minigame-Server-Feature) |
+| **`juggernaut`** | Dito — plus Auto-Balancing nach Spielerzahl als eigener Dreh |
+
+### 🔒 Privat behalten (14) — gut abgedeckt, wir nutzen selbst was da ist
+
+`graves` (Universal Graves ist stark) · `sit` (Polysit) · `ernte` (Right Click Harvest) ·
+`todesort`, `afk`, `killmagnet` (Teil größerer QoL-Pakete) · `deathswap`, `manhunt` (mehrere gute
+Versionen) · `lifesteal` (viele Varianten) · `holzsaege` (Datapacks) · `totem` (Datapacks) ·
+`events` (Blutmond existiert) · `keepmoving` (Nische ohne Publikum) ·
+**`bounty`** (neu bewertet: „Bounty Hunt“ und „Spoorn Bounty Mobs“ decken das ab → **von Kandidat auf privat**)
+
+Diese laufen bei uns weiter — sie sind gebaut, getestet, kosten nichts. Sie brauchen nur keine
+Modrinth-Seite, die niemand besucht.
+
+### 🔜 Später entscheiden (5)
+
+`refill`, `spawnguard`, `horstihud` (erst nach Playtest der Server-Mods sinnvoll) und die drei
+Cobblemon-Addons (eigener 1.21.1-Zweig, siehe 9.1).
 
 ## 10. Sprache: Deutsch → Englisch (Stand 26.07.2026)
 

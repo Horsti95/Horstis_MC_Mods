@@ -1,43 +1,46 @@
 # Horsti Tag
 
-**`horsti-tag` · Minigame · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-tag` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Fangen in Minecraft: „Es“ leuchtet, rennt schneller — und will dich unbedingt berühren.
+> Tag, in Minecraft: "It" glows, runs faster — and really wants to touch you.
 
-## Was macht der Mod?
+## What it does
 
-Ein Spieler wird zufällig „Es“ (Glowing + Speed, für alle sichtbar angesagt). Schlägt „Es“ einen anderen
-Spieler, wandert die Rolle weiter (kurzer Rückgabe-Schutz verhindert Ping-Pong). Wer beim Rundenende „Es“
-ist, verliert; alle anderen bekommen Punkte für ihre „Nicht-Es“-Zeit (Scoreboard). Boss-Bar zeigt die
-Restzeit. Kein PvP-Schaden nötig — der Treffer zählt, der Schaden wird auf Wunsch neutralisiert.
+One player is picked at random to be **It** (glowing and faster, announced to everyone). Hit another
+player and the role passes on, with a short grace period so it does not ping-pong. A boss bar shows the
+remaining round time. Whoever is It when the round ends loses; everyone else scores points for the time
+they spent *not* being It, and the top three are announced.
 
-## In-Game-Steuerung (OP-Level 2)
+The tag hit does not have to hurt — by default the damage is cancelled and only the touch counts.
 
-| Command | Wirkung |
+## In-game control (OP level 2)
+
+| Command | Effect |
 |---|---|
-| `/tag` | Status + aktuelle Werte |
-| `/tag start [alle\|<Spieler…>]` | Runde starten, zufälliges „Es“ |
-| `/tag stop` | Runde sauber beenden (Effekte weg, Wertung) |
-| `/tag set rundenMin <1–60>` | Rundenlänge (Default: **10**) |
-| `/tag set esSpeed <0–2>` | Speed-Stufe für „Es“ (Default: **1**) |
-| `/tag set esGlow on\|off` | „Es“ leuchtet (Default: **on**) |
-| `/tag set schutzSek <0–30>` | Rückgabe-Schutz nach Übergabe (Default: **5**) |
-| `/tag set schaden on\|off` | Schlag macht echten Schaden (Default: **off**) |
+| `/tag` | Status and current values |
+| `/tag start` | Start a round, random "It" |
+| `/tag stop` | End the round cleanly (effects removed, scores announced) |
+| `/tag set rundenMin <1–60>` | Round length in minutes (default: **10**) |
+| `/tag set esSpeed <0–2>` | Speed level for "It", 0 = off (default: **1**) |
+| `/tag set esGlow on\|off` | "It" glows (default: **on**) |
+| `/tag set schutzSek <0–30>` | Grace period after a handover (default: **5**) |
+| `/tag set schaden on\|off` | Tag hits deal real damage (default: **off**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ [Fabric API](https://modrinth.com/mod/fabric-api)) into the server's `mods` folder.
+Other players need nothing — one command and the game night starts.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/tag.json`, live per `/tag reload`.
+`config/horsti/tag.json`, reloadable with `/tag reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (Party-Klassiker, jeder versteht es sofort) |
-| Gibt’s das schon? / Mehrwert | Als leichte Fabric-Server-Mod **kaum vorhanden** (meist Minigame-Server-Feature) — echte Lücke. Mehrwert: 1-Command-Start, überall spielbar |
-| Geschätzter Aufwand | Leicht–mittel |
-| Zielgruppe | MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — a party classic everyone understands instantly |
+| Does this exist? / our edge | **Barely available as a lightweight Fabric server mod** (usually a minigame-server feature). Our edge: one command to start, playable on any survival world, no lobby or arena needed |
+| Estimated effort | Low–medium |
+| Target | MP |
+| Horsti priority | TBD |
