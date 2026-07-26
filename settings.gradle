@@ -15,5 +15,6 @@ include ':core'
 
 [
 	'todesort', 'afk', 'killmagnet', 'anvilfix', 'keepmoving', 'totem', 'holzsaege',
-	'deathswap', 'tag', 'sit', 'bounty', 'mobgriefing', 'ernte'
+	'deathswap', 'tag', 'sit', 'bounty', 'mobgriefing', 'ernte',
+	'juggernaut', 'pets', 'gabe-buerde', 'lifesteal', 'graves', 'manhunt', 'events', 'nemesis'
 ].each { include ":mods:${it}" }

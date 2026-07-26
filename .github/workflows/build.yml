@@ -17,15 +17,47 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Bei Bedarf (neue Mods, unbekannte 26.x-APIs) wieder aktivierbar:
-      # javap-Dump gegen den :core-Klassenpfad, siehe Git-Historie dieses Workflows.
-      - name: API dump (deaktiviert)
-        if: false
+      # Bei Bedarf (neue Mods, unbekannte 26.x-APIs) aktivierbar: if: false entfernen
+      # und die Klassenliste anpassen.
+      - name: API dump
         continue-on-error: true
         run: |
           ./gradlew :core:printCoreClasspath -q || true
           CP=$(cat build/core-classpath.txt)
-          d() { echo "=====CLASS $1"; javap -classpath "$CP" "$1" 2>&1 | grep -E "$2" | head -30; }
+          d() { echo "=====CLASS $1"; javap -classpath "$CP" "$1" 2>&1 | grep -E "$2" | head -26; }
+          d 'net.minecraft.world.entity.ai.attributes.Attributes' 'MAX_HEALTH|MOVEMENT_SPEED|ATTACK_DAMAGE|ARMOR;|KNOCKBACK|JUMP|SAFE_FALL|FALL_DAMAGE|BLOCK_BREAK|MAX_ABSORPTION|SCALE|OXYGEN|BURNING'
+          d 'net.minecraft.world.entity.ai.attributes.AttributeInstance' 'setBaseValue|getBaseValue|addOrUpdate|addPermanent|removeModifier|getModifier'
+          d 'net.minecraft.world.entity.ai.attributes.AttributeModifier' 'public'
+          d 'net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation' 'public static final'
+          d 'net.minecraft.world.entity.LivingEntity' 'getAttribute|getMaxHealth|heal|getHealth|setCustomName|getActiveEffects'
+          d 'net.minecraft.world.entity.Entity' 'setCustomName|getCustomName|setCustomNameVisible|remove\(|kill\(|moveTo|setGlowing|hasGlowing'
+          d 'net.minecraft.world.entity.Mob' 'setTarget|getTarget|setPersistenceRequired|isPersistenceRequired|setItemSlot|equipItem|finalizeSpawn'
+          d 'net.minecraft.world.entity.EntityType' 'public net.minecraft.world.entity.Entity spawn|create\(|byString|getKey|loadEntityRecursive'
+          d 'net.minecraft.world.entity.EntitySpawnReason' 'public static final'
+          d 'net.minecraft.world.level.border.WorldBorder' 'setSize|lerpSizeBetween|setCenter|getSize|setAbsoluteMaxSize'
+          d 'net.minecraft.world.entity.TamableAnimal' 'isTame|getOwner|isOrderedToSit|setOrderedToSit|setInSittingPose'
+          d 'net.minecraft.world.entity.OwnableEntity' '.'
+          d 'net.minecraft.world.item.component.LodestoneTracker' 'public'
+          d 'net.minecraft.core.component.DataComponents' 'LODESTONE|CUSTOM_NAME;'
+          d 'net.minecraft.world.item.ItemStack' 'public <T> T set\(|public .* get\(|setCount|getCount|copy\(|isEmpty|shrink|is\('
+          d 'net.minecraft.core.GlobalPos' 'public'
+          d 'net.minecraft.world.level.Level' 'getWorldBorder|getBlockEntity|isNight|isDay|getDayTime|dimension\(|addFreshEntity'
+          d 'net.minecraft.server.level.ServerLevel' 'setDayTime|getDayTime|sendParticles|getServer|isNight|getWorldBorder|players\(|getEntity\('
+          d 'net.minecraft.world.Container' 'setItem|getItem|getContainerSize|clearContent'
+          d 'net.minecraft.world.level.block.Blocks' ' CHEST;| PLAYER_HEAD;| BARRIER;'
+          d 'net.minecraft.world.entity.player.Player' 'giveExperiencePoints|experienceLevel|totalExperience|getInventory|setGameMode|drop\('
+          d 'net.minecraft.server.level.ServerPlayer' 'setGameMode|gameMode|giveExperience|setRespawnPosition|getRespawn'
+          d 'net.minecraft.world.entity.player.Inventory' 'getContainerSize|getItem|setItem|add\(|clearContent|getNonEquipment|dropAll'
+          d 'net.minecraft.world.entity.projectile.LargeFireball' 'public'
+          d 'net.minecraft.world.entity.projectile.AbstractHurtingProjectile' 'public'
+          d 'net.minecraft.server.MinecraftServer' 'overworld|getLevel\(|getWorldPath|isSingleplayer'
+          d 'net.minecraft.world.level.storage.LevelResource' 'public static final'
+          d 'net.minecraft.world.entity.EquipmentSlot' 'public static final'
+          d 'net.minecraft.world.item.Items' ' COMPASS;| NETHER_STAR;| PLAYER_HEAD;'
+          d 'net.minecraft.core.BlockPos' 'containing|above\(|below\(|offset'
+          d 'net.minecraft.world.level.block.state.BlockState' '.'
+          d 'net.minecraft.world.scores.TeamColor' 'public static final'
+          d 'net.minecraft.core.Holder' 'value\(|is\('
           d 'net.minecraft.world.entity.LivingEntity' 'hurt|addEffect|removeEffect|removeAllEffects|isDeadOrDying|setHealth|getMainHandItem|isAlive'
           d 'net.minecraft.world.entity.Entity' 'teleportTo|position\(|getBlockX|getBlockY|getBlockZ| level\(|addTag|discard|isPassenger|stopRiding|startRiding|setPos|getXRot|getYRot|damageSources|isShiftKeyDown|getUUID|isRemoved|ejectPassengers|isVehicle|getVehicle|getX\(|getName|setInvisible|setNoGravity|setInvulnerable'
           d 'net.minecraft.world.entity.player.Player' 'drop\(|isCreative|getInventory|getFoodData'
