@@ -24,11 +24,13 @@ alternativ Nether-Stern, einstellbar). Origins-artig, aber ohne Origins, ohne Cl
 |---|---|
 | `/gabe` | Status + aktuelle Werte |
 | `/gabe on \| off` | Mod an/aus (Attribute werden sauber entfernt/wiederhergestellt) |
-| `/gabe zeig [<Spieler>]` | Gabe & Bürde anzeigen (ohne Spieler: eigene — für alle erlaubt) |
 | `/gabe reroll <Spieler>` | Admin-Reroll ohne Kosten |
 | `/gabe set staerke <1–3>` | Wirkungsgrad aller Gaben/Bürden (Default: **1**) |
 | `/gabe set rerollKosten xp30\|netherstern\|aus` | Spieler-Reroll-Preis (Default: **xp30**) |
 | `/gabe set ansage on\|off` | Titel-Ansage beim Join (Default: **on**) |
+
+Für alle Spieler: **`/meinegabe`** (eigene Kombination) und **`/gabereroll`** (neu würfeln gegen den
+eingestellten Preis).
 
 ## Installation
 

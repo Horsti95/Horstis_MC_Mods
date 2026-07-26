@@ -53,13 +53,16 @@ public class GabeMod implements ModInitializer {
 
 		daten = speicher.laden();
 
-		// /gabe zeig fuer alle Spieler (eigene Kombination)
-		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) ->
+		// Spieler-Commands: eigene Kombination ansehen und (gegen Preis) neu würfeln
+		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) -> {
 			dispatcher.register(Commands.literal("meinegabe").executes(c -> {
 				ServerPlayer sp = c.getSource().getPlayerOrException();
 				sp.sendSystemMessage(Component.literal("Du bist: " + beschreibung(sp)).withStyle(ChatFormatting.GOLD));
 				return 1;
-			})));
+			}));
+			dispatcher.register(Commands.literal("gabereroll").executes(c ->
+				selbstReroll(c.getSource().getPlayerOrException())));
+		});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ServerPlayer sp = handler.getPlayer();
@@ -86,6 +89,48 @@ public class GabeMod implements ModInitializer {
 
 		// Tick-basierte Buerden (Hunger, Wasserscheu)
 		Ticker.alleTicks(40, this::tick);
+	}
+
+	/** Spieler würfelt selbst neu und zahlt den in rerollKosten gesetzten Preis. */
+	private int selbstReroll(ServerPlayer sp) {
+		if (!settings.istAktiv()) {
+			return 0;
+		}
+		switch (rerollKosten.get()) {
+			case "xp30" -> {
+				if (sp.experienceLevel < 30) {
+					sp.sendSystemMessage(Component.literal("[Gabe] Du brauchst 30 XP-Level dafür.")
+						.withStyle(ChatFormatting.RED));
+					return 0;
+				}
+				sp.giveExperienceLevels(-30);
+			}
+			case "netherstern" -> {
+				if (!itemAbziehen(sp, net.minecraft.world.item.Items.NETHER_STAR)) {
+					sp.sendSystemMessage(Component.literal("[Gabe] Du brauchst einen Netherstern dafür.")
+						.withStyle(ChatFormatting.RED));
+					return 0;
+				}
+			}
+			default -> {
+				sp.sendSystemMessage(Component.literal("[Gabe] Selbst-Reroll ist abgeschaltet.")
+					.withStyle(ChatFormatting.RED));
+				return 0;
+			}
+		}
+		zuweisen(sp, true);
+		return 1;
+	}
+
+	private static boolean itemAbziehen(ServerPlayer sp, net.minecraft.world.item.Item item) {
+		for (int slot = 0; slot < sp.getInventory().getContainerSize(); slot++) {
+			net.minecraft.world.item.ItemStack stack = sp.getInventory().getItem(slot);
+			if (stack.is(item)) {
+				stack.shrink(1);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private String schluessel(ServerPlayer sp) {

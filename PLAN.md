@@ -3,11 +3,13 @@
 > **Dies ist die einzige Wahrheitsquelle** für aktuellen Stand, Mod-Liste und nächste Schritte.
 > Mod-Ordner-READMEs = reine Nutzungs-/Spec-Doku (kein Status). Keine Ideen in verstreuten .md-Dateien.
 >
-> **Status: Durchgang 1–13 FERTIG ✅ — CI grün** (Run #7). Gradle-Monorepo, `core` mit Settings-Registry,
-> 13 Mods kompilieren auf MC 26.2; alle Jars liegen als Artefakt „horsti-mods“ am Actions-Run.
+> **Status: ALLE 21 MODS GEBAUT ✅ — CI grün** (Run #10). Gradle-Monorepo, `core` mit Settings-Registry,
+> JSON-Persistenz und Attribut-/Mob-Helfern; 21 Mods kompilieren auf MC 26.2. Alle Jars liegen als
+> Artefakt „horsti-mods“ am Actions-Run.
 > Kompilierung läuft über GitHub Actions (der Build-Container der Claude-Session blockiert
 > Mojang-/Fabric-Downloads, die CI-Runner nicht).
-> **Nächster Schritt: Horstis Token-Check + Playtest, dann GO für Rang 14–21.**
+> **Nächster Schritt: Horstis Playtest → pro Mod entscheiden: privat behalten oder ins Public-Repo
+> heben. Danach optional Future Work (Abschnitt 8).**
 
 ---
 
@@ -59,6 +61,15 @@ WitherBoss-Redirect deshalb v1 gestrichen) · `ResourceKey#location` umbenannt �
 `Level.OVERWORLD/NETHER/END`. Bei neuen unsicheren APIs: deaktivierten javap-Dump-Schritt im CI-Workflow
 reaktivieren (`if: false` entfernen, Klassenliste anpassen).
 
+**Ergänzungen aus Durchgang 14–21:** `EntityType` hat keine statischen Konstanten mehr und kein `spawn()` →
+`core`-Helfer `Mobs.typ/spawnen/istTyp/typId` (Registry + `create()` + `addFreshEntity`) ·
+`MinecraftServer#overworld()` entfernt → `HorstiServer.oberwelt(server)` ·
+**keine Tageszeit-API** mehr auffindbar (`getDayTime` weg) → zeitgesteuerte Events statt Tag/Nacht-Erkennung ·
+`WorldBorder.lerpSizeBetween` hat 4 Parameter → wir interpolieren selbst per `setSize` ·
+`Entity#getTags()` weg → Identität über gespeicherte UUIDs ·
+`TamableAnimal.getOwnerReference()` ist die neue Form (`getOwner()` funktioniert weiterhin) ·
+`ServerPlayer.gameMode()`/`setGameMode` und `Container.setItem/getItem/getContainerSize` sind unverändert.
+
 ## 3. DIE MOD-LISTE (Status + Bau-Reihenfolge = Ranking leicht → schwer)
 
 Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame · **Twist** = SMP-Regeländerung.
@@ -79,14 +90,14 @@ Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame �
 | 11 | `bounty` | Spiel | Kopfgeld auf Zufallsspieler (Glow) | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
 | 12 | `mobgriefing` | QoL | mobGriefing pro Mob-Typ statt global | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
 | 13 | `ernte` | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
-| 14 | `juggernaut` | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | 📋 geplant |
-| 15 | `pets` | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | 📋 geplant |
-| 16 | `gabe-buerde` | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | 📋 geplant |
-| 17 | `lifesteal` | Twist | Kill klaut Herz, Spectator statt Ban, Revive | Mittel | erst Playtest | 📋 geplant |
-| 18 | `graves` | QoL | Grab statt Item-Despawn (Schutzzeit, Verfall) | Mittel | erst Playtest | 📋 geplant |
-| 19 | `manhunt` | Spiel | Jäger-Kompass trackt Runner (cross-dim) | Mittel | erst Playtest | 📋 geplant |
-| 20 | `events` | Twist | Weltereignisse: Blutmond / Meteor / Grenze (je Modul) | Mittel | Kandidat | 📋 geplant |
-| 21 | `nemesis` ⭐ | Twist | Dein Mob-Killer kehrt benannt & stärker zurück | Mittel–schwer | **Kandidat (Flaggschiff)** | 📋 geplant |
+| 14 | `juggernaut` | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
+| 15 | `pets` | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 16 | `gabe-buerde` | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 17 | `lifesteal` | Twist | Kill klaut Herz, Spectator statt Ban, Revive | Mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 18 | `graves` | QoL | Grab statt Item-Despawn (Schutzzeit, Verfall) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 19 | `manhunt` | Spiel | Jäger-Kompass trackt Runner (cross-dim) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 20 | `events` | Twist | Weltereignisse: Blutmond / Meteor / Grenze (je Modul) | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 21 | `nemesis` ⭐ | Twist | Dein Mob-Killer kehrt benannt & stärker zurück | Mittel–schwer | **Kandidat (Flaggschiff)** | ✅ gebaut (CI grün) |
 | opt. | `verstecken` | Spiel | Prop-Hunt light | Mittel–schwer | unbestätigt | kein Ordner |
 | opt. | `lootrandomizer` | Twist | Seed-feste Drops mit Lösbar-Garantie | Mittel | unbestätigt | kein Ordner |
 

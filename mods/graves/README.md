@@ -6,12 +6,14 @@
 
 ## Was macht der Mod?
 
-Stirbst du, entsteht am Todesort ein Grab (Spielerkopf auf einem Sockel, nur Vanilla-Blöcke). Rechtsklick
-aufs eigene Grab gibt alles zurück (direkt ins Inventar, Rest droppt); XP wird zu einem konfigurierbaren
-Anteil aufbewahrt. Gräber sind eine Schutzzeit lang nur für den Besitzer öffnbar, danach für alle
-(Loot-Anreiz!). Randfälle abgedeckt: Void-Tod → Grab am letzten sicheren Ort; Lava → Grab auf nächstem
-festen Block; Explosionen zerstören Gräber nicht. Der Vanilla-Recovery-Kompass zeigt wie gewohnt zum
-Todesort — das Grab liegt genau dort.
+Stirbst du, entsteht am Todesort ein Grab aus **zwei gestapelten Vanilla-Kisten** (54 Slots — mehr als dein
+Inventar fassen kann, es geht also nichts verloren). Weil es echte Kisten sind, speichert Minecraft den
+Inhalt selbst: Verzauberungen, Haltbarkeit und Namen bleiben unangetastet, auch über Server-Neustarts.
+
+Öffnen geht ganz normal per Rechtsklick. Eine Schutzzeit lang kann **nur der Besitzer** das Grab öffnen —
+danach ist es für alle offen (Loot-Anreiz). Beim ersten eigenen Öffnen bekommst du deine XP zurück
+(Anteil konfigurierbar). Stirbst du im Void oder in Lava, wandert das Grab an die nächste sichere Stelle
+darüber.
 
 ## In-Game-Steuerung (OP-Level 2)
 
@@ -20,7 +22,6 @@ Todesort — das Grab liegt genau dort.
 | `/graves` | Status + aktuelle Werte |
 | `/graves on \| off` | Mod an/aus (off = Vanilla-Drop) |
 | `/graves set schutzMin <0–120>` | Nur-Besitzer-Schutzzeit, 0 = sofort offen (Default: **15**) |
-| `/graves set verfallMin <0–1440>` | Grab droppt danach alles, 0 = nie (Default: **0**) |
 | `/graves set xpErhalt <0–100>` | Prozent der XP im Grab (Default: **100**) |
 | `/graves set ansage on\|off` | Todesort-Koordinaten beim Tod anzeigen (Default: **on**) |
 | `/graves liste [<Spieler>]` | Aktive Gräber mit Koordinaten |
@@ -31,7 +32,7 @@ Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspi
 
 ## Konfiguration
 
-`config/horsti/graves.json`, live per `/graves reload`.
+`config/horsti/graves.json`, live per `/graves reload`. Grab-Metadaten: `config/horsti/daten/graves.json` (die Items selbst liegen in den Kisten, also in der Welt).
 
 ## Hinweis Modularität
 

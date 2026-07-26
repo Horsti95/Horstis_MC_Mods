@@ -6,12 +6,16 @@
 
 ## Was macht der Mod?
 
-Das Dream-Format für die eigene Runde: Rollen per Command verteilen, Jäger bekommen einen **Tracking-
-Kompass** (Rechtsklick wechselt das Ziel durch alle Runner). Funktioniert dimensionsübergreifend: Ist der
-Runner in einer anderen Dimension, zeigt der Kompass auf sein Eintritts-Portal. Schonfrist beim Start
-(Jäger eingefroren + blind, konfigurierbar). Sieg-Erkennung: Enderdrache tot → Runner gewinnen; alle Runner
-final tot → Jäger gewinnen (Runner-Respawn togglebar: Hardcore-Modus vs. Respawn-erlaubt). Jäger behalten
-den Kompass beim Respawn automatisch.
+Das Dream-Format für die eigene Runde: Rollen per Command verteilen, Jäger bekommen beim Start einen
+**Kompass**. Solange ein Jäger ihn in der Hand hält, bekommt er sekündlich eine **Peilung** in die Actionbar:
+Richtungspfeil relativ zur eigenen Blickrichtung, Entfernung in Blöcken — und bei einem Runner in einer
+anderen Dimension die Meldung „ist im Nether/Ende“. Mit `/ziel` schaltet man durch mehrere Runner.
+
+*Warum keine Kompass-Nadel? Eine Nadel zeigt beim Dimensionswechsel ins Leere und verrät keine Entfernung.
+Die Peilung funktioniert überall, braucht keine Item-Komponenten und ist damit auch update-fester.*
+
+Schonfrist beim Start (Jäger blind + eingefroren, konfigurierbar). Sieg-Erkennung: Enderdrache von einem
+Runner erlegt → Runner gewinnen; alle Runner tot → Jäger gewinnen (Runner-Respawn togglebar).
 
 ## In-Game-Steuerung (OP-Level 2)
 
@@ -24,7 +28,9 @@ den Kompass beim Respawn automatisch.
 | `/manhunt stop` | Spiel sauber beenden |
 | `/manhunt set schonfristSek <0–300>` | Jäger-Freeze am Start (Default: **30**) |
 | `/manhunt set runnerRespawn on\|off` | Runner dürfen respawnen (Default: **off** = klassisch) |
-| `/manhunt set kompassSlot on\|off` | Kompass belegt festen Slot 9 (Default: **on**) |
+| `/manhunt set peilungSek <1–10>` | Sekunden zwischen zwei Peilungen (Default: **1**) |
+
+Für Jäger: **`/ziel`** schaltet zum nächsten Runner durch.
 
 ## Installation
 

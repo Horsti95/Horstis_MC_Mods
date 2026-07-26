@@ -7,13 +7,11 @@
 ## Was macht der Mod?
 
 Tötet dich ein Mob, wird er zu deinem **Nemesis**: Er bekommt einen generierten Namen („Klaus der
-Knochenbrecher“), despawnt nie und wird gespeichert. Nach deinem Respawn taucht er nach einer Weile in
-deiner Nähe wieder auf — Level 1 gebufft (mehr HP, mehr Schaden, sichtbar am Namen + Glow-Moment bei
+Knochenbrecher“), despawnt nie und wird gespeichert. Nach der eingestellten Wartezeit taucht er 24–40 Blöcke von dir entfernt wieder auf — Level 1 gebufft (mehr HP, mehr Schaden, sichtbar am Namen + Glow-Moment bei
 Ankunft) und **er jagt bevorzugt dich**. Tötet er dich erneut, steigt er ein Level (bis Maximum) und
 bekommt pro Level einen Zusatz-Trick aus Vanilla-Bausteinen (Speed, Feuerresistenz, Rüstung anlegen,
-Trank-Wurf bei Hexen …). Besiegst du ihn, gibt es Ruhm: Server-Ansage, Bonus-XP und seine Trophäe
-(Mob-Kopf, wo Vanilla einen hat — sonst sein Namensschild). Pro Spieler existiert höchstens ein Nemesis
-(konfigurierbar); Nemeses überleben Server-Restarts.
+Trank-Wurf bei Hexen …). Besiegst du ihn, gibt es Ruhm: Server-Ansage und Bonus-XP (50 je Level).
+Nemeses überleben Server-Restarts (Speicher: `config/horsti/daten/nemesis.json`).
 
 Nur Vanilla-Mobs, -Effekte und -Items — der ganze Reiz entsteht aus Logik: Persistenz, Naming, Targeting,
 Eskalation.
@@ -30,8 +28,10 @@ Eskalation.
 | `/nemesis set hpProLevel <10–50>` | % Bonus-HP je Level (Default: **25**) |
 | `/nemesis set schadenProLevel <10–50>` | % Bonus-Schaden je Level (Default: **20**) |
 | `/nemesis set rueckkehrMin <1–60>` | Minuten bis zur Rückkehr (Default: **10**) |
-| `/nemesis set proSpieler <1–3>` | Max. Nemeses je Spieler (Default: **1**) |
 | `/nemesis set ansagen on\|off` | Server-Ansagen (Rückkehr/Tod) (Default: **on**) |
+
+*Pro Spieler existiert genau ein Nemesis: Tötet dich ein anderer Mob, während dein Erzfeind lebt, bleibt der
+bestehende Erzfeind — nur er selbst kann durch weitere Kills aufsteigen.*
 
 Für alle Spieler: `/meinnemesis` zeigt den eigenen Nemesis (Name, Level, zuletzt gesehen).
 
