@@ -8,19 +8,29 @@
 > Artefakt „horsti-mods“ am Actions-Run.
 > Kompilierung läuft über GitHub Actions (der Build-Container der Claude-Session blockiert
 > Mojang-/Fabric-Downloads, die CI-Runner nicht).
-> **Nächster Schritt: Horstis Playtest → pro Mod entscheiden: privat behalten oder ins Public-Repo
-> heben. Danach optional Future Work (Abschnitt 8).**
+> **Welle 3 geplant** (Abschnitt 9): 5 neue eigene Mods + 3 Cobblemon-Addons — Ordner und englische
+> READMEs stehen, Code folgt nach Horstis GO.
+> **Nächster Schritt: Horstis Playtest der 21 fertigen Mods → pro Mod entscheiden: privat behalten
+> oder veröffentlichen (Abschnitt 6.1). Parallel: GO für Welle 3 und die Sprach-Umstellung (Abschnitt 10).**
 
 ---
 
 ## 1. Prinzipien
 
 1. **Leitidee:** minimale Assets, maximaler Logik-Impact. Nur vorhandene Blöcke/Items/Mobs/Effekte/Sounds.
-2. **Niemals bauen (No-Asset-Regel):** vertikale Slabs, Möbel, neue Mobs/Blöcke/Items mit eigenen Texturen,
-   Shader, dynamisches Licht (Fackel in Hand — gestrichen wegen Perf/Grenzfall). Diese Liste bleibt hier als
-   dauerhafte Erinnerung stehen.
-3. **Server-seitig, Vanilla-first:** Mitspieler joinen mit unverändertem Vanilla-Client. Läuft in SP (interner
-   Server), Eigenhosting, Aternos, VPS.
+2. **No-Asset-Regel (unverändert gültig):** keine eigenen Texturen, Sprites, Modelle, Animationen, Shader.
+   Damit bleiben gestrichen: vertikale Slabs, Möbel, neue Mobs/Blöcke/Items mit eigener Grafik.
+   **Erlaubt sind:** Text, Vanilla-Widgets (Balken, Icons vorhandener Items), Farben, Töne aus Vanilla.
+3. **Client erlaubt, Server bevorzugt** *(geändert am 26.07.2026 auf Horstis Ansage)*:
+   - **Server-seitig bleibt der Default**, wo eine Funktion server-seitig sauber geht — dann joinen
+     Mitspieler weiter mit Vanilla-Client (SP, Eigenhosting, Aternos, VPS).
+   - **Client-seitig ist jetzt zulässig**, wenn eine Funktion nur dort möglich ist (HUD, Overlays,
+     Keybinds, Menü-Erweiterungen) — solange sie **ohne neue Grafik-Assets** auskommt (Regel 2).
+   - **Bevorzugtes Muster: „Server-Mod + optionaler Client-Begleiter“.** Der Server-Mod funktioniert
+     allein vollständig; der Client-Mod macht es nur hübscher (z. B. Peilung als HUD-Pfeil statt
+     Actionbar-Text). Niemand wird zur Installation gezwungen.
+   - Jeder Mod deklariert seine Umgebung in `fabric.mod.json` (`environment`: `*` / `server` / `client`)
+     und trägt sie sichtbar in der ersten README-Zeile.
 4. **In-Game-Anpassbarkeit (Kern-Prinzip):** Jeder Mod sofort lauffähig mit sinnvollen Defaults und im Spiel
    regelbar: `/<mod>` (Status), `/<mod> on|off`, `/<mod> set <param> <wert>`, `/<mod> reset`, `/horsti`
    (Übersicht aller Horsti-Mods, aus `core`). OP-Level 2, Konsole/Aternos-tauglich. Persistenz in
@@ -75,34 +85,35 @@ reaktivieren (`if: false` entfernen, Klassenliste anpassen).
 Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame · **Twist** = SMP-Regeländerung.
 „Öffentlich?“ = Startvorschlag; finale Entscheidung trifft Horsti nach Playtest (Weg: Copy in Public-Repo).
 
-| Rang | Mod (Ordner) | Kat. | Kurzbeschreibung | Aufwand | Öffentlich? | Status |
-|--:|--------------|------|------------------|---------|-------------|--------|
-| 1 | `todesort` | QoL | Todeskoordinaten privat im Chat (klickbar) | Trivial | Kandidat | ✅ gebaut (CI grün) |
-| 2 | `afk` | QoL | AFK-Markierung in der Tab-Liste | Trivial | Kandidat | ✅ gebaut (CI grün) |
-| 3 | `killmagnet` | Twist | Drops deiner Kills fliegen zu dir | Trivial | Kandidat | ✅ gebaut (CI grün) |
-| 4 | `anvilfix` | QoL | „Too Expensive“ aus, Kosten regelbar | Leicht | **Kandidat ⭐** | ✅ gebaut (CI grün) |
-| 5 | `keepmoving` | Twist | Stillstand = Schaden (nach Karenz) | Leicht | Kandidat (Lücke) | ✅ gebaut (CI grün) |
-| 6 | `totem` | QoL | Totem wirkt aus dem Inventar | Leicht | Kandidat | ✅ gebaut (CI grün) |
-| 7 | `holzsaege` | QoL | Steinsäge verarbeitet Holz | Leicht | Kandidat | ✅ gebaut (CI grün) |
-| 8 | `deathswap` | Spiel | Alle N Min. Positions-Tausch | Leicht | erst Playtest | ✅ gebaut (CI grün) |
-| 9 | `tag` | Spiel | Fangen: „Es“ mit Speed+Glow, Timer, Punkte | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
-| 10 | `sit` | QoL | Sitzen auf Treppen/Stufen + /sit | Leicht–mittel | erst Playtest | ✅ gebaut (CI grün) |
-| 11 | `bounty` | Spiel | Kopfgeld auf Zufallsspieler (Glow) | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
-| 12 | `mobgriefing` | QoL | mobGriefing pro Mob-Typ statt global | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
-| 13 | `ernte` | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
-| 14 | `juggernaut` | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
-| 15 | `pets` | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | ✅ gebaut (CI grün) |
-| 16 | `gabe-buerde` | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | ✅ gebaut (CI grün) |
-| 17 | `lifesteal` | Twist | Kill klaut Herz, Spectator statt Ban, Revive | Mittel | erst Playtest | ✅ gebaut (CI grün) |
-| 18 | `graves` | QoL | Grab statt Item-Despawn (Schutzzeit, Verfall) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
-| 19 | `manhunt` | Spiel | Jäger-Kompass trackt Runner (cross-dim) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
-| 20 | `events` | Twist | Weltereignisse: Blutmond / Meteor / Grenze (je Modul) | Mittel | Kandidat | ✅ gebaut (CI grün) |
-| 21 | `nemesis` ⭐ | Twist | Dein Mob-Killer kehrt benannt & stärker zurück | Mittel–schwer | **Kandidat (Flaggschiff)** | ✅ gebaut (CI grün) |
-| opt. | `verstecken` | Spiel | Prop-Hunt light | Mittel–schwer | unbestätigt | kein Ordner |
-| opt. | `lootrandomizer` | Twist | Seed-feste Drops mit Lösbar-Garantie | Mittel | unbestätigt | kein Ordner |
+| Rang | Mod (Ordner) | Umgebung | Kat. | Kurzbeschreibung | Aufwand | Öffentlich? | Status |
+|--:|--------------|---|------|------------------|---------|-------------|--------|
+| 1 | `todesort` | 🖥️ | QoL | Todeskoordinaten privat im Chat (klickbar) | Trivial | Kandidat | ✅ gebaut (CI grün) |
+| 2 | `afk` | 🖥️ | QoL | AFK-Markierung in der Tab-Liste | Trivial | Kandidat | ✅ gebaut (CI grün) |
+| 3 | `killmagnet` | 🖥️ | Twist | Drops deiner Kills fliegen zu dir | Trivial | Kandidat | ✅ gebaut (CI grün) |
+| 4 | `anvilfix` | 🖥️ | QoL | „Too Expensive“ aus, Kosten regelbar | Leicht | **Kandidat ⭐** | ✅ gebaut (CI grün) |
+| 5 | `keepmoving` | 🖥️ | Twist | Stillstand = Schaden (nach Karenz) | Leicht | Kandidat (Lücke) | ✅ gebaut (CI grün) |
+| 6 | `totem` | 🖥️ | QoL | Totem wirkt aus dem Inventar | Leicht | Kandidat | ✅ gebaut (CI grün) |
+| 7 | `holzsaege` | 🖥️ | QoL | Steinsäge verarbeitet Holz | Leicht | Kandidat | ✅ gebaut (CI grün) |
+| 8 | `deathswap` | 🖥️ | Spiel | Alle N Min. Positions-Tausch | Leicht | erst Playtest | ✅ gebaut (CI grün) |
+| 9 | `tag` | 🖥️ | Spiel | Fangen: „Es“ mit Speed+Glow, Timer, Punkte | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
+| 10 | `sit` | 🖥️ | QoL | Sitzen auf Treppen/Stufen + /sit | Leicht–mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 11 | `bounty` | 🖥️ | Spiel | Kopfgeld auf Zufallsspieler (Glow) | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
+| 12 | `mobgriefing` | 🖥️ | QoL | mobGriefing pro Mob-Typ statt global | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
+| 13 | `ernte` | 🖥️ | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
+| 14 | `juggernaut` | 🖥️ | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
+| 15 | `pets` | 🖥️ | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 16 | `gabe-buerde` | 🖥️ | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 17 | `lifesteal` | 🖥️ | Twist | Kill klaut Herz, Spectator statt Ban, Revive | Mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 18 | `graves` | 🖥️ | QoL | Grab statt Item-Despawn (Schutzzeit, Verfall) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 19 | `manhunt` | 🖥️ | Spiel | Jäger-Kompass trackt Runner (cross-dim) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
+| 20 | `events` | 🖥️ | Twist | Weltereignisse: Blutmond / Meteor / Grenze (je Modul) | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 21 | `nemesis` ⭐ | 🖥️ | Twist | Dein Mob-Killer kehrt benannt & stärker zurück | Mittel–schwer | **Kandidat (Flaggschiff)** | ✅ gebaut (CI grün) |
+| opt. | `verstecken` | 🖥️ | Spiel | Prop-Hunt light | Mittel–schwer | unbestätigt | kein Ordner |
+| opt. | `lootrandomizer` | 🖥️ | Twist | Seed-feste Drops mit Lösbar-Garantie | Mittel | unbestätigt | kein Ordner |
 
 Status-Legende: 📋 geplant → 🔨 in Arbeit → ✅ gebaut (kompiliert) → 🧪 im Playtest → 🌍 öffentlich.
-Optionale bekommen Ordner erst nach Horstis Bestätigung.
+Umgebung: 🖥️ server-seitig (Vanilla-Clients joinen) · 💻 client-seitig · 🔗 beides.
+**Welle 3 und der Cobblemon-Zweig stehen in Abschnitt 9** (Ordner + README angelegt, kein Code).
 
 ## 4. Repo-Struktur
 
@@ -110,10 +121,25 @@ Optionale bekommen Ordner erst nach Horstis Bestätigung.
 Horstis_MC_Mods/
 ├─ README.md            # Mini-Einstieg, verweist hierher
 ├─ PLAN.md              # DIESE Datei: Status, Liste, Roadmap
-├─ settings.gradle / build.gradle / gradle/   # Versionen zentral (ab Durchgang 1)
-├─ core/                # Settings-Registry, Timer/Spielphasen, Broadcasts (Jar-in-Jar)
+├─ settings.gradle / build.gradle / gradle/   # Versionen zentral
+├─ core/                # Settings-Registry, Timer, Broadcasts, Persistenz (Jar-in-Jar)
 └─ mods/<name>/         # je Mod: README.md (Spec/Nutzung), build.gradle, src/…, fabric.mod.json
 ```
+
+### 4.1 Warum **kein** `client/`- und `server/`-Ordner (Antwort auf Horstis Frage 0.3)
+
+**Empfehlung: flach lassen.** Drei Gründe:
+
+1. **Viele Mods sind beides.** Das bevorzugte Muster ist „Server-Mod + optionaler Client-Begleiter“
+   (Prinzip 3). Ein Mod mit beiden Teilen müsste in beide Ordner — die Trennung wäre sofort falsch.
+2. **Jeder Mod soll selbsterklärend sein** (Horstis Ziel). Das erreicht die **Kennzeichnung**, nicht der
+   Pfad: `environment` in `fabric.mod.json` + Badge in der ersten README-Zeile + Spalte „Umgebung“ in
+   der Mod-Liste unten. Wer den Ordner öffnet, sieht es sofort — egal wo er liegt.
+3. **Ein Umbau kostet ohne Gegenwert:** Gradle-Pfade, CI-Globs, Git-Historie und die
+   „ein Ordner = ein Public-Repo“-Regel müssten angefasst werden.
+
+**Kennzeichnungs-Schema in jeder README-Kopfzeile:**
+`🖥️ Server` (Vanilla-Clients joinen) · `💻 Client` (nur lokal) · `🔗 Server + Client-Begleiter`
 
 ## 5. Arbeitszyklus & Reihenfolge
 
@@ -171,40 +197,68 @@ README-Fallback (D). Installer/PowerShell: abgelehnt (SmartScreen/Pfade/Wartung)
    Anlauf via API, mit Flatrate inklusive], sondern Test/Maintenance). **Selektiv ja:** Einzelfälle mit
    echter Lücke sammeln wir nach den Basis-Mods.
 
-## 9. Research-Runde 2 (Juli 2026) — Kandidaten für Welle 3
+## 9. WELLE 3 — geplant (Ordner + README stehen, kein Code)
 
-### 9.1 Neue eigene QoL-Ideen (geprüft gegen den Markt)
+Nach der Client-Freigabe (Prinzip 3, 26.07.2026) neu bewertet. Alle Ordner liegen unter `mods/` bzw.
+`cobblemon/`, alle READMEs sind **auf Englisch** (Modrinth-tauglich, siehe Abschnitt 10).
 
-| Idee | Was | Nachfrage | Gibt’s das schon? | Verdikt |
+| Mod | Umgebung | Was | Gibt’s das schon? | Priorität |
 |---|---|---|---|---|
-| **`wrapped`** ⭐ | Wöchentliche Server-Highlights aus Vanilla-Statistiken: „meiste Blöcke gelaufen“, „meiste Tode“, „größter Bergmann“ — Ansage im Chat + `/wrapped` jederzeit | Mittel, aber hoher Wow-Effekt | Nur Bukkit-Plugins (PlayerStats) + externe Web-Tools; **als Fabric-Server-Mod nichts gefunden** | **Bauen — größte neue Lücke** |
-| **`werkzeugschutz`** | Werkzeug blockiert bei kritischer Haltbarkeit + Warnung, statt zu zerbrechen | Hoch (Dauerärgernis) | Existiert — aber **fast alles client-seitig** (jeder Spieler muss selbst installieren) | **Bauen** — server-seitig = gilt für alle, echter Mehrwert |
-| **`heim`** | `/heim`, `/warp`, `/tpa`, `/zurueck` (nach Tod/Teleport) | Sehr hoch („jeder Server braucht das“) | Viel vorhanden (Essentials-artig, auch für Fabric) | **Nur privat** — Mehrwert wäre nur die Integration ins Horsti-Schema |
-| **`nachschub`** | Leerer Block-Stack wird automatisch aus dem Inventar nachgefüllt | Mittel-hoch | Meist client-seitig | Kandidat, zweite Reihe |
-| **`spawnschutz`** | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Mittel | Teils vorhanden | Kandidat, zweite Reihe |
-| ~~`wegpunkte`~~ | Waypoints + Peilung für Vanilla-Clients | Hoch | **Mehrfach server-seitig vorhanden** (ServerPoints, Better Waypoints, Server-Side Waypoints) | **Gestrichen** — kein Mehrwert |
+| **`wrapped`** ⭐ | 🖥️ Server | Wöchentliche Server-Highlights aus Vanilla-Statistiken („meiste Blöcke gelaufen“, „größter Bergmann“) + `/wrapped` jederzeit | Nur Bukkit-Plugins + Web-Tools; **als Fabric-Mod nichts gefunden** | **Hoch — größte Lücke** |
+| **`toolguard`** | 🖥️ Server | Werkzeug blockiert bei kritischer Haltbarkeit statt zu zerbrechen | Existiert, aber **fast nur client-seitig** (jeder müsste selbst installieren) | Hoch |
+| **`horstihud`** | 💻 Client | Begleiter für unsere Server-Mods: Nemesis-Status, Manhunt-Peilung als Pfeil, Bounty-Timer — nur Text + Vanilla-Widgets | — (spezifisch für unsere Mods) | Mittel |
+| **`refill`** | 🖥️ Server | Leerer Block-Stack wird aus dem Inventar nachgefüllt | Meist client-seitig | Mittel |
+| **`spawnguard`** | 🖥️ Server | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Teils vorhanden | Niedrig |
+| ~~`heim`~~ | — | Homes/Warps/TPA | Essentials-Territorium, gut abgedeckt | **Nur privat, falls überhaupt** |
+| ~~`wegpunkte`~~ | — | Waypoints | **Dreifach server-seitig vorhanden** | **Gestrichen** |
 
-### 9.2 Cobblemon — geprüft, aber blockiert
+### 9.1 Cobblemon-Zweig (`cobblemon/`) — Ziel: Minecraft 1.21.1
 
-**Kernbefund: Cobblemon läuft auf Minecraft 1.21.1, nicht auf unserer Zielversion 26.2.** Aktuell ist
-v1.7.3 (Jan 2026); das kommende 1.8.0 (TMs, Alpha-Pokémon, Habitate) war im Juli 2026 noch nicht
-veröffentlicht und zielt ebenfalls auf 1.21.1. Ein Cobblemon-Addon von uns bräuchte also einen
-**eigenen 1.21.1-Build-Zweig** — zweite Toolchain, zweite Testumgebung, doppelte Pflege.
+**Kein Cobblemon-Port.** Wir liefern Addons für die **aktuelle** Cobblemon-Version (v1.7.3, Jan 2026,
+läuft auf **MC 1.21.1**). Das kommende 1.8.0 zielt ebenfalls auf 1.21.1 und war im Juli 2026 noch nicht
+draußen. Konsequenz: **eigener Build-Zweig auf 1.21.1** — andere Toolchain als unsere 26.2-Mods
+(dort gilt noch `ResourceLocation`, `getServer()` etc., also die *alte* API vor dem 26.x-Umbau).
 
-**Zweiter Befund:** Horstis konkrete Wünsche (XP-Leiste, Keybind-Übersicht per Hotkey) sind
-**HUD-Rendering = reine Client-Mods**. Das widerspricht Prinzip 3 (server-seitig, Vanilla-Clients) und
-wäre eine komplett neue Mod-Kategorie mit Mod-Menu/Cloth-Config und Client-Rendering-Code — genau der
-Bereich, den der 26.2-Grafikumbau (Vulkan/Blaze3D) instabil macht.
+**Marktlage (dicht besetzt, ehrlich bewertet):** Spawn-/Shiny-Alerts sind mehrfach abgedeckt (Cobblemon
+Spawn Alerts mit 1 Mio.+ Downloads, Poke-Notifier, Spawn Notification, Chiselmon). IV/EV-Anzeige gibt es
+via MoreCobblemonTweaks und Cobblemon Utility+ — und Cobblemon 1.7 zeigt IVs/EVs inzwischen selbst.
+Pokédex: Cobbledex. UI: Cobblemon UI Tweaks.
 
-**Vorhandene Sidemods** (Auswahl): Cobbledex (Pokédex-Infos), Mega Showdown, Capture XP, Myths and
-Legends, Server-Side Commands, Rider, Pasture Collector — die Szene ist aktiv und deckt viel ab.
+**Verbleibende Lücken → unsere drei Kandidaten:**
 
-**Verdikt: zurückgestellt.** Empfehlung: abwarten, bis Cobblemon auf eine 26.x-Version zieht. Falls
-Horsti trotzdem will, ist der sinnvollste Einstieg ein **server-seitiges** Cobblemon-Addon für 1.21.1
-(z. B. Team-Wettkampf-Logik, Fang-Statistiken, Turnier-Modus) statt HUD-Features.
+| Mod | Umgebung | Was | Lücken-Einschätzung |
+|---|---|---|---|
+| **`cobble-keys`** | 💻 Client | Hotkey blendet alle Cobblemon-Tastenbelegungen samt Erklärung ein — Einsteigerhilfe | Nichts Vergleichbares gefunden; Cobblemon hat viele Keybinds, die niemand kennt |
+| **`cobble-xp`** | 💻 Client | XP-/Level-Fortschritt des aktiven Pokémon dauerhaft im HUD (Text + Vanilla-Balken) | Kein reiner XP-HUD gefunden (der „Capture XP“-Mod macht etwas anderes) |
+| **`cobble-league`** | 🖥️ Server | Turnier-/Liga-Logik: Anmeldung, Paarungen, Tabelle, Fang-Statistiken je Spieler | Alert-Ecke ist voll, **Wettkampf-Logik kaum besetzt** — passt zu unserer Server-Stärke |
 
-### 9.3 Community-Wünsche, zweite Runde
+Reihenfolge-Vorschlag: erst `cobble-keys` (klein, klare Lücke), dann `cobble-league` (unsere Stärke),
+`cobble-xp` als drittes. Erst nach Horstis GO und getrennt vom 26.2-Build.
 
-Der Wunschzettel-Research aus v2 hat sich bestätigt — die Evergreens (Anvil, Ernte, Gräber, Sitzen)
-haben wir gebaut. Neu aufgefallen ist nur die **Server-Admin-Ecke** (Homes/Warps/TPA/Back als
-„jeder Server braucht das“), die aber gut abgedeckt ist → siehe `heim` oben: privat ja, öffentlich nein.
+### 9.2 Community-Wünsche, zweite Runde
+
+Der Wunschzettel aus Welle 2 hat sich bestätigt — die Evergreens (Anvil, Ernte, Gräber, Sitzen) sind
+gebaut. Neu aufgefallen ist die **Server-Admin-Ecke** (Homes/Warps/TPA), die aber dicht besetzt ist.
+Die Client-Freigabe eröffnet vor allem **HUD-Begleiter** für eigene Server-Logik — genau das, was
+`horstihud` und die beiden Cobblemon-Client-Mods abdecken.
+
+## 10. Sprache: Deutsch → Englisch (Stand 26.07.2026)
+
+Für Modrinth ist eine **englische Projektbeschreibung Pflicht**. Der Umfang ist gestaffelt:
+
+| Ebene | Status | Nötig für Modrinth? |
+|---|---|---|
+| Root-README | Horsti stellt selbst um | Ja |
+| Mod-READMEs (21 Stück) | **Deutsch** — Umstellung offen | Ja (jede README = eine Projektbeschreibung) |
+| READMEs Welle 3 + Cobblemon | **Englisch** ✅ (ab sofort Standard) | — |
+| Command-Namen (`/holzsaege`, `/gabe`, `/herzen`, `/ziel`) | **Deutsch** | Ja, sonst unbenutzbar für internationale Spieler |
+| Setting-Keys (`rundenMin`, `schutzSek`) | **Deutsch** | Ja (stehen in der Config und im Command) |
+| In-Game-Texte | **Deutsch** | Ja |
+| Code-Bezeichner + Kommentare | **Deutsch** | Nein (intern, kein Nutzer sieht das) |
+| PLAN.md | **Deutsch** (Horstis Arbeitsdokument) | Nein |
+
+**Empfehlung:** Nicht alle 21 Mods auf Verdacht übersetzen, sondern **nur die, die tatsächlich öffentlich
+gehen** — und die dann *vollständig* (README + Commands + Settings + Texte). Halbe Übersetzungen sind
+schlimmer als gar keine. Ordnernamen wie `holzsaege`/`todesort` würden dabei ebenfalls englisch
+(`woodcutter`/`deathpoint`). Achtung: Command- und Setting-Umbenennungen brechen bestehende
+Configs — deshalb sinnvollerweise **vor** dem ersten öffentlichen Release, nicht danach.

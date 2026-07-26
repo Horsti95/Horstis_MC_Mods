@@ -1,51 +1,72 @@
-# Horstis MC Mods
+# Horsti's MC Mods
 
-21 eigene Minecraft-Mods (Java, **Fabric, MC 26.2**) nach der Leitidee
-**„minimale Assets, maximaler Logik-Impact“** — alle server-seitig, **Mitspieler joinen mit Vanilla-Client**.
+Server-side Minecraft mods (Java, **Fabric, MC 26.2**) built on one idea:
+**minimal assets, maximum logic impact** — rules and systems built from what the game already has.
+Most of them run on the server alone, so **your friends join with a plain vanilla client**.
 
-➡️ **[PLAN.md](PLAN.md) ist die Single Source of Truth**: Mod-Liste, Status, Roadmap.
+➡️ **[PLAN.md](PLAN.md) is the single source of truth**: mod list, status, roadmap (written in German).
 
-## Installation
+## Install
 
-1. **Jars holen:** neuester [Actions-Build](../../actions/workflows/build.yml) → Artefakt **`horsti-mods`**
-   herunterladen und entpacken (oder lokal `./gradlew build`, Jars landen in `mods/<name>/build/libs/`).
-2. **Auf den Server legen:** gewünschte `horsti-*.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
-   in den `mods`-Ordner. Aternos: Fabric API installieren, Horsti-Jars per Datei-Upload dazu.
-3. **Fertig.** Jeder Mod läuft sofort mit sinnvollen Defaults; Freunde brauchen **keine** Installation.
-   Für Singleplayer die Jars in den `mods`-Ordner der eigenen 26.2-Fabric-Instanz.
+1. **Get the jars:** latest [Actions build](../../actions/workflows/build.yml) → download the
+   **`horsti-mods`** artifact and unpack it (or build locally with `./gradlew build`; jars land in
+   `mods/<name>/build/libs/`).
+2. **Put them on the server:** the `horsti-*.jar` files you want, plus
+   [Fabric API](https://modrinth.com/mod/fabric-api), into the `mods` folder.
+   On Aternos: install Fabric API, then upload the Horsti jars.
+3. **Done.** Every mod runs immediately with sensible defaults, and other players install **nothing**.
+   For single player, drop the jars into your own 26.2 Fabric instance.
 
-Nur die Mods installieren, die du willst — jeder ist eigenständig, `horsti-core` bringt jede Jar selbst mit.
+Install only what you want — each mod stands alone and bundles `horsti-core` itself.
 
-## Steuerung im Spiel
+## In-game control
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/horsti` | Übersicht: alle installierten Horsti-Mods + Status |
-| `/<mod>` | Status und aktuelle Werte eines Mods |
-| `/<mod> on` · `/<mod> off` | Mod live an-/abschalten |
-| `/<mod> set <param> <wert>` | Parameter live ändern |
-| `/<mod> reset` · `/<mod> reload` | Defaults bzw. Config-Datei neu laden |
+| `/horsti` | Overview: every installed Horsti mod and its state |
+| `/<mod>` | Status and current values of one mod |
+| `/<mod> on` · `/<mod> off` | Enable/disable live |
+| `/<mod> set <param> <value>` | Change a parameter live |
+| `/<mod> reset` · `/<mod> reload` | Restore defaults / reload the config file |
 
-Alles OP-Level 2, funktioniert auch über die Server-Konsole (Aternos-Webkonsole).
-Werte landen automatisch in `config/horsti/<mod>.json`, Spielstände in `config/horsti/daten/`.
+Everything is OP level 2 and works from the server console (including the Aternos web console).
+Values are stored in `config/horsti/<mod>.json`, saved game state in `config/horsti/daten/`.
 
-## Die Mods
+> **Note:** commands and settings currently use German names (`/holzsaege`, `/gabe`, `rundenMin`).
+> They will be renamed to English before any public release — see PLAN.md section 10.
 
-**Quality of Life** — [`anvilfix`](mods/anvilfix) (kein „Zu teuer!“ mehr) ·
-[`ernte`](mods/ernte) (Rechtsklick-Ernte) · [`graves`](mods/graves) (Grab statt Item-Verlust) ·
-[`sit`](mods/sit) (auf Treppen sitzen) · [`holzsaege`](mods/holzsaege) (Steinsäge für Holz) ·
-[`mobgriefing`](mods/mobgriefing) (pro Mob-Typ) · [`totem`](mods/totem) (aus dem Inventar) ·
-[`pets`](mods/pets) · [`todesort`](mods/todesort) · [`afk`](mods/afk)
+## The mods
 
-**Minigames** — [`tag`](mods/tag) (Fangen) · [`deathswap`](mods/deathswap) ·
-[`manhunt`](mods/manhunt) · [`juggernaut`](mods/juggernaut) · [`bounty`](mods/bounty)
+**Built and compiling (21)**
 
-**SMP-Twists** — [`nemesis`](mods/nemesis) ⭐ (dein Mob-Killer kehrt benannt & stärker zurück) ·
-[`lifesteal`](mods/lifesteal) · [`gabe-buerde`](mods/gabe-buerde) · [`events`](mods/events)
-(Blutmond, Meteoritenregen, Schrumpfgrenze) · [`killmagnet`](mods/killmagnet) · [`keepmoving`](mods/keepmoving)
+*Quality of life* — [`anvilfix`](mods/anvilfix) (no more "Too Expensive") ·
+[`ernte`](mods/ernte) (right-click harvest) · [`graves`](mods/graves) (a grave instead of lost items) ·
+[`sit`](mods/sit) (sit on stairs) · [`holzsaege`](mods/holzsaege) (stonecutter for wood) ·
+[`mobgriefing`](mods/mobgriefing) (per mob type) · [`totem`](mods/totem) (works from the inventory) ·
+[`pets`](mods/pets) · [`todesort`](mods/todesort) (death coordinates) · [`afk`](mods/afk)
 
-Jeder Ordner hat eine eigene README mit allen Commands, Defaults und einem Steckbrief.
+*Minigames* — [`tag`](mods/tag) · [`deathswap`](mods/deathswap) · [`manhunt`](mods/manhunt) ·
+[`juggernaut`](mods/juggernaut) · [`bounty`](mods/bounty)
 
-## Lizenz
+*SMP twists* — [`nemesis`](mods/nemesis) ⭐ (the mob that killed you comes back named and stronger) ·
+[`lifesteal`](mods/lifesteal) · [`gabe-buerde`](mods/gabe-buerde) (a random gift and burden per player) ·
+[`events`](mods/events) (blood moon, meteors, shrinking border) · [`killmagnet`](mods/killmagnet) ·
+[`keepmoving`](mods/keepmoving)
 
-MIT — siehe [LICENSE](LICENSE).
+**Planned — README only, no code yet (5)**
+
+[`wrapped`](mods/wrapped) ⭐ (weekly server stats highlights) · [`toolguard`](mods/toolguard)
+(tools refuse to break) · [`horstihud`](mods/horstihud) 💻 (optional client overlay) ·
+[`refill`](mods/refill) · [`spawnguard`](mods/spawnguard)
+
+**Cobblemon add-ons — separate branch for MC 1.21.1 (3)**
+
+See [`cobblemon/`](cobblemon) — [`cobble-keys`](cobblemon/cobble-keys) 💻,
+[`cobble-league`](cobblemon/cobble-league), [`cobble-xp`](cobblemon/cobble-xp) 💻
+
+Every folder has its own README with commands, defaults and a fact sheet.
+🖥️ = server-side · 💻 = client-side
+
+## License
+
+MIT — see [LICENSE](LICENSE).
