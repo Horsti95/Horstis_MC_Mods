@@ -16,9 +16,11 @@ import java.util.Random;
 public class EventsMod implements ModInitializer {
 	// Zufalls-Automatik startet bewusst deaktiviert — Events sind laut.
 	private final ModSettings settings = new ModSettings("events", false);
-	private final IntSetting blutmondChance = settings.add(new IntSetting("blutmondChance", "%-Chance pro Nacht", 5, 0, 20));
-	private final IntSetting meteorChance = settings.add(new IntSetting("meteorChance", "%-Chance pro Tag", 3, 0, 20));
+	private final IntSetting pruefIntervallMin = settings.add(new IntSetting("pruefIntervallMin", "Minuten zwischen zwei Wuerfen", 20, 5, 240));
+	private final IntSetting blutmondChance = settings.add(new IntSetting("blutmondChance", "%-Chance je Wurf", 15, 0, 100));
+	private final IntSetting meteorChance = settings.add(new IntSetting("meteorChance", "%-Chance je Wurf", 10, 0, 100));
 	private final IntSetting blutmondProWelle = settings.add(new IntSetting("blutmondProWelle", "Mobs je Welle und Spieler", 3, 1, 10));
+	private final IntSetting blutmondDauerMin = settings.add(new IntSetting("blutmondDauerMin", "Blutmond-Dauer in Minuten", 8, 1, 30));
 	private final BoolSetting meteorBlockschaden = settings.add(new BoolSetting("meteorBlockschaden", "Meteoriten beschaedigen Bloecke", false));
 	private final IntSetting grenzeDauerMin = settings.add(new IntSetting("grenzeDauerMin", "Schrumpf-Dauer in Minuten", 30, 5, 120));
 	private final IntSetting grenzeZielRadius = settings.add(new IntSetting("grenzeZielRadius", "Ziel-Radius in Bloecken", 64, 16, 512));
@@ -37,7 +39,7 @@ public class EventsMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		events = new HorstiEvent[]{
-			new Blutmond(blutmondProWelle),
+			new Blutmond(blutmondProWelle, blutmondDauerMin),
 			new Meteorregen(meteorBlockschaden),
 			schrumpfgrenze
 		};
@@ -88,20 +90,18 @@ public class EventsMod implements ModInitializer {
 			}
 			return;
 		}
-		if (!settings.istAktiv()) {
+		if (!settings.istAktiv() || server.getPlayerList().getPlayers().isEmpty()) {
 			return;
 		}
-		// Zufalls-Automatik: einmal pro Minecraft-Tag/Nacht-Wechsel wuerfeln
-		long tageszeit = server.overworld().getDayTime() % 24000L;
-		boolean nacht = tageszeit >= 13000L && tageszeit < 13100L;
-		boolean tag = tageszeit >= 1000L && tageszeit < 1100L;
-		if ((nacht || tag) && jetztSek - letztePruefung > 60) {
-			letztePruefung = jetztSek;
-			if (nacht && random.nextInt(100) < blutmondChance.get()) {
-				ankuendigen(server, events[0]);
-			} else if (tag && random.nextInt(100) < meteorChance.get()) {
-				ankuendigen(server, events[1]);
-			}
+		// Zufalls-Automatik: alle pruefIntervallMin Minuten wuerfeln
+		if (jetztSek - letztePruefung < pruefIntervallMin.get() * 60L) {
+			return;
+		}
+		letztePruefung = jetztSek;
+		if (random.nextInt(100) < blutmondChance.get()) {
+			ankuendigen(server, events[0]);
+		} else if (random.nextInt(100) < meteorChance.get()) {
+			ankuendigen(server, events[1]);
 		}
 	}
 

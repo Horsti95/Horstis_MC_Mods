@@ -1,5 +1,6 @@
 package com.horsti.events;
 
+import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.IntSetting;
 import com.horsti.core.util.Broadcast;
 import net.minecraft.ChatFormatting;
@@ -7,11 +8,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.border.WorldBorder;
 
-/** Battle-Royale-Gefuehl fuer Rundenspiele: die Weltgrenze zieht sich zusammen. */
+/**
+ * Battle-Royale-Gefuehl fuer Rundenspiele: die Weltgrenze zieht sich zusammen.
+ * Die Interpolation rechnen wir selbst (setSize pro Sekunde) — das ist von
+ * Vanillas lerp-Signaturen unabhaengig und laesst sich sauber abbrechen.
+ */
 public class Schrumpfgrenze implements HorstiEvent {
 	private final IntSetting dauerMin;
 	private final IntSetting zielRadius;
-	private double alterRadius = -1;
+	private double startGroesse = -1;
 
 	public Schrumpfgrenze(IntSetting dauerMin, IntSetting zielRadius) {
 		this.dauerMin = dauerMin;
@@ -31,16 +36,18 @@ public class Schrumpfgrenze implements HorstiEvent {
 
 	@Override
 	public void starten(MinecraftServer server) {
-		WorldBorder grenze = server.overworld().getWorldBorder();
-		alterRadius = grenze.getSize();
-		grenze.lerpSizeBetween(grenze.getSize(), zielRadius.get() * 2.0, dauerMin.get() * 60_000L);
+		startGroesse = grenze(server).getSize();
 		Broadcast.titelAlle(server, Component.literal("DIE GRENZE SCHRUMPFT").withStyle(ChatFormatting.AQUA),
 			Component.literal("Ziel: " + zielRadius.get() + " Blöcke Radius in " + dauerMin.get() + " Minuten"));
 	}
 
 	@Override
 	public boolean tick(MinecraftServer server, long laufSekunden) {
-		return laufSekunden < dauerMin.get() * 60L;
+		long gesamt = dauerMin.get() * 60L;
+		double ziel = zielRadius.get() * 2.0;
+		double anteil = Math.min(1.0, (double) laufSekunden / gesamt);
+		grenze(server).setSize(startGroesse + (ziel - startGroesse) * anteil);
+		return laufSekunden < gesamt;
 	}
 
 	@Override
@@ -50,9 +57,13 @@ public class Schrumpfgrenze implements HorstiEvent {
 
 	/** Stellt die Weltgrenze wieder her (bei /events abbrechen). */
 	public void zuruecksetzen(MinecraftServer server) {
-		if (alterRadius > 0) {
-			server.overworld().getWorldBorder().setSize(alterRadius);
-			alterRadius = -1;
+		if (startGroesse > 0) {
+			grenze(server).setSize(startGroesse);
+			startGroesse = -1;
 		}
+	}
+
+	private static WorldBorder grenze(MinecraftServer server) {
+		return HorstiServer.oberwelt(server).getWorldBorder();
 	}
 }

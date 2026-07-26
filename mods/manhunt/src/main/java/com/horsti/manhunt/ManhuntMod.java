@@ -18,7 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import com.horsti.core.util.Mobs;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
@@ -82,7 +82,7 @@ public class ManhuntMod implements ModInitializer {
 				if (!jaeger.contains(sp.getUUID())) {
 					return 0;
 				}
-				List<ServerPlayer> ziele = lebendeRunner(sp.getServer());
+				List<ServerPlayer> ziele = lebendeRunner(HorstiServer.get());
 				if (ziele.isEmpty()) {
 					return 0;
 				}
@@ -106,7 +106,7 @@ public class ManhuntMod implements ModInitializer {
 				}
 			}
 			// Drachen-Sieg: der Enderdrache wird von einem Runner erlegt
-			if (entity.getType() == EntityType.ENDER_DRAGON
+			if (Mobs.istTyp(entity, "minecraft:ender_dragon")
 				&& source.getEntity() instanceof ServerPlayer toeter && runner.contains(toeter.getUUID())) {
 				beenden(HorstiServer.get(), "runner");
 			}

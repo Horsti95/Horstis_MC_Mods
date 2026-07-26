@@ -17,7 +17,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.horsti.core.util.Mobs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -26,8 +26,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -104,7 +102,7 @@ public class NemesisMod implements ModInitializer {
 			}
 			if (entity instanceof ServerPlayer opfer) {
 				spielerGestorben(opfer, source.getEntity());
-			} else if (entity.getTags().contains(TAG) && source.getEntity() instanceof ServerPlayer sieger) {
+			} else if (source.getEntity() instanceof ServerPlayer sieger) {
 				nemesisBesiegt(sieger, entity);
 			}
 		});
@@ -120,7 +118,8 @@ public class NemesisMod implements ModInitializer {
 		JsonObject n = daten.getAsJsonObject(key);
 		long rueckkehr = System.currentTimeMillis() + rueckkehrMin.get() * 60_000L;
 
-		if (n != null && toeter.getTags().contains(TAG)) {
+		if (n != null && n.has("lebendId")
+			&& n.get("lebendId").getAsString().equals(toeter.getUUID().toString())) {
 			// Der eigene Erzfeind war erfolgreich: er steigt auf.
 			int level = Math.min(maxLevel.get(), n.get("level").getAsInt() + 1);
 			n.addProperty("level", level);
@@ -133,7 +132,7 @@ public class NemesisMod implements ModInitializer {
 			}
 		} else if (n == null) {
 			n = new JsonObject();
-			n.addProperty("typ", BuiltInRegistries.ENTITY_TYPE.getKey(toeter.getType()).toString());
+			n.addProperty("typ", Mobs.typId(toeter));
 			n.addProperty("name", Namen.wuerfeln(random));
 			n.addProperty("level", 1);
 			n.addProperty("besitzerName", opfer.getName().getString());
@@ -203,17 +202,13 @@ public class NemesisMod implements ModInitializer {
 		if (!(besitzer.level() instanceof ServerLevel level)) {
 			return;
 		}
-		EntityType<?> typ = BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.parse(n.get("typ").getAsString()));
-		if (typ == null) {
-			return;
-		}
 		// 24–40 Bloecke entfernt, damit die Ankunft nicht ins Gesicht springt
 		double winkel = random.nextDouble() * Math.PI * 2;
 		double distanz = 24 + random.nextInt(17);
 		BlockPos pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 			besitzer.blockPosition().offset((int) (Math.cos(winkel) * distanz), 0, (int) (Math.sin(winkel) * distanz)));
 
-		if (!(typ.spawn(level, pos, EntitySpawnReason.EVENT) instanceof Mob mob)) {
+		if (!(Mobs.spawnen(level, n.get("typ").getAsString(), pos) instanceof Mob mob)) {
 			return;
 		}
 		int level_ = n.get("level").getAsInt();
