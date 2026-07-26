@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "horsti_wrapped",
+	"version": "${version}",
+	"name": "Horsti Wrapped",
+	"description": "Weekly server highlights built from vanilla statistics: who walked the farthest, who died the most.",
+	"authors": ["Horsti", "Claude"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.horsti.wrapped.WrappedMod"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.0",
+		"fabric-api": "*",
+		"minecraft": "~26.2",
+		"horsti_core": "*"
+	}
+}

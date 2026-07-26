@@ -1,0 +1,11 @@
+{
+	"required": false,
+	"package": "com.horsti.toolguard.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ItemStackDamageMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

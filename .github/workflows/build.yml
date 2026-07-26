@@ -19,13 +19,19 @@ jobs:
 
       # Bei Bedarf (neue Mods, unbekannte 26.x-APIs) aktivierbar: if: false entfernen
       # und die Klassenliste anpassen.
-      - name: API dump (deaktiviert)
-        if: false
+      - name: API dump
         continue-on-error: true
         run: |
           ./gradlew :core:printCoreClasspath -q || true
           CP=$(cat build/core-classpath.txt)
           d() { echo "=====CLASS $1"; javap -classpath "$CP" "$1" 2>&1 | grep -E "$2" | head -26; }
+          d 'net.minecraft.stats.Stats' 'WALK_ONE_CM|DEATHS|MOB_KILLS|PLAY_TIME|FISH_CAUGHT|JUMP|DAMAGE_TAKEN|BLOCK_MINED|CUSTOM'
+          d 'net.minecraft.stats.StatType' 'public'
+          d 'net.minecraft.stats.ServerStatsCounter' 'getValue|setValue'
+          d 'net.minecraft.stats.StatsCounter' 'getValue'
+          d 'net.minecraft.server.level.ServerPlayer' 'getStats'
+          d 'net.minecraft.world.item.ItemStack' 'hurtAndBreak|isDamageableItem|getMaxDamage|getDamageValue|isEnchanted|getHoverName'
+          d 'net.minecraft.core.registries.BuiltInRegistries' 'BLOCK;'
           d 'net.minecraft.world.entity.ai.attributes.Attributes' 'MAX_HEALTH|MOVEMENT_SPEED|ATTACK_DAMAGE|ARMOR;|KNOCKBACK|JUMP|SAFE_FALL|FALL_DAMAGE|BLOCK_BREAK|MAX_ABSORPTION|SCALE|OXYGEN|BURNING'
           d 'net.minecraft.world.entity.ai.attributes.AttributeInstance' 'setBaseValue|getBaseValue|addOrUpdate|addPermanent|removeModifier|getModifier'
           d 'net.minecraft.world.entity.ai.attributes.AttributeModifier' 'public'
