@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "horsti_cobble_keys",
+	"version": "${version}",
+	"name": "Cobblemon Keybind Helper",
+	"description": "One hotkey shows every Cobblemon control with its current binding — onboarding help, client-side only.",
+	"authors": ["Horsti", "Claude"],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["com.horsti.cobblekeys.CobbleKeysClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"fabric-api": "*",
+		"minecraft": "~1.21.1"
+	},
+	"recommends": {
+		"cobblemon": "*"
+	}
+}

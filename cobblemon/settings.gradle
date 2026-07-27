@@ -1,0 +1,21 @@
+// Eigenstaendiger Build fuer die Cobblemon-Add-ons (Minecraft 1.21.1).
+// Bewusst NICHT im Root-settings.gradle eingehaengt: 1.21.1 und 26.2 sind zwei
+// verschiedene APIs und duerfen sich keinen Klassenpfad teilen.
+// Bauen: cd cobblemon && ../gradlew build
+
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
+rootProject.name = 'horsti-cobblemon'
+
+[
+	'cobble-keys'
+].each { include ":${it}" }

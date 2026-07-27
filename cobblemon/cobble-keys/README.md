@@ -7,26 +7,36 @@
 ## What it does
 
 Cobblemon has a lot of keybinds, and new players discover them by accident or not at all. This mod
-adds one hotkey that opens a plain overlay listing them:
+adds one hotkey that opens a plain list of them:
 
-- every Cobblemon keybind with its **current binding** and a one-line explanation
-- unbound actions highlighted, so you notice what you are missing
-- your own additions: free-text entries for server commands you use often
-- a jump straight into the vanilla controls screen, filtered to Cobblemon
+- every Cobblemon keybind with its **current binding** and, where we ship one, a short explanation
+- unbound actions marked in red, so you notice what you are missing
+- your own additions: free-text lines for commands you keep forgetting
+- a jump straight into the vanilla controls screen, so rebinding is one keypress away
+- shown once automatically on your first join — the players who need it are exactly the ones who do
+  not know the hotkey exists
 
-The overlay is text on a translucent background — **no custom sprites, no animations** (PLAN.md,
-principle 2). It reads the keybind registry, so entries added by future Cobblemon versions and other
-side-mods appear automatically.
+The list is text on a translucent rectangle — **no custom sprites, no animations** (PLAN.md,
+principle 2). It reads the game's keybind registry and has **no compile-time dependency on
+Cobblemon**, so keybinds added by future Cobblemon versions and by other side-mods appear on their
+own, and the mod cannot break when Cobblemon updates.
 
 ## In-game control
 
 | Keybind | Effect |
 |---|---|
-| `K` (rebindable) | Open/close the overlay |
-| `Shift + K` | Open the vanilla controls screen, Cobblemon section |
+| `K` (rebindable) | Open/close the list (mouse wheel scrolls) |
+| `Shift + K` | Open the vanilla controls screen |
 
-Settings via Mod Menu + Cloth Config: position, scale, which categories are listed, whether the
-overlay shows automatically on the first join.
+## Configuration
+
+`config/horsti/cobble-keys.json` — plain JSON, no config library needed:
+
+| Key | Effect |
+|---|---|
+| `namespace` | Which mod's keybinds are listed (default: **cobblemon**) |
+| `showOnFirstJoin` | Show the list once on the first join (default: **true**) |
+| `notes` | Your own lines at the bottom of the list |
 
 ## Installation
 
@@ -38,7 +48,7 @@ install on the server, and it does not matter whether other players have it.
 | | |
 |---|---|
 | Community demand | Medium — a recurring pain point for new Cobblemon players |
-| Does this exist? / our edge | No comparable mod found (the scene focuses on alerts and stat displays). Our edge: pure onboarding help, no gameplay change |
+| Does this exist? / our edge | No comparable mod found (the scene focuses on alerts and stat displays). Our edge: pure onboarding help, no gameplay change, and no dependency on Cobblemon's API |
 | Estimated effort | Low (read the keybind registry, draw a list) |
 | Target | Client |
 | Horsti priority | TBD |

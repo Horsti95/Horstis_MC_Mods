@@ -1,0 +1,49 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT' apply false
+}
+
+subprojects {
+	apply plugin: 'net.fabricmc.fabric-loom'
+
+	version = project.mod_version
+	group = project.maven_group
+
+	base {
+		archivesName = "horsti-${project.name}"
+	}
+
+	repositories {
+		// Cobblemon selbst — erst noetig, wenn eine Mod gegen dessen API compiliert.
+		// cobble-keys liest nur die Keybind-Registry und kommt ohne aus.
+		maven {
+			name = 'ImpactDev'
+			url = 'https://maven.impactdev.net/repository/development/'
+		}
+	}
+
+	dependencies {
+		minecraft "com.mojang:minecraft:${project.minecraft_version}"
+		// Mojang-Mappings wie im 26.2-Build, damit Namen zwischen beiden Zweigen gleich bleiben.
+		mappings loom.officialMojangMappings()
+		modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	}
+
+	processResources {
+		inputs.property 'version', project.version
+		filesMatching('fabric.mod.json') {
+			expand 'version': project.version
+		}
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		it.options.release = 21
+		it.options.encoding = 'UTF-8'
+	}
+
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(21)
+		}
+	}
+}

@@ -1,0 +1,3 @@
+// horsti-cobble-keys — Konfiguration kommt zentral aus cobblemon/build.gradle.
+// Bewusst KEINE Cobblemon-Abhaengigkeit: der Mod liest die Keybind-Registry des
+// Spiels und funktioniert damit mit jeder Cobblemon-Version (und mit Side-Mods).

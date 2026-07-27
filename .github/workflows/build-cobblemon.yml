@@ -1,0 +1,39 @@
+name: build-cobblemon
+
+# Eigener Job, weil der Cobblemon-Zweig auf Minecraft 1.21.1 baut und sich mit dem
+# 26.2-Build weder Klassenpfad noch Mappings teilen darf.
+on:
+  push:
+    paths:
+      - 'cobblemon/**'
+      - '.github/workflows/build-cobblemon.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cobblemon
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Cobblemon add-ons
+        run: ../gradlew build --continue --stacktrace
+
+      - name: Upload jars
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horsti-cobblemon
+          path: cobblemon/*/build/libs/*.jar
+          if-no-files-found: ignore

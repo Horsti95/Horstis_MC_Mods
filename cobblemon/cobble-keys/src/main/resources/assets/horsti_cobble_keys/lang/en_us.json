@@ -1,0 +1,10 @@
+{
+	"key.categories.horsti_cobble_keys": "Cobblemon Keybind Helper",
+	"key.horsti_cobble_keys.open": "Show Cobblemon controls",
+
+	"screen.horsti_cobble_keys.title": "Cobblemon controls",
+	"screen.horsti_cobble_keys.empty": "No keybinds found for \"%s\" — is Cobblemon installed?",
+	"screen.horsti_cobble_keys.notes": "Your notes",
+	"screen.horsti_cobble_keys.unbound": "unbound",
+	"screen.horsti_cobble_keys.footer": "Shift+K opens the controls screen · Esc closes"
+}
