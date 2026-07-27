@@ -26,6 +26,20 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Fabric raeumt alte Snapshots ab (1.7-SNAPSHOT ist weg). Der Container der
+      # Claude-Session kommt nicht an maven.fabricmc.net, also fragt CI nach, was es
+      # wirklich gibt. Abschaltbar mit "if: false", sobald die Versionen stehen.
+      - name: Toolchain probe
+        continue-on-error: true
+        run: |
+          v() { curl -sS "$1" | tr '<' '\n' | sed -n 's/^version>//p'; }
+          echo "=== fabric-loom (letzte 40) ==="
+          v https://maven.fabricmc.net/net/fabricmc/fabric-loom/fabric-loom/maven-metadata.xml | tail -40
+          echo "=== fabric-api fuer 1.21.1 (letzte 8) ==="
+          v https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep '1\.21\.1' | tail -8
+          echo "=== fabric-loader (letzte 12) ==="
+          v https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml | tail -12
+
       - name: Build Cobblemon add-ons
         run: ./gradlew build --continue
 
