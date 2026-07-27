@@ -32,13 +32,15 @@ jobs:
       - name: Toolchain probe
         continue-on-error: true
         run: |
-          v() { curl -sS "$1" | tr '<' '\n' | sed -n 's/^version>//p'; }
-          echo "=== fabric-loom (letzte 40) ==="
-          v https://maven.fabricmc.net/net/fabricmc/fabric-loom/fabric-loom/maven-metadata.xml | tail -40
-          echo "=== fabric-api fuer 1.21.1 (letzte 8) ==="
-          v https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep '1\.21\.1' | tail -8
-          echo "=== fabric-loader (letzte 12) ==="
-          v https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml | tail -12
+          # Loom liegt unter dem Plugin-Marker, nicht unter fabric-loom/fabric-loom —
+          # deshalb kam der erste Versuch leer zurueck. Zur Sicherheit auch das
+          # Verzeichnis-Listing, damit "leer" von "404" unterscheidbar ist.
+          echo "=== fabric-loom: Plugin-Marker ==="
+          curl -sS -w "\nHTTP %{http_code}\n" \
+            https://maven.fabricmc.net/net/fabricmc/fabric-loom/net.fabricmc.fabric-loom.gradle.plugin/maven-metadata.xml \
+            | tr '<' '\n' | sed -n 's/^version>//p;s/^HTTP/HTTP/p' | tail -50
+          echo "=== fabric-loom: Verzeichnis ==="
+          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-loom/ | grep -oE '>[0-9][^<]*/<' | tr -d '></' | tail -40
 
       - name: Build Cobblemon add-ons
         run: ./gradlew build --continue

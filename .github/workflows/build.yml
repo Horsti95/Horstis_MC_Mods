@@ -17,31 +17,20 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Druckt echte 26.x-Signaturen statt zu raten. Wenn keine neuen APIs anstehen:
-      # "if: false" wieder einfuegen, dann bleibt das Log kurz.
+      # Offen ist nur noch, wohin Fabric die Keybind-Registrierung verschoben hat
+      # (KeyBindingHelper ist aus …client.keybinding.v1 verschwunden). Der Rest der
+      # 26.x-Signaturen ist geklaert. Ganz abschaltbar mit "if: false".
       - name: API dump
         continue-on-error: true
         run: |
           ./gradlew :core:printCoreClasspath -q || true
           CP=$(cat build/core-classpath.txt)
-          d() { echo "=====CLASS $1"; javap -classpath "$CP" "$1" 2>&1 | grep -E "$2" | head -60; }
-
-          # Klassen-Index (unzip fehlt auf dem Runner, python3 ist da): findet Klassen,
-          # die umbenannt oder verschoben wurden und die javap per Namen nicht mehr trifft.
-          # Einzeiler, weil YAML-Blockeinrueckung sonst Pythons Einrueckung kaputtmacht.
+          # Klassen-Index per python3 (unzip fehlt auf dem Runner). Einzeiler, weil die
+          # YAML-Blockeinrueckung sonst Pythons eigene Einrueckung kaputtmacht.
           python3 -c "import sys,zipfile,os;print(chr(10).join(sorted({n[:-6].replace('/','.') for e in sys.argv[1].split(os.pathsep) if e.endswith('.jar') and os.path.isfile(e) for n in zipfile.ZipFile(e).namelist() if n.endswith('.class')})))" "$CP" > /tmp/classes.txt || true
           echo "############ KLASSEN-INDEX ($(wc -l < /tmp/classes.txt) Klassen) ############"
           echo "--- keybind ---"; grep -iE 'keybind' /tmp/classes.txt | grep -v '\$' | head -20
           echo "--- fabric client api ---"; grep -E '^net\.fabricmc\.fabric\.api\.client\.[a-z]+\.v[0-9]+\.[A-Z]' /tmp/classes.txt | grep -v '\$' | head -40
-
-          echo "############ HUD-RENDERING ############"
-          d 'net.minecraft.client.gui.GuiGraphics' 'public'
-          d 'net.minecraft.client.gui.GuiGraphicsExtractor' 'public'
-          d 'net.minecraft.client.Options' 'keyMappings'
-          d 'net.minecraft.client.Minecraft' 'font|Font'
-          d 'net.minecraft.network.protocol.common.custom.CustomPacketPayload' '.'
-          d 'net.minecraft.network.protocol.common.custom.CustomPacketPayload$Type' '.'
-          d 'net.minecraft.resources.ResourceKey' 'public'
 
       - name: Build all mods
         run: ./gradlew build --continue
