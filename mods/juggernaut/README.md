@@ -21,10 +21,10 @@ wins by taking down every hunter a configurable number of times.
 | `/juggernaut` | Status and current values |
 | `/juggernaut start random \| <player>` | Start a round |
 | `/juggernaut stop` | End the round cleanly (buffs removed) |
-| `/juggernaut set herzenProGegner <1–10>` | Extra hearts per hunter (default: **4**) |
-| `/juggernaut set staerkeAb <2–10>` | Strength I from this many hunters, II at double (default: **4**) |
+| `/juggernaut set heartsPerHunter <1–10>` | Extra hearts per hunter (default: **4**) |
+| `/juggernaut set strengthFrom <2–10>` | Strength I from this many hunters, II at double (default: **4**) |
 | `/juggernaut set glow on\|off` | Juggernaut glows (default: **on**) |
-| `/juggernaut set killQuote <1–5>` | Kills per hunter needed for the Juggernaut to win (default: **1**) |
+| `/juggernaut set killQuota <1–5>` | Kills per hunter needed for the Juggernaut to win (default: **1**) |
 
 ## Installation
 

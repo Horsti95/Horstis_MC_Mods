@@ -20,11 +20,11 @@ The tag hit does not have to hurt — by default the damage is cancelled and onl
 | `/tag` | Status and current values |
 | `/tag start` | Start a round, random "It" |
 | `/tag stop` | End the round cleanly (effects removed, scores announced) |
-| `/tag set rundenMin <1–60>` | Round length in minutes (default: **10**) |
-| `/tag set esSpeed <0–2>` | Speed level for "It", 0 = off (default: **1**) |
-| `/tag set esGlow on\|off` | "It" glows (default: **on**) |
-| `/tag set schutzSek <0–30>` | Grace period after a handover (default: **5**) |
-| `/tag set schaden on\|off` | Tag hits deal real damage (default: **off**) |
+| `/tag set roundMinutes <1–60>` | Round length in minutes (default: **10**) |
+| `/tag set itSpeed <0–2>` | Speed level for "It", 0 = off (default: **1**) |
+| `/tag set itGlow on\|off` | "It" glows (default: **on**) |
+| `/tag set graceSeconds <0–30>` | Grace period after a handover (default: **5**) |
+| `/tag set damage on\|off` | Tag hits deal real damage (default: **off**) |
 
 ## Installation
 

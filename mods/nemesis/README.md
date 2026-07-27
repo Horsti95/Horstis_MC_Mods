@@ -26,15 +26,15 @@ naming, targeting and escalation.
 |---|---|
 | `/nemesis` | Status and current values |
 | `/nemesis on \| off` | Enable/disable (existing nemeses go dormant) |
-| `/nemesis liste` | All active nemeses (owner, mob, level) |
-| `/nemesis begnadige <player>` | Remove a player's nemesis for good |
+| `/nemesis list` | All active nemeses (owner, mob, level) |
+| `/nemesis pardon <player>` | Remove a player's nemesis for good |
 | `/nemesis set maxLevel <1–10>` | Escalation cap (default: **5**) |
-| `/nemesis set hpProLevel <10–50>` | % bonus health per level (default: **25**) |
-| `/nemesis set schadenProLevel <10–50>` | % bonus damage per level (default: **20**) |
-| `/nemesis set rueckkehrMin <1–60>` | Minutes until it returns (default: **10**) |
-| `/nemesis set ansagen on\|off` | Server announcements (default: **on**) |
+| `/nemesis set hpPerLevel <10–50>` | % bonus health per level (default: **25**) |
+| `/nemesis set damagePerLevel <10–50>` | % bonus damage per level (default: **20**) |
+| `/nemesis set returnMinutes <1–60>` | Minutes until it returns (default: **10**) |
+| `/nemesis set announce on\|off` | Server announcements (default: **on**) |
 
-Any player: **`/meinnemesis`** shows their own nemesis (name, level, mob type).
+Any player: **`/mynemesis`** shows their own nemesis (name, level, mob type).
 
 ## Installation
 

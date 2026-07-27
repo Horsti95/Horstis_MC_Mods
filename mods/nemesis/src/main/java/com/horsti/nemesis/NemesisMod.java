@@ -9,6 +9,7 @@ import com.horsti.core.settings.ModSettings;
 import com.horsti.core.util.Attribute;
 import com.horsti.core.util.Broadcast;
 import com.horsti.core.util.JsonSpeicher;
+import com.horsti.core.util.Mobs;
 import com.horsti.core.util.Ticker;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -17,7 +18,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
-import com.horsti.core.util.Mobs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -37,61 +37,61 @@ import java.util.UUID;
 
 public class NemesisMod implements ModInitializer {
 	private static final String TAG = "horsti_nemesis";
-	private static final Identifier HP_ID = Attribute.id("nemesis", "hp");
-	private static final Identifier SCHADEN_ID = Attribute.id("nemesis", "schaden");
+	private static final Identifier HEALTH_ID = Attribute.id("nemesis", "health");
+	private static final Identifier DAMAGE_ID = Attribute.id("nemesis", "damage");
 
 	private final ModSettings settings = new ModSettings("nemesis", true);
-	private final IntSetting maxLevel = settings.add(new IntSetting("maxLevel", "Eskalations-Deckel", 5, 1, 10));
-	private final IntSetting hpProLevel = settings.add(new IntSetting("hpProLevel", "% Bonus-HP je Level", 25, 10, 50));
-	private final IntSetting schadenProLevel = settings.add(new IntSetting("schadenProLevel", "% Bonus-Schaden je Level", 20, 10, 50));
-	private final IntSetting rueckkehrMin = settings.add(new IntSetting("rueckkehrMin", "Minuten bis zur Rueckkehr", 10, 1, 60));
-	private final BoolSetting ansagen = settings.add(new BoolSetting("ansagen", "Server-Ansagen", true));
+	private final IntSetting maxLevel = settings.add(new IntSetting("maxLevel", "escalation cap", 5, 1, 10));
+	private final IntSetting hpPerLevel = settings.add(new IntSetting("hpPerLevel", "% bonus health per level", 25, 10, 50));
+	private final IntSetting damagePerLevel = settings.add(new IntSetting("damagePerLevel", "% bonus damage per level", 20, 10, 50));
+	private final IntSetting returnMinutes = settings.add(new IntSetting("returnMinutes", "minutes until it returns", 10, 1, 60));
+	private final BoolSetting announce = settings.add(new BoolSetting("announce", "server announcements", true));
 
-	private final JsonSpeicher speicher = new JsonSpeicher("nemesis");
-	private JsonObject daten;
+	private final JsonSpeicher storage = new JsonSpeicher("nemesis");
+	private JsonObject data;
 	private final Random random = new Random();
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("nemesis", "Nemesis", settings)
 			.extra((root, ctx) -> {
-				root.then(Commands.literal("liste").executes(c -> {
-					if (daten.isEmpty()) {
-						c.getSource().sendSuccess(() -> Component.literal("[Nemesis] Noch keine Erzfeinde."), false);
+				root.then(Commands.literal("list").executes(c -> {
+					if (data.isEmpty()) {
+						c.getSource().sendSuccess(() -> Component.literal("[Nemesis] No arch-enemies yet."), false);
 						return 1;
 					}
-					for (String key : daten.keySet()) {
-						JsonObject n = daten.getAsJsonObject(key);
-						final String zeile = "  " + n.get("besitzerName").getAsString() + " → "
-							+ n.get("name").getAsString() + " (Level " + n.get("level").getAsInt() + ", "
-							+ kurz(n.get("typ").getAsString()) + ")";
-						c.getSource().sendSuccess(() -> Component.literal(zeile).withStyle(ChatFormatting.GRAY), false);
+					for (String key : data.keySet()) {
+						JsonObject n = data.getAsJsonObject(key);
+						final String line = "  " + n.get("ownerName").getAsString() + " → "
+							+ n.get("name").getAsString() + " (level " + n.get("level").getAsInt() + ", "
+							+ shortId(n.get("type").getAsString()) + ")";
+						c.getSource().sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);
 					}
 					return 1;
 				}));
-				root.then(Commands.literal("begnadige")
-					.then(Commands.argument("spieler", EntityArgument.player()).executes(c -> {
-						ServerPlayer sp = EntityArgument.getPlayer(c, "spieler");
-						entfernen(sp.getUUID());
-						c.getSource().sendSuccess(() -> Component.literal("[Nemesis] Erzfeind von "
-							+ sp.getName().getString() + " begnadigt."), true);
+				root.then(Commands.literal("pardon")
+					.then(Commands.argument("player", EntityArgument.player()).executes(c -> {
+						ServerPlayer player = EntityArgument.getPlayer(c, "player");
+						remove(player.getUUID());
+						c.getSource().sendSuccess(() -> Component.literal("[Nemesis] Pardoned the arch-enemy of "
+							+ player.getName().getString() + "."), true);
 						return 1;
 					})));
 			})
 			.registrieren();
 
-		daten = speicher.laden();
+		data = storage.laden();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) ->
-			dispatcher.register(Commands.literal("meinnemesis").executes(c -> {
-				ServerPlayer sp = c.getSource().getPlayerOrException();
-				JsonObject n = daten.getAsJsonObject(sp.getUUID().toString());
+			dispatcher.register(Commands.literal("mynemesis").executes(c -> {
+				ServerPlayer player = c.getSource().getPlayerOrException();
+				JsonObject n = data.getAsJsonObject(player.getUUID().toString());
 				if (n == null) {
-					sp.sendSystemMessage(Component.literal("Du hast (noch) keinen Erzfeind.").withStyle(ChatFormatting.GRAY));
+					player.sendSystemMessage(Component.literal("You have no arch-enemy (yet).").withStyle(ChatFormatting.GRAY));
 					return 1;
 				}
-				sp.sendSystemMessage(Component.literal("Dein Erzfeind: " + n.get("name").getAsString()
-					+ " — Level " + n.get("level").getAsInt() + " (" + kurz(n.get("typ").getAsString()) + ")")
+				player.sendSystemMessage(Component.literal("Your arch-enemy: " + n.get("name").getAsString()
+					+ " — level " + n.get("level").getAsInt() + " (" + shortId(n.get("type").getAsString()) + ")")
 					.withStyle(ChatFormatting.DARK_RED));
 				return 1;
 			})));
@@ -100,115 +100,115 @@ public class NemesisMod implements ModInitializer {
 			if (!settings.istAktiv()) {
 				return;
 			}
-			if (entity instanceof ServerPlayer opfer) {
-				spielerGestorben(opfer, source.getEntity());
-			} else if (source.getEntity() instanceof ServerPlayer sieger) {
-				nemesisBesiegt(sieger, entity);
+			if (entity instanceof ServerPlayer victim) {
+				playerDied(victim, source.getEntity());
+			} else if (source.getEntity() instanceof ServerPlayer victor) {
+				nemesisDefeated(victor, entity);
 			}
 		});
 
-		Ticker.alleTicks(100, this::rueckkehrPruefen);
+		Ticker.alleTicks(100, this::checkReturns);
 	}
 
-	private void spielerGestorben(ServerPlayer opfer, Entity toeter) {
-		if (!(toeter instanceof LivingEntity) || toeter instanceof Player) {
-			return; // nur Mobs werden zum Erzfeind
+	private void playerDied(ServerPlayer victim, Entity killer) {
+		if (!(killer instanceof LivingEntity) || killer instanceof Player) {
+			return; // only mobs become arch-enemies
 		}
-		String key = opfer.getUUID().toString();
-		JsonObject n = daten.getAsJsonObject(key);
-		long rueckkehr = System.currentTimeMillis() + rueckkehrMin.get() * 60_000L;
+		String key = victim.getUUID().toString();
+		JsonObject n = data.getAsJsonObject(key);
+		long returnAt = System.currentTimeMillis() + returnMinutes.get() * 60_000L;
 
-		if (n != null && n.has("lebendId")
-			&& n.get("lebendId").getAsString().equals(toeter.getUUID().toString())) {
-			// Der eigene Erzfeind war erfolgreich: er steigt auf.
+		if (n != null && n.has("liveId")
+			&& n.get("liveId").getAsString().equals(killer.getUUID().toString())) {
+			// Their own arch-enemy succeeded: it ranks up.
 			int level = Math.min(maxLevel.get(), n.get("level").getAsInt() + 1);
 			n.addProperty("level", level);
-			n.addProperty("rueckkehrAb", rueckkehr);
-			n.remove("lebendId");
-			toeter.discard(); // verschwindet und kehrt spaeter staerker zurueck
-			if (ansagen.get()) {
+			n.addProperty("returnAt", returnAt);
+			n.remove("liveId");
+			killer.discard(); // vanishes and comes back stronger later
+			if (announce.get()) {
 				Broadcast.chat(HorstiServer.get(), Component.literal(n.get("name").getAsString()
-					+ " steigt auf Level " + level + " auf!").withStyle(ChatFormatting.DARK_RED));
+					+ " rises to level " + level + "!").withStyle(ChatFormatting.DARK_RED));
 			}
 		} else if (n == null) {
 			n = new JsonObject();
-			n.addProperty("typ", Mobs.typId(toeter));
-			n.addProperty("name", Namen.wuerfeln(random));
+			n.addProperty("type", Mobs.typId(killer));
+			n.addProperty("name", Namen.roll(random));
 			n.addProperty("level", 1);
-			n.addProperty("besitzerName", opfer.getName().getString());
-			n.addProperty("rueckkehrAb", rueckkehr);
-			daten.add(key, n);
-			if (ansagen.get()) {
-				Broadcast.titel(opfer, Component.literal(n.get("name").getAsString()).withStyle(ChatFormatting.DARK_RED),
-					Component.literal("hat dich getötet — und wird zurückkommen."));
+			n.addProperty("ownerName", victim.getName().getString());
+			n.addProperty("returnAt", returnAt);
+			data.add(key, n);
+			if (announce.get()) {
+				Broadcast.titel(victim, Component.literal(n.get("name").getAsString()).withStyle(ChatFormatting.DARK_RED),
+					Component.literal("killed you — and will come back."));
 			}
 		} else {
-			// Ein anderer Mob war schneller; der bestehende Erzfeind bleibt.
+			// Another mob got there first; the existing arch-enemy stays.
 			return;
 		}
-		speicher.speichern(daten);
+		storage.speichern(data);
 	}
 
-	private void nemesisBesiegt(ServerPlayer sieger, Entity nemesis) {
-		String key = sieger.getUUID().toString();
-		JsonObject n = daten.getAsJsonObject(key);
-		if (n == null || !n.has("lebendId")
-			|| !n.get("lebendId").getAsString().equals(nemesis.getUUID().toString())) {
+	private void nemesisDefeated(ServerPlayer victor, Entity nemesis) {
+		String key = victor.getUUID().toString();
+		JsonObject n = data.getAsJsonObject(key);
+		if (n == null || !n.has("liveId")
+			|| !n.get("liveId").getAsString().equals(nemesis.getUUID().toString())) {
 			return;
 		}
-		if (ansagen.get()) {
-			Broadcast.chat(HorstiServer.get(), Component.literal(sieger.getName().getString()
-				+ " hat " + n.get("name").getAsString() + " endgültig besiegt!").withStyle(ChatFormatting.GOLD));
+		if (announce.get()) {
+			Broadcast.chat(HorstiServer.get(), Component.literal(victor.getName().getString()
+				+ " has defeated " + n.get("name").getAsString() + " for good!").withStyle(ChatFormatting.GOLD));
 		}
-		sieger.giveExperiencePoints(50 * n.get("level").getAsInt());
-		entfernen(sieger.getUUID());
+		victor.giveExperiencePoints(50 * n.get("level").getAsInt());
+		remove(victor.getUUID());
 	}
 
-	private void entfernen(UUID spieler) {
-		daten.remove(spieler.toString());
-		speicher.speichern(daten);
+	private void remove(UUID player) {
+		data.remove(player.toString());
+		storage.speichern(data);
 	}
 
-	private void rueckkehrPruefen(MinecraftServer server) {
-		if (!settings.istAktiv() || daten.isEmpty()) {
+	private void checkReturns(MinecraftServer server) {
+		if (!settings.istAktiv() || data.isEmpty()) {
 			return;
 		}
-		long jetzt = System.currentTimeMillis();
-		for (String key : daten.keySet().toArray(new String[0])) {
-			JsonObject n = daten.getAsJsonObject(key);
-			ServerPlayer besitzer = server.getPlayerList().getPlayer(UUID.fromString(key));
-			if (besitzer == null || besitzer.isSpectator() || jetzt < n.get("rueckkehrAb").getAsLong()) {
+		long now = System.currentTimeMillis();
+		for (String key : data.keySet().toArray(new String[0])) {
+			JsonObject n = data.getAsJsonObject(key);
+			ServerPlayer owner = server.getPlayerList().getPlayer(UUID.fromString(key));
+			if (owner == null || owner.isSpectator() || now < n.get("returnAt").getAsLong()) {
 				continue;
 			}
-			if (n.has("lebendId") && lebt(server, n.get("lebendId").getAsString())) {
+			if (n.has("liveId") && isAlive(server, n.get("liveId").getAsString())) {
 				continue;
 			}
-			spawnen(besitzer, n);
+			spawn(owner, n);
 		}
 	}
 
-	private boolean lebt(MinecraftServer server, String id) {
+	private boolean isAlive(MinecraftServer server, String id) {
 		UUID uuid = UUID.fromString(id);
 		for (ServerLevel level : server.getAllLevels()) {
-			Entity e = level.getEntity(uuid);
-			if (e != null && e.isAlive()) {
+			Entity entity = level.getEntity(uuid);
+			if (entity != null && entity.isAlive()) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private void spawnen(ServerPlayer besitzer, JsonObject n) {
-		if (!(besitzer.level() instanceof ServerLevel level)) {
+	private void spawn(ServerPlayer owner, JsonObject n) {
+		if (!(owner.level() instanceof ServerLevel level)) {
 			return;
 		}
-		// 24–40 Bloecke entfernt, damit die Ankunft nicht ins Gesicht springt
-		double winkel = random.nextDouble() * Math.PI * 2;
-		double distanz = 24 + random.nextInt(17);
+		// 24–40 blocks away, so the arrival does not jump into their face
+		double angle = random.nextDouble() * Math.PI * 2;
+		double distance = 24 + random.nextInt(17);
 		BlockPos pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-			besitzer.blockPosition().offset((int) (Math.cos(winkel) * distanz), 0, (int) (Math.sin(winkel) * distanz)));
+			owner.blockPosition().offset((int) (Math.cos(angle) * distance), 0, (int) (Math.sin(angle) * distance)));
 
-		if (!(Mobs.spawnen(level, n.get("typ").getAsString(), pos) instanceof Mob mob)) {
+		if (!(Mobs.spawnen(level, n.get("type").getAsString(), pos) instanceof Mob mob)) {
 			return;
 		}
 		int level_ = n.get("level").getAsInt();
@@ -217,24 +217,24 @@ public class NemesisMod implements ModInitializer {
 			.withStyle(ChatFormatting.DARK_RED));
 		mob.setCustomNameVisible(true);
 		mob.setPersistenceRequired();
-		Attribute.prozent(mob, Attributes.MAX_HEALTH, HP_ID, hpProLevel.get() / 100.0 * level_);
-		Attribute.prozent(mob, Attributes.ATTACK_DAMAGE, SCHADEN_ID, schadenProLevel.get() / 100.0 * level_);
+		Attribute.prozent(mob, Attributes.MAX_HEALTH, HEALTH_ID, hpPerLevel.get() / 100.0 * level_);
+		Attribute.prozent(mob, Attributes.ATTACK_DAMAGE, DAMAGE_ID, damagePerLevel.get() / 100.0 * level_);
 		mob.setHealth(mob.getMaxHealth());
-		mob.setTarget(besitzer);
-		// Kurzer Glow-Moment als Ankunfts-Signal
+		mob.setTarget(owner);
+		// A brief glow as an arrival signal
 		mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, true, false));
 
-		n.addProperty("lebendId", mob.getUUID().toString());
-		speicher.speichern(daten);
+		n.addProperty("liveId", mob.getUUID().toString());
+		storage.speichern(data);
 
-		if (ansagen.get()) {
-			Broadcast.titel(besitzer, Component.literal(n.get("name").getAsString()).withStyle(ChatFormatting.DARK_RED),
-				Component.literal("ist zurück — Level " + level_));
+		if (announce.get()) {
+			Broadcast.titel(owner, Component.literal(n.get("name").getAsString()).withStyle(ChatFormatting.DARK_RED),
+				Component.literal("is back — level " + level_));
 		}
 	}
 
-	private static String kurz(String id) {
-		int i = id.indexOf(':');
-		return i >= 0 ? id.substring(i + 1) : id;
+	private static String shortId(String id) {
+		int colon = id.indexOf(':');
+		return colon >= 0 ? id.substring(colon + 1) : id;
 	}
 }

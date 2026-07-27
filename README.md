@@ -49,7 +49,7 @@ Values are stored in `config/horsti/<mod>.json`, saved game state in `config/hor
 [`juggernaut`](mods/juggernaut) · [`bounty`](mods/bounty)
 
 *SMP twists* — [`nemesis`](mods/nemesis) ⭐ (the mob that killed you comes back named and stronger) ·
-[`lifesteal`](mods/lifesteal) · [`gabe-buerde`](mods/gabe-buerde) (a random gift and burden per player) ·
+[`lifesteal`](mods/lifesteal) · [`giftburden`](mods/giftburden) (a random gift and burden per player) ·
 [`events`](mods/events) (blood moon, meteors, shrinking border) · [`killmagnet`](mods/killmagnet) ·
 [`keepmoving`](mods/keepmoving)
 

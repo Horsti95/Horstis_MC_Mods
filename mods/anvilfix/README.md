@@ -19,12 +19,12 @@ see the new prices. Nobody needs to install anything.
 |---|---|
 | `/anvilfix` | Status and current values |
 | `/anvilfix on \| off` | Enable/disable (off = vanilla behaviour) |
-| `/anvilfix set maxKosten <1–39>` | Cost cap in levels; 39 means "never too expensive" (default: **39**) |
-| `/anvilfix set priorWork vanilla\|halb\|aus` | Prior-work penalty: doubling / linear / frozen (default: **halb** = linear) |
+| `/anvilfix set maxCost <1–39>` | Cost cap in levels; 39 means "never too expensive" (default: **39**) |
+| `/anvilfix set priorWork vanilla\|linear\|frozen` | Prior-work penalty (default: **linear**) |
 
 *Why cap at 39? Vanilla clients refuse to take the result at 40 levels or more, client-side. Staying
 below that means the fix works for everyone, including unmodded players. The effect: "Too Expensive"
-no longer exists, and expensive operations cost at most `maxKosten` levels.*
+no longer exists, and expensive operations cost at most `maxCost` levels.*
 
 ## Installation
 

@@ -102,7 +102,7 @@ Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame �
 | 13 | `ernte` | 🖥️ | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
 | 14 | `juggernaut` | 🖥️ | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
 | 15 | `pets` | 🖥️ | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | ✅ gebaut (CI grün) |
-| 16 | `gabe-buerde` | 🖥️ | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | ✅ gebaut (CI grün) |
+| 16 | `giftburden` | 🖥️ | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | ✅ gebaut (CI grün) |
 | 17 | `lifesteal` | 🖥️ | Twist | Kill klaut Herz, Spectator statt Ban, Revive | Mittel | erst Playtest | ✅ gebaut (CI grün) |
 | 18 | `graves` | 🖥️ | QoL | Grab statt Item-Despawn (Schutzzeit, Verfall) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
 | 19 | `manhunt` | 🖥️ | Spiel | Jäger-Kompass trackt Runner (cross-dim) | Mittel | erst Playtest | ✅ gebaut (CI grün) |
@@ -255,7 +255,7 @@ sortiert. Veröffentlicht wird nur, wo wir etwas liefern, das es so **nicht** gi
 | **`wrapped`** ⭐ | Kein Fabric-Server-Mod gefunden — nur Bukkit-Plugins und Web-Tools. Dazu erweiterbar (Cobblemon-Saison) |
 | **`toolguard`** | Existiert, aber **fast nur client-seitig**. Server-seitig = schützt alle, einmal vom Admin gesetzt |
 | **`anvilfix`** | Der meistgenannte Vanilla-Ärger. Konkurrenz sind große Rework-Mods, oft mit Client-Teil — wir sind ein Ein-Zweck-Mod |
-| **`gabe-buerde`** | Origins-Randomiser braucht Origins **und** Client. Unsere Variante ist dependency-frei |
+| **`giftburden`** | Origins-Randomiser braucht Origins **und** Client. Unsere Variante ist dependency-frei |
 | **`tag`** | Als leichte Fabric-Server-Mod kaum vorhanden (sonst Minigame-Server-Feature) |
 | **`juggernaut`** | Dito — plus Auto-Balancing nach Spielerzahl als eigener Dreh |
 

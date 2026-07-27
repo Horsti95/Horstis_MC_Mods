@@ -11,21 +11,21 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Bricht den Haltbarkeitsverbrauch ab, bevor der Gegenstand zerbricht.
- * require = 0: faellt bei API-Drift still aus, statt den Server zu stoppen.
+ * Cancels durability loss before the item breaks.
+ * require = 0: fails silently on API drift instead of taking the server down.
  */
 @Mixin(ItemStack.class)
 public abstract class ItemStackDamageMixin {
 	@Inject(method = "hurtAndBreak(ILnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/LivingEntity;Ljava/util/function/Consumer;)V",
 		at = @At("HEAD"), cancellable = true, require = 0)
-	private void horsti$schuetzen(int schaden, ServerLevel level, LivingEntity traeger,
-			java.util.function.Consumer<net.minecraft.world.item.Item> beimZerbrechen, CallbackInfo ci) {
+	private void horsti$protect(int damage, ServerLevel level, LivingEntity holder,
+			java.util.function.Consumer<net.minecraft.world.item.Item> onBreak, CallbackInfo ci) {
 		ItemStack stack = (ItemStack) (Object) this;
-		ServerPlayer sp = traeger instanceof ServerPlayer p ? p : null;
-		if (sp == null) {
-			return; // Mobs und Rahmen bleiben Vanilla
+		ServerPlayer player = holder instanceof ServerPlayer p ? p : null;
+		if (player == null) {
+			return; // mobs and item frames stay vanilla
 		}
-		if (!ToolguardMod.darfSchadenNehmen(stack, schaden, sp)) {
+		if (!ToolguardMod.mayTakeDamage(stack, damage, player)) {
 			ci.cancel();
 		}
 	}

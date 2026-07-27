@@ -32,18 +32,18 @@ import java.util.Set;
 import java.util.UUID;
 
 public class JuggernautMod implements ModInitializer {
-	private static final Identifier HERZEN_ID = Attribute.id("juggernaut", "herzen");
+	private static final Identifier HEALTH_ID = Attribute.id("juggernaut", "health");
 
 	private final ModSettings settings = new ModSettings("juggernaut", true);
-	private final IntSetting herzenProGegner = settings.add(new IntSetting("herzenProGegner", "Extra-Herzen je Jaeger", 4, 1, 10));
-	private final IntSetting staerkeAb = settings.add(new IntSetting("staerkeAb", "Staerke I ab X Jaegern, II ab 2X", 4, 2, 10));
-	private final BoolSetting glow = settings.add(new BoolSetting("glow", "Juggernaut leuchtet", true));
-	private final IntSetting killQuote = settings.add(new IntSetting("killQuote", "Kills pro Jaeger fuer Juggernaut-Sieg", 1, 1, 5));
+	private final IntSetting heartsPerHunter = settings.add(new IntSetting("heartsPerHunter", "extra hearts per hunter", 4, 1, 10));
+	private final IntSetting strengthFrom = settings.add(new IntSetting("strengthFrom", "Strength I from this many hunters, II at double", 4, 2, 10));
+	private final BoolSetting glow = settings.add(new BoolSetting("glow", "juggernaut glows", true));
+	private final IntSetting killQuota = settings.add(new IntSetting("killQuota", "kills per hunter needed for a juggernaut win", 1, 1, 5));
 
 	private final Random random = new Random();
-	private boolean laeuft = false;
+	private boolean running = false;
 	private UUID juggernaut = null;
-	private final Set<UUID> jaeger = new HashSet<>();
+	private final Set<UUID> hunters = new HashSet<>();
 	private final Map<UUID, Integer> kills = new HashMap<>();
 	private ServerBossEvent bossBar;
 
@@ -52,113 +52,113 @@ public class JuggernautMod implements ModInitializer {
 		new HorstiMod("juggernaut", "Juggernaut", settings)
 			.onToggle(() -> {
 				if (!settings.istAktiv()) {
-					beenden(HorstiServer.get(), null);
+					stop(HorstiServer.get(), null);
 				}
 			})
 			.extra((root, ctx) -> {
 				root.then(Commands.literal("start")
 					.then(Commands.literal("random").executes(c -> start(c.getSource().getServer(), null)))
-					.then(Commands.argument("spieler", EntityArgument.player())
-						.executes(c -> start(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler")))));
+					.then(Commands.argument("player", EntityArgument.player())
+						.executes(c -> start(c.getSource().getServer(), EntityArgument.getPlayer(c, "player")))));
 				root.then(Commands.literal("stop").executes(c -> {
-					beenden(c.getSource().getServer(), null);
+					stop(c.getSource().getServer(), null);
 					return 1;
 				}));
 			})
 			.registrieren();
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-			if (!laeuft || !(entity instanceof ServerPlayer opfer)) {
+			if (!running || !(entity instanceof ServerPlayer victim)) {
 				return;
 			}
 			MinecraftServer server = HorstiServer.get();
-			if (opfer.getUUID().equals(juggernaut)) {
-				beenden(server, "jaeger");
+			if (victim.getUUID().equals(juggernaut)) {
+				stop(server, "hunters");
 				return;
 			}
-			if (jaeger.contains(opfer.getUUID()) && source.getEntity() instanceof ServerPlayer killer
+			if (hunters.contains(victim.getUUID()) && source.getEntity() instanceof ServerPlayer killer
 				&& killer.getUUID().equals(juggernaut)) {
-				kills.merge(opfer.getUUID(), 1, Integer::sum);
-				boolean alleErledigt = jaeger.stream()
-					.allMatch(id -> kills.getOrDefault(id, 0) >= killQuote.get());
-				if (alleErledigt) {
-					beenden(server, "juggernaut");
+				kills.merge(victim.getUUID(), 1, Integer::sum);
+				boolean allDown = hunters.stream().allMatch(id -> kills.getOrDefault(id, 0) >= killQuota.get());
+				if (allDown) {
+					stop(server, "juggernaut");
 				}
 			}
 		});
 
-		Ticker.alleTicks(20, this::sekundenTick);
+		Ticker.alleTicks(20, this::secondTick);
 	}
 
-	private int start(MinecraftServer server, ServerPlayer gewuenscht) {
-		List<ServerPlayer> spieler = server.getPlayerList().getPlayers().stream()
+	private int start(MinecraftServer server, ServerPlayer chosen) {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers().stream()
 			.filter(p -> !p.isSpectator())
 			.toList();
-		if (spieler.size() < 2) {
-			Broadcast.chat(server, Component.literal("[Juggernaut] Mindestens 2 Spieler noetig.").withStyle(ChatFormatting.RED));
+		if (players.size() < 2) {
+			Broadcast.chat(server, Component.literal("[Juggernaut] At least 2 players needed.").withStyle(ChatFormatting.RED));
 			return 0;
 		}
-		ServerPlayer jug = gewuenscht != null ? gewuenscht : spieler.get(random.nextInt(spieler.size()));
+		ServerPlayer jug = chosen != null ? chosen : players.get(random.nextInt(players.size()));
 		juggernaut = jug.getUUID();
-		jaeger.clear();
+		hunters.clear();
 		kills.clear();
-		spieler.stream().filter(p -> !p.getUUID().equals(juggernaut)).forEach(p -> jaeger.add(p.getUUID()));
-		laeuft = true;
+		players.stream().filter(p -> !p.getUUID().equals(juggernaut)).forEach(p -> hunters.add(p.getUUID()));
+		running = true;
 
-		buffen(jug, jaeger.size());
+		buff(jug, hunters.size());
 		bossBar = new ServerBossEvent(UUID.randomUUID(), Component.literal("Juggernaut"),
 			BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
-		spieler.forEach(bossBar::addPlayer);
+		players.forEach(bossBar::addPlayer);
 		Broadcast.titelAlle(server, Component.literal("JUGGERNAUT!").withStyle(ChatFormatting.DARK_PURPLE),
-			Component.literal(jug.getName().getString() + " gegen " + jaeger.size() + " Jaeger"));
+			Component.literal(jug.getName().getString() + " against " + hunters.size() + " hunters"));
 		return 1;
 	}
 
-	private void buffen(ServerPlayer jug, int gegnerzahl) {
-		Attribute.addieren(jug, Attributes.MAX_HEALTH, HERZEN_ID, gegnerzahl * herzenProGegner.get() * 2.0);
+	private void buff(ServerPlayer jug, int hunterCount) {
+		Attribute.addieren(jug, Attributes.MAX_HEALTH, HEALTH_ID, hunterCount * heartsPerHunter.get() * 2.0);
 		jug.setHealth(jug.getMaxHealth());
 	}
 
-	private void sekundenTick(MinecraftServer server) {
-		if (!laeuft || !settings.istAktiv()) {
+	private void secondTick(MinecraftServer server) {
+		if (!running || !settings.istAktiv()) {
 			return;
 		}
 		ServerPlayer jug = juggernaut == null ? null : server.getPlayerList().getPlayer(juggernaut);
 		if (jug == null) {
-			beenden(server, "jaeger");
+			stop(server, "hunters");
 			return;
 		}
-		int lebendeJaeger = (int) jaeger.stream()
+		int aliveHunters = (int) hunters.stream()
 			.map(id -> server.getPlayerList().getPlayer(id))
 			.filter(p -> p != null && !p.isSpectator())
 			.count();
-		if (lebendeJaeger == 0) {
-			beenden(server, "juggernaut");
+		if (aliveHunters == 0) {
+			stop(server, "juggernaut");
 			return;
 		}
-		// Staerke skaliert live mit der Jaegerzahl
-		int stufe = Math.min(2, lebendeJaeger / Math.max(1, staerkeAb.get()));
-		if (stufe > 0) {
-			jug.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 60, stufe - 1, true, false));
+		// Strength scales live with how many hunters are still standing
+		int level = Math.min(2, aliveHunters / Math.max(1, strengthFrom.get()));
+		if (level > 0) {
+			jug.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 60, level - 1, true, false));
 		}
 		jug.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 60, 0, true, false));
 		if (glow.get()) {
 			jug.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, true, false));
 		}
 		if (bossBar != null) {
-			bossBar.setName(Component.literal(jug.getName().getString() + " — " + (int) jug.getHealth() + "/" + (int) jug.getMaxHealth() + " HP"));
+			bossBar.setName(Component.literal(jug.getName().getString() + " — "
+				+ (int) jug.getHealth() + "/" + (int) jug.getMaxHealth() + " HP"));
 			bossBar.setProgress(Math.max(0f, jug.getHealth() / jug.getMaxHealth()));
 		}
 	}
 
-	private void beenden(MinecraftServer server, String sieger) {
-		if (!laeuft || server == null) {
+	private void stop(MinecraftServer server, String winner) {
+		if (!running || server == null) {
 			return;
 		}
-		laeuft = false;
+		running = false;
 		ServerPlayer jug = juggernaut == null ? null : server.getPlayerList().getPlayer(juggernaut);
 		if (jug != null) {
-			Attribute.entfernen(jug, Attributes.MAX_HEALTH, HERZEN_ID);
+			Attribute.entfernen(jug, Attributes.MAX_HEALTH, HEALTH_ID);
 			jug.removeEffect(MobEffects.STRENGTH);
 			jug.removeEffect(MobEffects.RESISTANCE);
 			jug.removeEffect(MobEffects.GLOWING);
@@ -170,14 +170,14 @@ public class JuggernautMod implements ModInitializer {
 			bossBar.removeAllPlayers();
 			bossBar = null;
 		}
-		if (sieger != null) {
-			String text = sieger.equals("juggernaut")
-				? (jug != null ? jug.getName().getString() : "Der Juggernaut") + " haelt die Stellung!"
-				: "Die Jaeger haben den Juggernaut gestellt!";
+		if (winner != null) {
+			String text = winner.equals("juggernaut")
+				? (jug != null ? jug.getName().getString() : "The juggernaut") + " holds the line!"
+				: "The hunters brought the juggernaut down!";
 			Broadcast.titelAlle(server, Component.literal(text).withStyle(ChatFormatting.GOLD), null);
 		}
 		juggernaut = null;
-		jaeger.clear();
+		hunters.clear();
 		kills.clear();
 	}
 }

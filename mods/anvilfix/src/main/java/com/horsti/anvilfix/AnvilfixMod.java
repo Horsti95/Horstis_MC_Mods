@@ -7,44 +7,44 @@ import com.horsti.core.settings.ModSettings;
 import net.fabricmc.api.ModInitializer;
 
 /**
- * Hintergrund: Vanilla leert ab 40 Leveln das Amboss-Ergebnis ("Zu teuer!").
- * Der Mixin hebt diese Schwelle auf und deckelt stattdessen die Kosten auf
- * maxKosten (<=39, damit auch Vanilla-Clients das Ergebnis nehmen duerfen).
+ * Background: vanilla clears the anvil result above 40 levels ("Too Expensive").
+ * The mixin lifts that threshold and caps the cost at maxCost instead (<= 39,
+ * so unmodded clients are still allowed to take the result).
  */
 public class AnvilfixMod implements ModInitializer {
 	private static ModSettings settings;
-	private static IntSetting maxKosten;
+	private static IntSetting maxCost;
 	private static EnumSetting priorWork;
 
 	@Override
 	public void onInitialize() {
 		settings = new ModSettings("anvilfix", true);
-		maxKosten = settings.add(new IntSetting("maxKosten", "Kostendeckel in Leveln (39 = nie 'Zu teuer')", 39, 1, 39));
-		priorWork = settings.add(new EnumSetting("priorWork", "Verdopplungs-Strafe je Reparatur", "halb", "vanilla", "halb", "aus"));
+		maxCost = settings.add(new IntSetting("maxCost", "cost cap in levels (39 = never too expensive)", 39, 1, 39));
+		priorWork = settings.add(new EnumSetting("priorWork", "penalty growth per repair", "linear", "vanilla", "linear", "frozen"));
 		new HorstiMod("anvilfix", "Anvilfix", settings).registrieren();
 	}
 
-	public static boolean istAktiv() {
+	public static boolean isEnabled() {
 		return settings != null && settings.istAktiv();
 	}
 
-	/** Ersetzt die 40er-Schwelle: praktisch nie "Zu teuer". */
-	public static int schwelle(int vanillaWert) {
-		return istAktiv() ? Integer.MAX_VALUE : vanillaWert;
+	/** Replaces the 40-level threshold so the result is never cleared. */
+	public static int threshold(int vanillaValue) {
+		return isEnabled() ? Integer.MAX_VALUE : vanillaValue;
 	}
 
-	public static int kostenDeckel(int kosten) {
-		return istAktiv() ? Math.min(kosten, maxKosten.get()) : kosten;
+	public static int capCost(int cost) {
+		return isEnabled() ? Math.min(cost, maxCost.get()) : cost;
 	}
 
-	/** null = Vanilla-Verhalten beibehalten. */
-	public static Integer priorWorkErgebnis(int alterWert) {
-		if (!istAktiv()) {
+	/** null = keep vanilla behaviour. */
+	public static Integer priorWorkResult(int oldValue) {
+		if (!isEnabled()) {
 			return null;
 		}
 		return switch (priorWork.get()) {
-			case "aus" -> alterWert;            // Strafe waechst nicht mehr
-			case "halb" -> alterWert + 1;       // linear statt Verdopplung (vanilla: *2+1)
+			case "frozen" -> oldValue;      // penalty stops growing
+			case "linear" -> oldValue + 1;  // linear instead of vanilla's *2+1
 			default -> null;
 		};
 	}

@@ -31,20 +31,20 @@ import java.util.UUID;
 
 public class TagMod implements ModInitializer {
 	private final ModSettings settings = new ModSettings("tag", true);
-	private final IntSetting rundenMin = settings.add(new IntSetting("rundenMin", "Rundenlaenge in Minuten", 10, 1, 60));
-	private final IntSetting esSpeed = settings.add(new IntSetting("esSpeed", "Speed-Stufe fuer 'Es' (0 = aus)", 1, 0, 2));
-	private final BoolSetting esGlow = settings.add(new BoolSetting("esGlow", "'Es' leuchtet", true));
-	private final IntSetting schutzSek = settings.add(new IntSetting("schutzSek", "Rueckgabe-Schutz nach Uebergabe", 5, 0, 30));
-	private final BoolSetting schaden = settings.add(new BoolSetting("schaden", "Schlag macht echten Schaden", false));
+	private final IntSetting roundMinutes = settings.add(new IntSetting("roundMinutes", "round length in minutes", 10, 1, 60));
+	private final IntSetting itSpeed = settings.add(new IntSetting("itSpeed", "speed level for 'It' (0 = off)", 1, 0, 2));
+	private final BoolSetting itGlow = settings.add(new BoolSetting("itGlow", "'It' glows", true));
+	private final IntSetting graceSeconds = settings.add(new IntSetting("graceSeconds", "grace period after a handover", 5, 0, 30));
+	private final BoolSetting damage = settings.add(new BoolSetting("damage", "tag hits deal real damage", false));
 
 	private final Random random = new Random();
-	private boolean laeuft = false;
-	private UUID es = null;
+	private boolean running = false;
+	private UUID it = null;
 	private long endTick = 0;
-	private long schutzBisTick = 0;
-	private long jetztTick = 0;
-	private final Set<UUID> teilnehmer = new HashSet<>();
-	private final Map<UUID, Integer> punkte = new HashMap<>();
+	private long graceUntilTick = 0;
+	private long nowTick = 0;
+	private final Set<UUID> participants = new HashSet<>();
+	private final Map<UUID, Integer> points = new HashMap<>();
 	private ServerBossEvent bossBar;
 
 	@Override
@@ -52,152 +52,154 @@ public class TagMod implements ModInitializer {
 		new HorstiMod("tag", "Tag", settings)
 			.onToggle(() -> {
 				if (!settings.istAktiv()) {
-					// laufende Runde sauber beenden
+					stop(HorstiServer.get(), false);
 				}
 			})
 			.extra((root, ctx) -> {
 				root.then(Commands.literal("start").executes(c -> start(c.getSource().getServer())));
 				root.then(Commands.literal("stop").executes(c -> {
-					beenden(c.getSource().getServer(), true);
+					stop(c.getSource().getServer(), true);
 					return 1;
 				}));
 			})
 			.registrieren();
 
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
-			if (!laeuft || !(player instanceof ServerPlayer angreifer) || !(entity instanceof ServerPlayer ziel)) {
+			if (!running || !(player instanceof ServerPlayer attacker) || !(entity instanceof ServerPlayer target)) {
 				return InteractionResult.PASS;
 			}
-			if (!angreifer.getUUID().equals(es) || !teilnehmer.contains(ziel.getUUID()) || ziel.isSpectator()) {
+			if (!attacker.getUUID().equals(it) || !participants.contains(target.getUUID()) || target.isSpectator()) {
 				return InteractionResult.PASS;
 			}
-			if (jetztTick < schutzBisTick) {
-				Broadcast.actionbar(angreifer, Component.literal("Noch geschützt!").withStyle(ChatFormatting.GRAY));
+			if (nowTick < graceUntilTick) {
+				Broadcast.actionbar(attacker, Component.literal("Still protected!").withStyle(ChatFormatting.GRAY));
 				return InteractionResult.FAIL;
 			}
-			uebergeben(angreifer, ziel);
-			return schaden.get() ? InteractionResult.PASS : InteractionResult.FAIL;
+			handOver(attacker, target);
+			return damage.get() ? InteractionResult.PASS : InteractionResult.FAIL;
 		});
 
-		Ticker.alleTicks(20, this::sekundenTick);
+		Ticker.alleTicks(20, this::secondTick);
 	}
 
 	private int start(MinecraftServer server) {
-		List<ServerPlayer> spieler = server.getPlayerList().getPlayers().stream()
+		List<ServerPlayer> players = server.getPlayerList().getPlayers().stream()
 			.filter(p -> !p.isSpectator())
 			.toList();
-		if (spieler.size() < 2) {
-			Broadcast.chat(server, Component.literal("[Tag] Mindestens 2 Spieler noetig.").withStyle(ChatFormatting.RED));
+		if (players.size() < 2) {
+			Broadcast.chat(server, Component.literal("[Tag] At least 2 players needed.").withStyle(ChatFormatting.RED));
 			return 0;
 		}
-		teilnehmer.clear();
-		punkte.clear();
-		spieler.forEach(p -> {
-			teilnehmer.add(p.getUUID());
-			punkte.put(p.getUUID(), 0);
+		participants.clear();
+		points.clear();
+		players.forEach(p -> {
+			participants.add(p.getUUID());
+			points.put(p.getUUID(), 0);
 		});
-		laeuft = true;
-		endTick = jetztTick + rundenMin.get() * 1200L;
-		ServerPlayer erster = spieler.get(random.nextInt(spieler.size()));
-		setzeEs(erster);
-		bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), Component.literal("Tag"), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
-		spieler.forEach(bossBar::addPlayer);
-		Broadcast.titelAlle(server, Component.literal("FANGEN!").withStyle(ChatFormatting.YELLOW),
-			Component.literal(erster.getName().getString() + " ist Es — lauft!"));
+		running = true;
+		endTick = nowTick + roundMinutes.get() * 1200L;
+		ServerPlayer first = players.get(random.nextInt(players.size()));
+		setIt(first);
+		bossBar = new ServerBossEvent(UUID.randomUUID(), Component.literal("Tag"),
+			BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
+		players.forEach(bossBar::addPlayer);
+		Broadcast.titelAlle(server, Component.literal("TAG!").withStyle(ChatFormatting.YELLOW),
+			Component.literal(first.getName().getString() + " is It — run!"));
 		return 1;
 	}
 
-	private void setzeEs(ServerPlayer neu) {
-		es = neu.getUUID();
-		schutzBisTick = jetztTick + schutzSek.get() * 20L;
-		Broadcast.titel(neu, Component.literal("DU BIST ES!").withStyle(ChatFormatting.RED), null);
+	private void setIt(ServerPlayer player) {
+		it = player.getUUID();
+		graceUntilTick = nowTick + graceSeconds.get() * 20L;
+		Broadcast.titel(player, Component.literal("YOU ARE IT!").withStyle(ChatFormatting.RED), null);
 	}
 
-	private void uebergeben(ServerPlayer alt, ServerPlayer neu) {
-		effekteEntfernen(alt);
-		setzeEs(neu);
-		Broadcast.chat(HorstiServer.get(), Component.literal(neu.getName().getString() + " ist jetzt Es!").withStyle(ChatFormatting.YELLOW));
+	private void handOver(ServerPlayer previous, ServerPlayer next) {
+		clearEffects(previous);
+		setIt(next);
+		Broadcast.chat(HorstiServer.get(), Component.literal(next.getName().getString() + " is It now!")
+			.withStyle(ChatFormatting.YELLOW));
 	}
 
-	private void effekteEntfernen(ServerPlayer sp) {
-		sp.removeEffect(MobEffects.SPEED);
-		sp.removeEffect(MobEffects.GLOWING);
+	private void clearEffects(ServerPlayer player) {
+		player.removeEffect(MobEffects.SPEED);
+		player.removeEffect(MobEffects.GLOWING);
 	}
 
-	private void sekundenTick(MinecraftServer server) {
-		jetztTick += 20;
-		if (!laeuft || !settings.istAktiv()) {
+	private void secondTick(MinecraftServer server) {
+		nowTick += 20;
+		if (!running || !settings.istAktiv()) {
 			return;
 		}
-		ServerPlayer esSpieler = es == null ? null : server.getPlayerList().getPlayer(es);
-		if (esSpieler == null || esSpieler.isSpectator()) {
-			// Es ist offline/raus -> neues Es ziehen
-			List<ServerPlayer> kandidaten = server.getPlayerList().getPlayers().stream()
-				.filter(p -> teilnehmer.contains(p.getUUID()) && !p.isSpectator())
+		ServerPlayer itPlayer = it == null ? null : server.getPlayerList().getPlayer(it);
+		if (itPlayer == null || itPlayer.isSpectator()) {
+			// "It" went offline or dropped out — draw a new one
+			List<ServerPlayer> candidates = server.getPlayerList().getPlayers().stream()
+				.filter(p -> participants.contains(p.getUUID()) && !p.isSpectator())
 				.toList();
-			if (kandidaten.isEmpty()) {
-				beenden(server, false);
+			if (candidates.isEmpty()) {
+				stop(server, false);
 				return;
 			}
-			setzeEs(kandidaten.get(random.nextInt(kandidaten.size())));
-			esSpieler = server.getPlayerList().getPlayer(es);
+			setIt(candidates.get(random.nextInt(candidates.size())));
+			itPlayer = server.getPlayerList().getPlayer(it);
 		}
 
-		// Effekte auffrischen (kurz halten, damit sie nach Rundenende auslaufen)
-		if (esSpeed.get() > 0) {
-			esSpieler.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, esSpeed.get() - 1, true, false));
+		// Refresh effects with a short duration so they expire after the round
+		if (itSpeed.get() > 0) {
+			itPlayer.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, itSpeed.get() - 1, true, false));
 		}
-		if (esGlow.get()) {
-			esSpieler.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, true, false));
+		if (itGlow.get()) {
+			itPlayer.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, true, false));
 		}
 
-		// Punkte: jede Sekunde nicht-Es zaehlt
-		for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
-			if (teilnehmer.contains(sp.getUUID()) && !sp.getUUID().equals(es) && !sp.isSpectator()) {
-				punkte.merge(sp.getUUID(), 1, Integer::sum);
+		// One point per second for everyone who is not It
+		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+			if (participants.contains(player.getUUID()) && !player.getUUID().equals(it) && !player.isSpectator()) {
+				points.merge(player.getUUID(), 1, Integer::sum);
 			}
 		}
 
-		long restSek = Math.max(0, (endTick - jetztTick) / 20);
+		long secondsLeft = Math.max(0, (endTick - nowTick) / 20);
 		if (bossBar != null) {
-			bossBar.setName(Component.literal("Tag — noch " + restSek / 60 + ":" + String.format("%02d", restSek % 60)));
-			bossBar.setProgress(Math.max(0f, (float) restSek / (rundenMin.get() * 60f)));
+			bossBar.setName(Component.literal("Tag — " + secondsLeft / 60 + ":" + String.format("%02d", secondsLeft % 60) + " left"));
+			bossBar.setProgress(Math.max(0f, (float) secondsLeft / (roundMinutes.get() * 60f)));
 		}
-		if (jetztTick >= endTick) {
-			beenden(server, true);
+		if (nowTick >= endTick) {
+			stop(server, true);
 		}
 	}
 
-	private void beenden(MinecraftServer server, boolean mitWertung) {
-		if (!laeuft) {
+	private void stop(MinecraftServer server, boolean withScores) {
+		if (!running || server == null) {
 			return;
 		}
-		laeuft = false;
-		ServerPlayer esSpieler = es == null ? null : server.getPlayerList().getPlayer(es);
-		if (esSpieler != null) {
-			effekteEntfernen(esSpieler);
+		running = false;
+		ServerPlayer itPlayer = it == null ? null : server.getPlayerList().getPlayer(it);
+		if (itPlayer != null) {
+			clearEffects(itPlayer);
 		}
 		if (bossBar != null) {
 			bossBar.removeAllPlayers();
 			bossBar = null;
 		}
-		if (mitWertung) {
-			String verlierer = esSpieler != null ? esSpieler.getName().getString() : "?";
-			Broadcast.titelAlle(server, Component.literal("Runde vorbei!").withStyle(ChatFormatting.GOLD),
-				Component.literal(verlierer + " ist Es geblieben und verliert."));
-			List<Map.Entry<UUID, Integer>> beste = punkte.entrySet().stream()
+		if (withScores) {
+			String loser = itPlayer != null ? itPlayer.getName().getString() : "?";
+			Broadcast.titelAlle(server, Component.literal("Round over!").withStyle(ChatFormatting.GOLD),
+				Component.literal(loser + " was left as It and loses."));
+			List<Map.Entry<UUID, Integer>> best = points.entrySet().stream()
 				.sorted(Comparator.<Map.Entry<UUID, Integer>>comparingInt(Map.Entry::getValue).reversed())
 				.limit(3)
 				.toList();
-			StringBuilder sb = new StringBuilder("[Tag] Beste Läufer: ");
-			for (int i = 0; i < beste.size(); i++) {
-				ServerPlayer p = server.getPlayerList().getPlayer(beste.get(i).getKey());
+			StringBuilder sb = new StringBuilder("[Tag] Best runners: ");
+			for (int i = 0; i < best.size(); i++) {
+				ServerPlayer p = server.getPlayerList().getPlayer(best.get(i).getKey());
 				String name = p != null ? p.getName().getString() : "?";
-				sb.append(i + 1).append(". ").append(name).append(" (").append(beste.get(i).getValue()).append("s)  ");
+				sb.append(i + 1).append(". ").append(name).append(" (").append(best.get(i).getValue()).append("s)  ");
 			}
 			Broadcast.chat(server, Component.literal(sb.toString()).withStyle(ChatFormatting.YELLOW));
 		}
-		es = null;
-		teilnehmer.clear();
+		it = null;
+		participants.clear();
 	}
 }

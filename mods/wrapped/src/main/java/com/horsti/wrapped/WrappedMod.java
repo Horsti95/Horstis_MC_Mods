@@ -2,7 +2,6 @@ package com.horsti.wrapped;
 
 import com.google.gson.JsonObject;
 import com.horsti.core.HorstiMod;
-import com.horsti.core.HorstiServer;
 import com.horsti.core.settings.BoolSetting;
 import com.horsti.core.settings.IntSetting;
 import com.horsti.core.settings.ModSettings;
@@ -24,158 +23,158 @@ import java.util.List;
 
 public class WrappedMod implements ModInitializer {
 	private final ModSettings settings = new ModSettings("wrapped", true);
-	private final IntSetting intervallTage = settings.add(new IntSetting("intervallTage", "Tage zwischen Ansagen", 7, 1, 30));
-	private final IntSetting kategorien = settings.add(new IntSetting("kategorien", "Anzahl angesagter Kategorien", 6, 3, 8));
-	private final IntSetting minSpieler = settings.add(new IntSetting("minSpieler", "Mindest-Spielerzahl fuer die Ansage", 2, 1, 16));
-	private final BoolSetting nullwerte = settings.add(new BoolSetting("nullwerte", "Kategorien ohne Punkte mitnehmen", false));
+	private final IntSetting intervalDays = settings.add(new IntSetting("intervalDays", "days between announcements", 7, 1, 30));
+	private final IntSetting categories = settings.add(new IntSetting("categories", "how many categories to announce", 6, 3, 8));
+	private final IntSetting minPlayers = settings.add(new IntSetting("minPlayers", "minimum players before announcing", 2, 1, 16));
+	private final BoolSetting includeZero = settings.add(new BoolSetting("includeZero", "include categories nobody scored in", false));
 
-	private final JsonSpeicher speicher = new JsonSpeicher("wrapped");
-	private JsonObject daten;
+	private final JsonSpeicher storage = new JsonSpeicher("wrapped");
+	private JsonObject data;
 
-	/** Ein Spieler mit seinem Zuwachs in einer Kategorie. */
-	private record Platz(String name, int wert) {
+	/** A player and their gain in one category. */
+	private record Standing(String name, int value) {
 	}
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("wrapped", "Wrapped", settings)
-			.extra((root, ctx) -> root.then(Commands.literal("jetzt").executes(c -> {
-				ansagen(c.getSource().getServer());
-				periodeStarten(c.getSource().getServer());
+			.extra((root, ctx) -> root.then(Commands.literal("now").executes(c -> {
+				announce(c.getSource().getServer());
+				startPeriod(c.getSource().getServer());
 				return 1;
 			})))
 			.registrieren();
 
-		daten = speicher.laden();
+		data = storage.laden();
 
-		// /wrapped ohne Rechte: aktueller Zwischenstand fuer alle
+		// /wrapped without permissions: current standings for everyone
 		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) ->
 			dispatcher.register(Commands.literal("wrapped").executes(c -> {
-				zwischenstand(c.getSource());
+				showStandings(c.getSource());
 				return 1;
 			})));
 
-		// Neue Spieler bekommen sofort einen Startwert, damit ihre Woche bei null beginnt
+		// New players get a baseline immediately so their week starts at zero
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			if (settings.istAktiv() && !basiswerte().has(handler.getPlayer().getUUID().toString())) {
-				spielerErfassen(handler.getPlayer());
-				speicher.speichern(daten);
+			if (settings.istAktiv() && !baselines().has(handler.getPlayer().getUUID().toString())) {
+				captureBaseline(handler.getPlayer());
+				storage.speichern(data);
 			}
 		});
 
-		// Einmal pro Minute reicht — die Periode laeuft in Tagen
-		Ticker.alleTicks(1200, this::minutenTick);
+		// Once a minute is plenty — the period runs in days
+		Ticker.alleTicks(1200, this::minuteTick);
 	}
 
-	private JsonObject basiswerte() {
-		if (!daten.has("basis")) {
-			daten.add("basis", new JsonObject());
+	private JsonObject baselines() {
+		if (!data.has("baselines")) {
+			data.add("baselines", new JsonObject());
 		}
-		return daten.getAsJsonObject("basis");
+		return data.getAsJsonObject("baselines");
 	}
 
-	private void minutenTick(MinecraftServer server) {
+	private void minuteTick(MinecraftServer server) {
 		if (!settings.istAktiv()) {
 			return;
 		}
-		if (!daten.has("periodeStart")) {
-			periodeStarten(server);
+		if (!data.has("periodStart")) {
+			startPeriod(server);
 			return;
 		}
-		long faellig = daten.get("periodeStart").getAsLong() + intervallTage.get() * 86_400_000L;
-		if (System.currentTimeMillis() >= faellig) {
-			if (server.getPlayerList().getPlayers().size() >= minSpieler.get()) {
-				ansagen(server);
+		long due = data.get("periodStart").getAsLong() + intervalDays.get() * 86_400_000L;
+		if (System.currentTimeMillis() >= due) {
+			if (server.getPlayerList().getPlayers().size() >= minPlayers.get()) {
+				announce(server);
 			}
-			periodeStarten(server);
+			startPeriod(server);
 		}
 	}
 
-	/** Merkt sich fuer jeden Online-Spieler den aktuellen Zaehlerstand als Nullpunkt. */
-	private void periodeStarten(MinecraftServer server) {
-		daten.addProperty("periodeStart", System.currentTimeMillis());
-		daten.add("basis", new JsonObject());
-		for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
-			spielerErfassen(sp);
+	/** Records every online player's current counters as the new zero point. */
+	private void startPeriod(MinecraftServer server) {
+		data.addProperty("periodStart", System.currentTimeMillis());
+		data.add("baselines", new JsonObject());
+		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+			captureBaseline(player);
 		}
-		speicher.speichern(daten);
+		storage.speichern(data);
 	}
 
-	private void spielerErfassen(ServerPlayer sp) {
-		JsonObject werte = new JsonObject();
-		for (StatKategorie k : Kategorien.alle()) {
-			werte.addProperty(k.id(), k.wert().lesen(sp));
+	private void captureBaseline(ServerPlayer player) {
+		JsonObject values = new JsonObject();
+		for (StatKategorie category : Kategorien.all()) {
+			values.addProperty(category.id(), category.value().read(player));
 		}
-		basiswerte().add(sp.getUUID().toString(), werte);
+		baselines().add(player.getUUID().toString(), values);
 	}
 
-	/** Zuwachs seit Periodenbeginn; ohne Basiswert zaehlt der volle Stand (frisch dabei). */
-	private int zuwachs(ServerPlayer sp, StatKategorie k) {
-		int jetzt = k.wert().lesen(sp);
-		JsonObject basis = basiswerte().getAsJsonObject(sp.getUUID().toString());
-		if (basis == null || !basis.has(k.id())) {
-			return jetzt;
+	/** Gain since the period started; without a baseline the full count applies (newly joined). */
+	private int gain(ServerPlayer player, StatKategorie category) {
+		int now = category.value().read(player);
+		JsonObject baseline = baselines().getAsJsonObject(player.getUUID().toString());
+		if (baseline == null || !baseline.has(category.id())) {
+			return now;
 		}
-		return Math.max(0, jetzt - basis.get(k.id()).getAsInt());
+		return Math.max(0, now - baseline.get(category.id()).getAsInt());
 	}
 
-	/** Alle Spieler mit dem Höchstwert einer Kategorie (leer = niemand hat Punkte). */
-	private List<Platz> gewinner(MinecraftServer server, StatKategorie k) {
-		List<Platz> beste = new ArrayList<>();
-		int hoechster = 0;
-		for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
-			int wert = zuwachs(sp, k);
-			if (wert > hoechster) {
-				hoechster = wert;
-				beste.clear();
-				beste.add(new Platz(sp.getName().getString(), wert));
-			} else if (wert == hoechster && wert > 0) {
-				beste.add(new Platz(sp.getName().getString(), wert));
+	/** Every player tied for the highest value (empty = nobody scored). */
+	private List<Standing> winners(MinecraftServer server, StatKategorie category) {
+		List<Standing> best = new ArrayList<>();
+		int highest = 0;
+		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+			int value = gain(player, category);
+			if (value > highest) {
+				highest = value;
+				best.clear();
+				best.add(new Standing(player.getName().getString(), value));
+			} else if (value == highest && value > 0) {
+				best.add(new Standing(player.getName().getString(), value));
 			}
 		}
-		return beste;
+		return best;
 	}
 
-	private void ansagen(MinecraftServer server) {
-		Broadcast.chat(server, Component.literal("═══ Die Woche auf dem Server ═══").withStyle(ChatFormatting.GOLD));
-		int gezeigt = 0;
-		for (StatKategorie k : Kategorien.alle()) {
-			if (gezeigt >= kategorien.get()) {
+	private void announce(MinecraftServer server) {
+		Broadcast.chat(server, Component.literal("═══ This week on the server ═══").withStyle(ChatFormatting.GOLD));
+		int shown = 0;
+		for (StatKategorie category : Kategorien.all()) {
+			if (shown >= categories.get()) {
 				break;
 			}
-			List<Platz> beste = gewinner(server, k);
-			if (beste.isEmpty() && !nullwerte.get()) {
+			List<Standing> best = winners(server, category);
+			if (best.isEmpty() && !includeZero.get()) {
 				continue;
 			}
-			Broadcast.chat(server, zeile(k, beste));
-			gezeigt++;
+			Broadcast.chat(server, line(category, best));
+			shown++;
 		}
-		if (gezeigt == 0) {
-			Broadcast.chat(server, Component.literal("  (diese Woche ist nichts passiert)").withStyle(ChatFormatting.GRAY));
+		if (shown == 0) {
+			Broadcast.chat(server, Component.literal("  (nothing happened this week)").withStyle(ChatFormatting.GRAY));
 		}
 	}
 
-	private void zwischenstand(CommandSourceStack quelle) {
-		MinecraftServer server = quelle.getServer();
-		quelle.sendSuccess(() -> Component.literal("═══ Zwischenstand ═══").withStyle(ChatFormatting.GOLD), false);
-		for (StatKategorie k : Kategorien.alle()) {
-			List<Platz> beste = gewinner(server, k);
-			if (beste.isEmpty() && !nullwerte.get()) {
+	private void showStandings(CommandSourceStack source) {
+		MinecraftServer server = source.getServer();
+		source.sendSuccess(() -> Component.literal("═══ Current standings ═══").withStyle(ChatFormatting.GOLD), false);
+		for (StatKategorie category : Kategorien.all()) {
+			List<Standing> best = winners(server, category);
+			if (best.isEmpty() && !includeZero.get()) {
 				continue;
 			}
-			final Component zeile = zeile(k, beste);
-			quelle.sendSuccess(() -> zeile, false);
+			final Component text = line(category, best);
+			source.sendSuccess(() -> text, false);
 		}
 	}
 
-	private Component zeile(StatKategorie k, List<Platz> beste) {
-		if (beste.isEmpty()) {
-			return Component.literal(k.titel() + " — niemand").withStyle(ChatFormatting.DARK_GRAY);
+	private Component line(StatKategorie category, List<Standing> best) {
+		if (best.isEmpty()) {
+			return Component.literal(category.title() + " — nobody").withStyle(ChatFormatting.DARK_GRAY);
 		}
-		String namen = String.join(" & ", beste.stream().map(Platz::name).toList());
-		return Component.literal(k.titel() + " ").withStyle(ChatFormatting.YELLOW)
-			.append(Component.literal(namen).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal(" — " + k.formatiere(beste.get(0).wert())).withStyle(ChatFormatting.GRAY))
-			.append(Component.literal("  (" + k.beschreibung() + ")").withStyle(ChatFormatting.DARK_GRAY));
+		String names = String.join(" & ", best.stream().map(Standing::name).toList());
+		return Component.literal(category.title() + " ").withStyle(ChatFormatting.YELLOW)
+			.append(Component.literal(names).withStyle(ChatFormatting.WHITE))
+			.append(Component.literal(" — " + category.formatValue(best.get(0).value())).withStyle(ChatFormatting.GRAY))
+			.append(Component.literal("  (" + category.description() + ")").withStyle(ChatFormatting.DARK_GRAY));
 	}
 }

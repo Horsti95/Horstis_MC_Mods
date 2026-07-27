@@ -23,10 +23,10 @@ Optional: only protect enchanted or high-tier items, so a stone shovel can still
 |---|---|
 | `/toolguard` | Status and current values |
 | `/toolguard on \| off` | Enable/disable |
-| `/toolguard set schwelle <1–50>` | Remaining durability at which protection kicks in (default: **5**) |
-| `/toolguard set nurVerzaubert on\|off` | Protect only enchanted items (default: **off**) |
-| `/toolguard set ruestung on\|off` | Protect armour too (default: **on**) |
-| `/toolguard set warnungAb <0–200>` | Warn (without blocking) from this durability (default: **50**) |
+| `/toolguard set threshold <1–50>` | Remaining durability at which protection kicks in (default: **5**) |
+| `/toolguard set enchantedOnly on\|off` | Protect only enchanted items (default: **off**) |
+| `/toolguard set armor on\|off` | Protect armour too (default: **on**) |
+| `/toolguard set warnFrom <0–200>` | Warn (without blocking) from this durability (default: **50**) |
 | `/toolguard set sound on\|off` | Play a warning sound (default: **on**) |
 
 ## Installation

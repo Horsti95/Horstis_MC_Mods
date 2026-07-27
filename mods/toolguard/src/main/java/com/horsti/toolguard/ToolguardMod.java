@@ -14,81 +14,78 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Schutz vor dem Zerbrechen: der Mixin fragt hier nach, ob ein Schadenspunkt
- * noch erlaubt ist. Alle Regeln liegen in dieser Klasse, damit der Mixin
- * winzig bleibt (und bei API-Drift nur eine Stelle bricht).
+ * Breakage protection: the mixin asks here whether one more point of damage is
+ * allowed. All rules live in this class so the mixin stays tiny — and so API
+ * drift only ever breaks one place.
  */
 public class ToolguardMod implements ModInitializer {
 	private static ModSettings settings;
-	private static IntSetting schwelle;
-	private static IntSetting warnungAb;
-	private static BoolSetting nurVerzaubert;
-	private static BoolSetting ruestung;
+	private static IntSetting threshold;
+	private static IntSetting warnFrom;
+	private static BoolSetting enchantedOnly;
+	private static BoolSetting armor;
 	private static BoolSetting sound;
 
 	@Override
 	public void onInitialize() {
 		settings = new ModSettings("toolguard", true);
-		schwelle = settings.add(new IntSetting("schwelle", "Rest-Haltbarkeit, ab der geschuetzt wird", 5, 1, 50));
-		warnungAb = settings.add(new IntSetting("warnungAb", "ab dieser Rest-Haltbarkeit warnen", 50, 0, 200));
-		nurVerzaubert = settings.add(new BoolSetting("nurVerzaubert", "nur verzauberte Gegenstaende schuetzen", false));
-		ruestung = settings.add(new BoolSetting("ruestung", "Ruestung mitschuetzen", true));
-		sound = settings.add(new BoolSetting("sound", "Warnton", true));
+		threshold = settings.add(new IntSetting("threshold", "remaining durability at which protection kicks in", 5, 1, 50));
+		warnFrom = settings.add(new IntSetting("warnFrom", "warn (without blocking) from this durability", 50, 0, 200));
+		enchantedOnly = settings.add(new BoolSetting("enchantedOnly", "protect enchanted items only", false));
+		armor = settings.add(new BoolSetting("armor", "protect armour too", true));
+		sound = settings.add(new BoolSetting("sound", "play a warning sound", true));
 		new HorstiMod("toolguard", "Toolguard", settings).registrieren();
 	}
 
-	/** Rest-Haltbarkeit nach diesem Schaden. */
-	private static int restNach(ItemStack stack, int schaden) {
-		return stack.getMaxDamage() - stack.getDamageValue() - schaden;
+	/** Durability left after this damage. */
+	private static int remainingAfter(ItemStack stack, int damage) {
+		return stack.getMaxDamage() - stack.getDamageValue() - damage;
 	}
 
-	private static boolean geschuetzt(ItemStack stack) {
+	private static boolean isProtected(ItemStack stack) {
 		if (settings == null || !settings.istAktiv() || !stack.isDamageableItem()) {
 			return false;
 		}
-		if (nurVerzaubert.get() && !stack.isEnchanted()) {
-			return false;
-		}
-		return true;
+		return !enchantedOnly.get() || stack.isEnchanted();
 	}
 
 	/**
-	 * Vom Mixin aufgerufen: darf dieser Gegenstand jetzt Schaden nehmen?
-	 * false = Schaden wird verworfen, der Gegenstand ueberlebt.
+	 * Called by the mixin: may this item take damage right now?
+	 * false = the damage is discarded and the item survives.
 	 */
-	public static boolean darfSchadenNehmen(ItemStack stack, int schaden, ServerPlayer sp) {
-		if (!geschuetzt(stack)) {
+	public static boolean mayTakeDamage(ItemStack stack, int damage, ServerPlayer player) {
+		if (!isProtected(stack)) {
 			return true;
 		}
-		int rest = restNach(stack, schaden);
-		if (rest > schwelle.get()) {
-			warnenFallsKnapp(stack, rest, sp);
+		int remaining = remainingAfter(stack, damage);
+		if (remaining > threshold.get()) {
+			warnIfLow(stack, remaining, player);
 			return true;
 		}
-		if (sp != null) {
-			Broadcast.actionbar(sp, Component.literal("⚠ " + stack.getHoverName().getString()
-				+ " ist am Ende — reparieren!").withStyle(ChatFormatting.RED));
+		if (player != null) {
+			Broadcast.actionbar(player, Component.literal("⚠ " + stack.getHoverName().getString()
+				+ " is about to break — repair it!").withStyle(ChatFormatting.RED));
 			if (sound.get()) {
-				sp.level().playSound(null, sp.blockPosition(), SoundEvents.ANVIL_LAND,
+				player.level().playSound(null, player.blockPosition(), SoundEvents.ANVIL_LAND,
 					SoundSource.PLAYERS, 0.3f, 1.8f);
 			}
 		}
 		return false;
 	}
 
-	private static void warnenFallsKnapp(ItemStack stack, int rest, ServerPlayer sp) {
-		if (sp == null || warnungAb.get() <= 0 || rest > warnungAb.get()) {
+	private static void warnIfLow(ItemStack stack, int remaining, ServerPlayer player) {
+		if (player == null || warnFrom.get() <= 0 || remaining > warnFrom.get()) {
 			return;
 		}
-		// Nur an runden Schwellen melden, damit die Actionbar nicht dauerflackert
-		if (rest % 10 != 0) {
+		// Only report on round thresholds so the action bar does not flicker.
+		if (remaining % 10 != 0) {
 			return;
 		}
-		Broadcast.actionbar(sp, Component.literal(stack.getHoverName().getString()
-			+ ": noch " + rest + " Haltbarkeit").withStyle(ChatFormatting.YELLOW));
+		Broadcast.actionbar(player, Component.literal(stack.getHoverName().getString()
+			+ ": " + remaining + " durability left").withStyle(ChatFormatting.YELLOW));
 	}
 
-	public static boolean ruestungGeschuetzt() {
-		return settings != null && settings.istAktiv() && ruestung.get();
+	public static boolean armorProtected() {
+		return settings != null && settings.istAktiv() && armor.get();
 	}
 }

@@ -1,6 +1,6 @@
 # Horsti Gift & Burden
 
-**`horsti-gabe-buerde` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
+**`horsti-giftburden` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
 > Every player gets one fixed random pair: a gift and a burden. Who are you?
 
@@ -25,14 +25,14 @@ Think Origins, but without Origins, without a client mod and without new assets.
 
 | Command | Effect |
 |---|---|
-| `/gabe` | Status and current values |
-| `/gabe on \| off` | Enable/disable (attributes are cleanly removed and restored) |
-| `/gabe reroll <player>` | Admin reroll, free |
-| `/gabe set staerke <1–3>` | Strength multiplier for all gifts and burdens (default: **1**) |
-| `/gabe set rerollKosten xp30\|netherstern\|aus` | Player reroll price (default: **xp30**) |
-| `/gabe set ansage on\|off` | Title announcement on join (default: **on**) |
+| `/gift` | Status and current values |
+| `/gift on \| off` | Enable/disable (attributes are cleanly removed and restored) |
+| `/gift reroll <player>` | Admin reroll, free |
+| `/gift set strength <1–3>` | Strength multiplier for all gifts and burdens (default: **1**) |
+| `/gift set rerollCost xp30\|netherstar\|off` | Player reroll price (default: **xp30**) |
+| `/gift set announce on\|off` | Title announcement on join (default: **on**) |
 
-Any player: **`/meinegabe`** (see your own pair) and **`/gabereroll`** (reroll for the set price).
+Any player: **`/mygift`** (see your own pair) and **`/giftreroll`** (reroll for the set price).
 
 ## Installation
 
@@ -41,8 +41,8 @@ into a single-player instance. Other players need nothing.
 
 ## Configuration
 
-`config/horsti/gabe-buerde.json`, reloadable with `/gabe reload`.
-Player assignments live in `config/horsti/daten/gabe-buerde.json`.
+`config/horsti/gift.json`, reloadable with `/gift reload`.
+Player assignments live in `config/horsti/daten/gift.json`.
 
 ## Fact sheet
 

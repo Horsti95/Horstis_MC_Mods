@@ -19,27 +19,27 @@ public abstract class AnvilMenuMixin {
 	@Final
 	private DataSlot cost;
 
-	// Die "Zu teuer!"-Schwelle (40) aufheben, damit das Ergebnis nicht geleert wird.
+	// Lift the "Too Expensive" threshold (40) so the result is not cleared.
 	@ModifyConstant(method = "createResult", constant = @Constant(intValue = 40), require = 0)
-	private int horsti$schwelle(int original) {
-		return AnvilfixMod.schwelle(original);
+	private int horsti$threshold(int original) {
+		return AnvilfixMod.threshold(original);
 	}
 
-	// Danach die realen Kosten auf den Deckel klemmen (<=39, Vanilla-Client-kompatibel).
+	// Then clamp the real cost to the cap (<= 39, so vanilla clients accept it).
 	@Inject(method = "createResult", at = @At("TAIL"), require = 0)
-	private void horsti$deckel(CallbackInfo ci) {
-		int gedeckelt = AnvilfixMod.kostenDeckel(this.cost.get());
-		if (gedeckelt != this.cost.get()) {
-			this.cost.set(gedeckelt);
+	private void horsti$cap(CallbackInfo ci) {
+		int capped = AnvilfixMod.capCost(this.cost.get());
+		if (capped != this.cost.get()) {
+			this.cost.set(capped);
 		}
 	}
 
-	// Prior-Work-Strafe: vanilla = kosten*2+1, wir optional linear oder eingefroren.
+	// Prior work penalty: vanilla is cost*2+1, we optionally make it linear or frozen.
 	@Inject(method = "calculateIncreasedRepairCost", at = @At("HEAD"), cancellable = true, require = 0)
-	private static void horsti$priorWork(int alterWert, CallbackInfoReturnable<Integer> cir) {
-		Integer neu = AnvilfixMod.priorWorkErgebnis(alterWert);
-		if (neu != null) {
-			cir.setReturnValue(neu);
+	private static void horsti$priorWork(int oldValue, CallbackInfoReturnable<Integer> cir) {
+		Integer replacement = AnvilfixMod.priorWorkResult(oldValue);
+		if (replacement != null) {
+			cir.setReturnValue(replacement);
 		}
 	}
 }

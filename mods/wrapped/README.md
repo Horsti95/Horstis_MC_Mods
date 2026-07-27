@@ -48,11 +48,11 @@ won, biggest catch streak. Two things are worth knowing before that happens:
 |---|---|
 | `/wrapped` | Show the current standings right now |
 | `/wrapped on \| off` | Enable/disable the automatic announcement |
-| `/wrapped jetzt` | Announce immediately and start a new period |
-| `/wrapped set intervallTage <1–30>` | Days between announcements (default: **7**) |
-| `/wrapped set kategorien <3–8>` | How many categories to announce (default: **6**) |
-| `/wrapped set minSpieler <1–16>` | Minimum players before announcing (default: **2**) |
-| `/wrapped set nullwerte on\|off` | Include categories where everyone scored zero (default: **off**) |
+| `/wrapped now` | Announce immediately and start a new period |
+| `/wrapped set intervalDays <1–30>` | Days between announcements (default: **7**) |
+| `/wrapped set categories <3–8>` | How many categories to announce (default: **6**) |
+| `/wrapped set minPlayers <1–16>` | Minimum players before announcing (default: **2**) |
+| `/wrapped set includeZero on\|off` | Include categories where everyone scored zero (default: **off**) |
 
 Any player can use `/wrapped` to see the standings.
 

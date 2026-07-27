@@ -1,14 +1,14 @@
 {
 	"schemaVersion": 1,
-	"id": "horsti_gabe_buerde",
+	"id": "horsti_giftburden",
 	"version": "${version}",
-	"name": "Horsti Gabe & Bürde",
-	"description": "Jeder Spieler bekommt ein festes zufälliges Paar: eine Gabe und eine Bürde.",
+	"name": "Horsti Gift & Burden",
+	"description": "Every player gets one fixed random pair: a gift and a burden, built from vanilla attributes.",
 	"authors": ["Horsti", "Claude"],
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["com.horsti.gabe.GabeMod"]
+		"main": ["com.horsti.giftburden.GiftMod"]
 	},
 	"depends": {
 		"fabricloader": ">=0.19.0",
