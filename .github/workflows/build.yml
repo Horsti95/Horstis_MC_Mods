@@ -45,7 +45,7 @@ jobs:
           d 'net.minecraft.resources.ResourceKey' 'public'
 
       - name: Build all mods
-        run: ./gradlew build --continue --stacktrace
+        run: ./gradlew build --continue
 
       - name: Upload jars
         if: always()

@@ -27,7 +27,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build Cobblemon add-ons
-        run: ./gradlew build --continue --stacktrace
+        run: ./gradlew build --continue
 
       - name: Upload jars
         if: always()
