@@ -1,6 +1,5 @@
 package com.horsti.cobblekeys;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -47,7 +46,7 @@ public class KeyListScreen extends Screen {
 				entries.add(mapping);
 			}
 		}
-		entries.sort(Comparator.comparing(KeyMapping::getCategory).thenComparing(KeyMapping::getName));
+		entries.sort(Comparator.comparing((KeyMapping m) -> m.getCategory()).thenComparing(KeyMapping::getName));
 	}
 
 	private static boolean matches(KeyMapping mapping, String needle) {
@@ -65,7 +64,7 @@ public class KeyListScreen extends Screen {
 		int bottom = height - 30;
 		graphics.fill(left, top, left + panelWidth, bottom, PANEL);
 
-		graphics.drawCenteredString(font, title, width / 2, top + 6, ACCENT);
+		graphics.drawCenteredString(font, getTitle(), width / 2, top + 6, ACCENT);
 		int y = top + 22 - scroll;
 
 		if (entries.isEmpty()) {
@@ -110,7 +109,7 @@ public class KeyListScreen extends Screen {
 		}
 
 		Component key = mapping.isUnbound()
-			? Component.translatable("screen.horsti_cobble_keys.unbound").withStyle(ChatFormatting.RED)
+			? Component.translatable("screen.horsti_cobble_keys.unbound")
 			: mapping.getTranslatedKeyMessage();
 		int keyX = left + panelWidth - 8 - font.width(key);
 		graphics.drawString(font, key, keyX, y, mapping.isUnbound() ? WARN : ACCENT);
