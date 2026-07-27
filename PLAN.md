@@ -8,10 +8,11 @@
 > Artefakt „horsti-mods“ am Actions-Run.
 > Kompilierung läuft über GitHub Actions (der Build-Container der Claude-Session blockiert
 > Mojang-/Fabric-Downloads, die CI-Runner nicht).
-> **Welle 3 läuft** (Abschnitt 9): `wrapped` und `toolguard` sind **gebaut (CI Run #13 grün)** — damit
-> 23 Mods. `refill`, `spawnguard`, `horstihud` + 3 Cobblemon-Addons: Ordner und englische READMEs stehen.
-> **Nächster Schritt: Horstis Playtest der 21 fertigen Mods → pro Mod entscheiden: privat behalten
-> oder veröffentlichen (Abschnitt 6.1). Parallel: GO für Welle 3 und die Sprach-Umstellung (Abschnitt 10).**
+> **Welle 3 läuft** (Abschnitt 9): `wrapped`, `toolguard`, `refill` und `spawnguard` sind **gebaut** —
+> damit 25 Mods. `horstihud` hängt an einem 26.2-API-Umbau (siehe 9.4).
+> **Cobblemon-Zweig gestartet** (Abschnitt 9.1): eigener 1.21.1-Build, `cobble-keys` gebaut.
+> **Nächster Schritt: Horstis Playtest der fertigen Mods → pro Mod entscheiden: privat behalten
+> oder veröffentlichen (Abschnitt 6.1).**
 
 ---
 
