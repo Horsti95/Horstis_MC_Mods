@@ -3,14 +3,15 @@
 > **Dies ist die einzige Wahrheitsquelle** für aktuellen Stand, Mod-Liste und nächste Schritte.
 > Mod-Ordner-READMEs = reine Nutzungs-/Spec-Doku (kein Status). Keine Ideen in verstreuten .md-Dateien.
 >
-> **Status: ALLE 21 MODS GEBAUT ✅ — CI grün** (Run #10). Gradle-Monorepo, `core` mit Settings-Registry,
-> JSON-Persistenz und Attribut-/Mob-Helfern; 21 Mods kompilieren auf MC 26.2. Alle Jars liegen als
-> Artefakt „horsti-mods“ am Actions-Run.
+> **Status: 26 MODS AUF MC 26.2 GEBAUT ✅ — CI grün**, dazu 1 Cobblemon-Addon auf MC 1.21.1.
+> Gradle-Monorepo, `core` mit Settings-Registry, JSON-Persistenz, Attribut-/Mob-Helfern und dem
+> HUD-Kanal. Jars liegen als Artefakt „horsti-mods“ (26.2) bzw. „horsti-cobblemon“ (1.21.1) am
+> jeweiligen Actions-Run.
 > Kompilierung läuft über GitHub Actions (der Build-Container der Claude-Session blockiert
 > Mojang-/Fabric-Downloads, die CI-Runner nicht).
-> **Welle 3 läuft** (Abschnitt 9): `wrapped`, `toolguard`, `refill` und `spawnguard` sind **gebaut** —
-> damit 25 Mods. `horstihud` hängt an einem 26.2-API-Umbau (siehe 9.4).
-> **Cobblemon-Zweig gestartet** (Abschnitt 9.1): eigener 1.21.1-Build, `cobble-keys` gebaut.
+> **Welle 3 fertig** (Abschnitt 9): `wrapped`, `toolguard`, `refill`, `spawnguard` und `horstihud`
+> sind **gebaut, CI grün** — damit 26 Mods, davon einer client-seitig.
+> **Cobblemon-Zweig läuft** (Abschnitt 9.1): eigener 1.21.1-Build, `cobble-keys` **gebaut, CI grün**.
 > **Nächster Schritt: Horstis Playtest der fertigen Mods → pro Mod entscheiden: privat behalten
 > oder veröffentlichen (Abschnitt 6.1).**
 
@@ -115,9 +116,8 @@ Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame �
 Status-Legende: 📋 geplant → 🔨 in Arbeit → ✅ gebaut (kompiliert) → 🧪 im Playtest → 🌍 öffentlich.
 Umgebung: 🖥️ server-seitig (Vanilla-Clients joinen) · 💻 client-seitig · 🔗 beides.
 
-**Welle 3 (Abschnitt 9):** `wrapped` ✅, `toolguard` ✅, `refill` ✅, `spawnguard` ✅,
-`horstihud` ⛔ (Abschnitt 9.4).
-**Cobblemon-Zweig (Abschnitt 9.1):** `cobble-keys` ✅, `cobble-league` 📋, `cobble-xp` 📋.
+**Welle 3 (Abschnitt 9):** `wrapped` ✅, `toolguard` ✅, `refill` ✅, `spawnguard` ✅, `horstihud` ✅ 💻.
+**Cobblemon-Zweig (Abschnitt 9.1):** `cobble-keys` ✅ 💻, `cobble-league` 📋, `cobble-xp` 📋.
 
 ## 4. Repo-Struktur
 
@@ -219,7 +219,7 @@ Nach der Client-Freigabe (Prinzip 3, 26.07.2026) neu bewertet. Alle Ordner liege
 | **`toolguard`** | 🖥️ Server | Werkzeug blockiert bei kritischer Haltbarkeit statt zu zerbrechen | Existiert, aber **fast nur client-seitig** | ✅ **gebaut (CI grün)** |
 | **`refill`** | 🖥️ Server | Leerer Block-Stack wird aus dem Inventar nachgefüllt | Meist client-seitig | ✅ **gebaut** |
 | **`spawnguard`** | 🖥️ Server | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Teils vorhanden | ✅ **gebaut** |
-| **`horstihud`** | 💻 Client | Begleiter für unsere Server-Mods: Nemesis-Status, Manhunt-Peilung als Pfeil, Bounty-Timer — nur Text + Vanilla-Widgets | — (spezifisch für unsere Mods) | ⛔ **blockiert, siehe 9.4** |
+| **`horstihud`** | 💻 Client | Begleiter für unsere Server-Mods: Manhunt-Peilung, Nemesis-Status, Bounty-Timer — nur Text + Vanilla-Widgets | — (spezifisch für unsere Mods) | ✅ **gebaut** (Details 9.4) |
 | ~~`heim`~~ | — | Homes/Warps/TPA | Essentials-Territorium, gut abgedeckt | **Nur privat, falls überhaupt** |
 | ~~`wegpunkte`~~ | — | Waypoints | **Dreifach server-seitig vorhanden** | **Gestrichen** |
 
@@ -284,9 +284,20 @@ Mojang ist auf eine **Extract-/Render-State-Pipeline** umgestiegen: ein HUD-Elem
 seinen Zustand ein, gezeichnet wird später zentral. Das ist kein Umbenennen, das ist ein anderes
 Modell — der Aufwand für `horstihud` liegt damit **über** der „Mittel"-Schätzung aus der README.
 
-**Nächster Schritt:** zweiter API-Dump (läuft) mit vollem `GuiGraphics`, `GuiGraphicsExtractor`,
-`Options.keyMappings` und dem Klassen-Index (findet, wohin `KeyBindingHelper` gewandert ist).
-Danach entscheiden — die Netzwerkseite ist der stabile Teil und kann unabhängig gebaut werden.
+**Ergebnis nach dem zweiten API-Dump: gebaut.** Der Ersatz heißt `GuiGraphicsExtractor` und hat
+alles, was `GuiGraphics` verloren hat — `text(Font, Component, x, y, farbe)`, `fill(...)`,
+`guiWidth()`/`guiHeight()`. Damit steht `horstihud`; es kompiliert auf Anhieb.
+
+**Was offen bleibt:** der **Hotkey**. Fabrics `KeyBindingHelper` ist aus
+`…client.keybinding.v1` verschwunden, und wohin die Registrierung gewandert ist, ist noch nicht
+bestätigt — geraten wird hier nichts, ein falscher Klassenname wäre ein Absturz beim Start. Bis dahin
+schaltet die Config-Datei das HUD. Der Klassen-Index im CI-Dump sucht weiter danach.
+
+**Verkabelt ist bisher nur `manhunt`.** Der Kanal, die Farben und der Fallback stehen für alle
+Abschnitte; jeder weitere ist eine Zeile in der jeweiligen Server-Mod
+(`Broadcast.actionbar(...)` → `Broadcast.hud(spieler, "<abschnitt>", ...)`). Bewusst zurückgehalten,
+bis die Server-Mods im Playtest waren — vorher an fünf fertigen Mods die Ausgabe umzubauen wäre
+Risiko ohne Gegenwert.
 
 ### 9.2 Community-Wünsche, zweite Runde
 
@@ -325,8 +336,8 @@ Modrinth-Seite, die niemand besucht.
 
 ### 🔜 Später entscheiden (5)
 
-`refill`, `spawnguard` (gebaut, aber erst nach Playtest bewertbar), `horstihud` (blockiert, 9.4) und
-die drei Cobblemon-Addons (eigener 1.21.1-Zweig, siehe 9.1).
+`refill`, `spawnguard`, `horstihud` (alle gebaut, aber erst nach Playtest bewertbar) und die drei
+Cobblemon-Addons (eigener 1.21.1-Zweig, siehe 9.1).
 
 Vorläufige Einschätzung nach dem Bauen:
 - **`refill`** — Konkurrenz ist client-seitig (Inventory Profiles Next & Co.). Unser Dreh: server-seitig,

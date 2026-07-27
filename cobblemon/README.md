@@ -49,7 +49,7 @@ in this folder changes.
 
 | Mod | Status |
 |---|---|
-| `cobble-keys` | 🔨 Built — client-side, no Cobblemon dependency, untested in-game |
+| `cobble-keys` | ✅ Built, CI green — client-side, no Cobblemon dependency, untested in-game |
 | `cobble-league` | 📋 Planned — README only |
 | `cobble-xp` | 📋 Planned — README only |
 
