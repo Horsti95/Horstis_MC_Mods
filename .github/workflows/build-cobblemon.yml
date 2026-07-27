@@ -32,15 +32,16 @@ jobs:
       - name: Toolchain probe
         continue-on-error: true
         run: |
-          # Loom liegt unter dem Plugin-Marker, nicht unter fabric-loom/fabric-loom —
-          # deshalb kam der erste Versuch leer zurueck. Zur Sicherheit auch das
-          # Verzeichnis-Listing, damit "leer" von "404" unterscheidbar ist.
-          echo "=== fabric-loom: Plugin-Marker ==="
-          curl -sS -w "\nHTTP %{http_code}\n" \
-            https://maven.fabricmc.net/net/fabricmc/fabric-loom/net.fabricmc.fabric-loom.gradle.plugin/maven-metadata.xml \
-            | tr '<' '\n' | sed -n 's/^version>//p;s/^HTTP/HTTP/p' | tail -50
-          echo "=== fabric-loom: Verzeichnis ==="
-          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-loom/ | grep -oE '>[0-9][^<]*/<' | tr -d '></' | tail -40
+          # Bestaetigt (Juli 2026): Fabric hat die Plugin-Marker der alten Loom-Zeilen
+      # abgeraeumt, die Artefakte liegen aber noch da — deshalb der buildscript-Weg
+      # in cobblemon/build.gradle. Probe bleibt fuer den naechsten Versionswechsel.
+      - name: Toolchain probe
+        if: false
+        continue-on-error: true
+        run: |
+          echo "=== fabric-loom: Artefakt-Verzeichnis ==="
+          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-loom/ \
+            | grep -oE '>[0-9][^<]*/<' | tr -d '></' | tail -60
 
       - name: Build Cobblemon add-ons
         run: ./gradlew build --continue

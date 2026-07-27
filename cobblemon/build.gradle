@@ -1,14 +1,30 @@
-// Eigene Toolchain, nicht die des 26.2-Builds:
-// Loom 1.17 lehnt officialMojangMappings() ab ("Cannot use Mojang mappings in a
-// non-obfuscated environment") — 26.x ist unobfuskiert, 1.21.1 ist es nicht.
-// Deshalb Loom 1.7 + Gradle 8.8 + Java 21, die dokumentierte 1.21.1-Kombination,
-// mit eigenem Wrapper in cobblemon/gradle/wrapper.
-plugins {
-	id 'net.fabricmc.fabric-loom' version '1.7-SNAPSHOT' apply false
+// Eigene Toolchain, nicht die des 26.2-Builds.
+//
+// Warum nicht einfach Loom 1.17 wie im Hauptbuild: der lehnt
+// officialMojangMappings() ab ("Cannot use Mojang mappings in a non-obfuscated
+// environment"). 26.x wird unobfuskiert ausgeliefert, 1.21.1 nicht — Loom 1.17
+// kann diesen Zweig also gar nicht bauen.
+//
+// Warum nicht ueber "plugins { id 'net.fabricmc.fabric-loom' }": Fabric hat die
+// Plugin-Marker der alten Loom-Zeilen abgeraeumt (per CI geprueft, 1.7-SNAPSHOT
+// ist weg). Das Artefakt selbst liegt weiter im Maven, also holen wir es direkt
+// ueber den buildscript-Klassenpfad. Gradle 8.12 + Java 21 dazu.
+buildscript {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+	dependencies {
+		classpath 'net.fabricmc:fabric-loom:1.9.2'
+	}
 }
 
 subprojects {
-	apply plugin: 'net.fabricmc.fabric-loom'
+	apply plugin: 'fabric-loom'
 
 	version = project.mod_version
 	group = project.maven_group
