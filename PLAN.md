@@ -114,7 +114,10 @@ Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame �
 
 Status-Legende: 📋 geplant → 🔨 in Arbeit → ✅ gebaut (kompiliert) → 🧪 im Playtest → 🌍 öffentlich.
 Umgebung: 🖥️ server-seitig (Vanilla-Clients joinen) · 💻 client-seitig · 🔗 beides.
-**Welle 3 und der Cobblemon-Zweig stehen in Abschnitt 9** (Ordner + README angelegt, kein Code).
+
+**Welle 3 (Abschnitt 9):** `wrapped` ✅, `toolguard` ✅, `refill` ✅, `spawnguard` ✅,
+`horstihud` ⛔ (Abschnitt 9.4).
+**Cobblemon-Zweig (Abschnitt 9.1):** `cobble-keys` ✅, `cobble-league` 📋, `cobble-xp` 📋.
 
 ## 4. Repo-Struktur
 
@@ -124,8 +127,15 @@ Horstis_MC_Mods/
 ├─ PLAN.md              # DIESE Datei: Status, Liste, Roadmap
 ├─ settings.gradle / build.gradle / gradle/   # Versionen zentral
 ├─ core/                # Settings-Registry, Timer, Broadcasts, Persistenz (Jar-in-Jar)
-└─ mods/<name>/         # je Mod: README.md (Spec/Nutzung), build.gradle, src/…, fabric.mod.json
+├─ mods/<name>/         # je Mod: README.md (Spec/Nutzung), build.gradle, src/…, fabric.mod.json
+└─ cobblemon/           # ZWEITER, EIGENSTÄNDIGER BUILD auf MC 1.21.1
+   ├─ settings.gradle / build.gradle / gradle.properties / gradlew   # eigene Toolchain
+   └─ <name>/           # gleicher Aufbau wie mods/<name>/
 ```
+
+`cobblemon/` hängt bewusst **nicht** im Root-`settings.gradle`: 1.21.1 und 26.2 dürfen sich weder
+Klassenpfad noch Loom-Version teilen (Details in 9.1). Gebaut wird dort mit `cd cobblemon &&
+./gradlew build`, in CI über einen eigenen Job.
 
 ### 4.1 Warum **kein** `client/`- und `server/`-Ordner (Antwort auf Horstis Frage 0.3)
 
@@ -207,9 +217,9 @@ Nach der Client-Freigabe (Prinzip 3, 26.07.2026) neu bewertet. Alle Ordner liege
 |---|---|---|---|---|
 | **`wrapped`** ⭐ | 🖥️ Server | Wöchentliche Server-Highlights aus Vanilla-Statistiken + `/wrapped` jederzeit; Kategorien als Module, andere Mods können eigene registrieren | Nur Bukkit-Plugins + Web-Tools; **als Fabric-Mod nichts gefunden** | ✅ **gebaut (CI grün)** |
 | **`toolguard`** | 🖥️ Server | Werkzeug blockiert bei kritischer Haltbarkeit statt zu zerbrechen | Existiert, aber **fast nur client-seitig** | ✅ **gebaut (CI grün)** |
-| **`horstihud`** | 💻 Client | Begleiter für unsere Server-Mods: Nemesis-Status, Manhunt-Peilung als Pfeil, Bounty-Timer — nur Text + Vanilla-Widgets | — (spezifisch für unsere Mods) | Mittel |
-| **`refill`** | 🖥️ Server | Leerer Block-Stack wird aus dem Inventar nachgefüllt | Meist client-seitig | Mittel |
-| **`spawnguard`** | 🖥️ Server | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Teils vorhanden | Niedrig |
+| **`refill`** | 🖥️ Server | Leerer Block-Stack wird aus dem Inventar nachgefüllt | Meist client-seitig | ✅ **gebaut** |
+| **`spawnguard`** | 🖥️ Server | Konfigurierbare Anti-Mob-Spawn-Zone um Basen (Fackel-Ersatz) | Teils vorhanden | ✅ **gebaut** |
+| **`horstihud`** | 💻 Client | Begleiter für unsere Server-Mods: Nemesis-Status, Manhunt-Peilung als Pfeil, Bounty-Timer — nur Text + Vanilla-Widgets | — (spezifisch für unsere Mods) | ⛔ **blockiert, siehe 9.4** |
 | ~~`heim`~~ | — | Homes/Warps/TPA | Essentials-Territorium, gut abgedeckt | **Nur privat, falls überhaupt** |
 | ~~`wegpunkte`~~ | — | Waypoints | **Dreifach server-seitig vorhanden** | **Gestrichen** |
 
@@ -235,6 +245,38 @@ Pokédex: Cobbledex. UI: Cobblemon UI Tweaks.
 
 Reihenfolge-Vorschlag: erst `cobble-keys` (klein, klare Lücke), dann `cobble-league` (unsere Stärke),
 `cobble-xp` als drittes. Erst nach Horstis GO und getrennt vom 26.2-Build.
+
+**Stand:** `cobble-keys` ist **gebaut**. Der Zweig hat eine **eigene Toolchain** — Loom 1.17 lehnt
+`officialMojangMappings()` ab („Cannot use Mojang mappings in a non-obfuscated environment"), weil
+26.x unobfuskiert ausgeliefert wird und 1.21.1 nicht. Also eigener Wrapper (Gradle 8.8), Loom 1.7,
+Java 21 und ein eigener CI-Job, der nur bei Änderungen in `cobblemon/` läuft.
+
+`cobble-keys` kommt bewusst **ohne Cobblemon-Abhängigkeit** aus: es liest die Keybind-Registry des
+Spiels und filtert nach Namensraum. Damit überlebt es jedes Cobblemon-Update und zeigt auch Keybinds
+anderer Side-Mods. `cobble-league` und `cobble-xp` brauchen Cobblemons API (Battle-Events,
+Pokémon-XP) und ziehen dann das ImpactDev-Maven dazu.
+
+### 9.4 `horstihud`: 26.2 hat die Client-HUD-API komplett umgebaut
+
+Der CI-API-Dump (27.07.2026) zeigt: **das, wogegen ein HUD-Mod normalerweise gebaut wird, gibt es
+in 26.2 nicht mehr.**
+
+| Was wir brauchen | Stand in 26.2 |
+|---|---|
+| `HudRenderCallback` (Fabric) | **weg** — ersatzlos entfernt |
+| `GuiGraphics#drawString` / `#fill` | **weg** — die Klasse hat keine Zeichen-Methoden mehr |
+| `KeyBindingHelper` (Fabric) | **weg** aus `…client.keybinding.v1` |
+| `HudElement` (Fabric) | da, aber neue Signatur: `extractRenderState(GuiGraphicsExtractor, DeltaTracker)` |
+| `KeyMapping` | da, Kategorie ist jetzt ein Record `KeyMapping.Category` mit `register(Identifier)` |
+| Netzwerk (`PayloadTypeRegistry`, `ServerPlayNetworking.canSend`, `ClientPlayNetworking`) | **unverändert nutzbar** ✅ |
+
+Mojang ist auf eine **Extract-/Render-State-Pipeline** umgestiegen: ein HUD-Element sammelt erst
+seinen Zustand ein, gezeichnet wird später zentral. Das ist kein Umbenennen, das ist ein anderes
+Modell — der Aufwand für `horstihud` liegt damit **über** der „Mittel"-Schätzung aus der README.
+
+**Nächster Schritt:** zweiter API-Dump (läuft) mit vollem `GuiGraphics`, `GuiGraphicsExtractor`,
+`Options.keyMappings` und dem Klassen-Index (findet, wohin `KeyBindingHelper` gewandert ist).
+Danach entscheiden — die Netzwerkseite ist der stabile Teil und kann unabhängig gebaut werden.
 
 ### 9.2 Community-Wünsche, zweite Runde
 
@@ -273,8 +315,16 @@ Modrinth-Seite, die niemand besucht.
 
 ### 🔜 Später entscheiden (5)
 
-`refill`, `spawnguard`, `horstihud` (erst nach Playtest der Server-Mods sinnvoll) und die drei
-Cobblemon-Addons (eigener 1.21.1-Zweig, siehe 9.1).
+`refill`, `spawnguard` (gebaut, aber erst nach Playtest bewertbar), `horstihud` (blockiert, 9.4) und
+die drei Cobblemon-Addons (eigener 1.21.1-Zweig, siehe 9.1).
+
+Vorläufige Einschätzung nach dem Bauen:
+- **`refill`** — Konkurrenz ist client-seitig (Inventory Profiles Next & Co.). Unser Dreh: server-seitig,
+  ein Toggle, gilt für alle. Ordentliches Argument, aber kein Alleinstellungsmerkmal.
+- **`spawnguard`** — steckt sonst in Claim-Plugins. Als eigenständiges Mod ohne Claim-System dünner
+  besetzt als erwartet → **eher Kandidat als gedacht.**
+- **`cobble-keys`** — nichts Vergleichbares gefunden, und ohne Cobblemon-Abhängigkeit gebaut, also
+  update-fest. Klein, aber echte Lücke → **Kandidat.**
 
 ## 10. Sprache: Deutsch → Englisch (Stand 26.07.2026)
 
