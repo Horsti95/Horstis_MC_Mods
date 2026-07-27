@@ -246,10 +246,20 @@ Pokédex: Cobbledex. UI: Cobblemon UI Tweaks.
 Reihenfolge-Vorschlag: erst `cobble-keys` (klein, klare Lücke), dann `cobble-league` (unsere Stärke),
 `cobble-xp` als drittes. Erst nach Horstis GO und getrennt vom 26.2-Build.
 
-**Stand:** `cobble-keys` ist **gebaut**. Der Zweig hat eine **eigene Toolchain** — Loom 1.17 lehnt
-`officialMojangMappings()` ab („Cannot use Mojang mappings in a non-obfuscated environment"), weil
-26.x unobfuskiert ausgeliefert wird und 1.21.1 nicht. Also eigener Wrapper (Gradle 8.8), Loom 1.7,
-Java 21 und ein eigener CI-Job, der nur bei Änderungen in `cobblemon/` läuft.
+**Stand:** `cobble-keys` ist geschrieben, die **Toolchain war die eigentliche Arbeit.** Zwei Hürden,
+beide per CI-Probe geklärt (der Session-Container kommt nicht an `maven.fabricmc.net`):
+
+1. **Loom 1.17 kann diesen Zweig gar nicht bauen.** `officialMojangMappings()` wirft
+   „Cannot use Mojang mappings in a non-obfuscated environment" — 26.x wird unobfuskiert
+   ausgeliefert, 1.21.1 nicht. Also eine ältere Loom-Zeile: **Loom 1.9.2**, dazu ein eigener
+   Wrapper mit **Gradle 8.12** und **Java 21** (Gradle 8.12 läuft nicht auf 25).
+2. **Die Plugin-Marker der alten Loom-Versionen sind abgeräumt.** `plugins { id
+   'net.fabricmc.fabric-loom' version '1.7-SNAPSHOT' }` findet nichts mehr; die Marker-Liste beginnt
+   erst bei ~1.16. Das **Artefakt** `net.fabricmc:fabric-loom:1.9.2` liegt aber weiter im Maven —
+   also über `buildscript { classpath ... }` statt über die Plugin-ID.
+
+Dazu ein eigener CI-Job, der nur bei Änderungen in `cobblemon/` läuft. Fabric API für 1.21.1 steht
+bei `0.116.14+1.21.1` (per Probe bestätigt, nicht geraten).
 
 `cobble-keys` kommt bewusst **ohne Cobblemon-Abhängigkeit** aus: es liest die Keybind-Registry des
 Spiels und filtert nach Namensraum. Damit überlebt es jedes Cobblemon-Update und zeigt auch Keybinds
