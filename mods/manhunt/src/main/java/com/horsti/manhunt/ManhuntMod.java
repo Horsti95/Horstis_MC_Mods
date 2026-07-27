@@ -191,10 +191,13 @@ public class ManhuntMod implements ModInitializer {
 			boolean haeltKompass = jaegerSp.getMainHandItem().is(Items.COMPASS)
 				|| jaegerSp.getOffhandItem().is(Items.COMPASS);
 			if (!haeltKompass) {
+				Broadcast.hudAus(jaegerSp, "manhunt");
 				continue;
 			}
 			ServerPlayer ziel = ziele.get(Math.min(zielIndex.getOrDefault(id, 0), ziele.size() - 1));
-			Broadcast.actionbar(jaegerSp, peilung(jaegerSp, ziel));
+			// hud() statt actionbar(): mit horstihud steht die Peilung dauerhaft im Bild,
+			// ohne ihn bleibt es exakt die Actionbar-Zeile von vorher.
+			Broadcast.hud(jaegerSp, "manhunt", peilung(jaegerSp, ziel));
 		}
 	}
 

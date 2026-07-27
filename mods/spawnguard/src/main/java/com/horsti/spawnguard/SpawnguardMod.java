@@ -98,18 +98,10 @@ public class SpawnguardMod implements ModInitializer {
 		return 1;
 	}
 
-	/**
-	 * The dimension id as a plain string, e.g. "minecraft:the_nether".
-	 *
-	 * <p>{@code ResourceKey#location()} is gone in 26.x and its replacement is not confirmed,
-	 * so we read the id back out of {@code toString()}, which renders as
-	 * "ResourceKey[minecraft:dimension / minecraft:the_nether]". Ugly, but it cannot break.
-	 */
+	/** The dimension id as a plain string, e.g. "minecraft:the_nether". */
 	private static String dimensionOf(Entity entity) {
-		String raw = entity.level().dimension().toString();
-		int start = raw.lastIndexOf(" / ");
-		int end = raw.lastIndexOf(']');
-		return start >= 0 && end > start ? raw.substring(start + 3, end) : raw;
+		// 26.x renamed ResourceKey#location() to identifier(), along with ResourceLocation.
+		return entity.level().dimension().identifier().toString();
 	}
 
 	private void load() {

@@ -1,0 +1,2 @@
+// horsti-hud — Konfiguration kommt zentral aus dem Root-build.gradle.
+// Einziger reiner Client-Mod im Projekt (environment: "client").

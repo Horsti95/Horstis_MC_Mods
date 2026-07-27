@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "horsti_hud",
+	"version": "${version}",
+	"name": "Horsti HUD",
+	"description": "Optional client companion for the Horsti server mods: shows what the server already knows as a compact text overlay.",
+	"authors": ["Horsti", "Claude"],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["com.horsti.hud.HorstiHudClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.0",
+		"fabric-api": "*",
+		"minecraft": "~26.2",
+		"horsti_core": "*"
+	}
+}
