@@ -11,7 +11,8 @@ identical stack from your inventory into the same slot. Building a long wall no 
 the inventory every 64 blocks.
 
 Works for blocks, torches, food and any other stackable item. If no matching stack is left, nothing
-happens — exactly like vanilla.
+happens — exactly like vanilla. While a chest or your inventory screen is open, nothing is refilled,
+so dragging stacks around behaves normally.
 
 Server-side, so it works for every player on the server without anyone installing anything.
 
@@ -21,10 +22,13 @@ Server-side, so it works for every player on the server without anyone installin
 |---|---|
 | `/refill` | Status and current values |
 | `/refill on \| off` | Enable/disable |
-| `/refill set bloecke on\|off` | Refill placeable blocks (default: **on**) |
-| `/refill set essen on\|off` | Refill food (default: **on**) |
-| `/refill set werkzeug on\|off` | Swap in an identical tool when one breaks (default: **off**) |
-| `/refill set hotbarNur on\|off` | Only pull from the hotbar (default: **off**) |
+| `/refill set blocks on\|off` | Refill placeable blocks (default: **on**) |
+| `/refill set food on\|off` | Refill food (default: **on**) |
+| `/refill set tools on\|off` | Swap in an identical tool when one breaks (default: **off**) |
+| `/refill set hotbarOnly on\|off` | Only pull from the hotbar (default: **off**) |
+
+`blocks` and `food` gate those two categories; every other stackable item (arrows, ender pearls,
+buckets) is refilled whenever the mod is on.
 
 ## Installation
 

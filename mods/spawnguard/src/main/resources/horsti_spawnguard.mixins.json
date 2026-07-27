@@ -1,0 +1,11 @@
+{
+	"required": false,
+	"package": "com.horsti.spawnguard.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"MobSpawnRulesMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}
