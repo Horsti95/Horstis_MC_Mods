@@ -30,77 +30,77 @@ import java.util.List;
 
 public class GravesMod implements ModInitializer {
 	private final ModSettings settings = new ModSettings("graves", true);
-	private final IntSetting schutzMin = settings.add(new IntSetting("schutzMin", "Nur-Besitzer-Schutzzeit in Minuten, 0 = sofort offen", 15, 0, 120));
-	private final IntSetting xpErhalt = settings.add(new IntSetting("xpErhalt", "Prozent der XP im Grab", 100, 0, 100));
-	private final BoolSetting ansage = settings.add(new BoolSetting("ansage", "Todesort-Koordinaten beim Tod anzeigen", true));
+	private final IntSetting protectMinutes = settings.add(new IntSetting("protectMinutes", "owner-only protection in minutes, 0 = open immediately", 15, 0, 120));
+	private final IntSetting xpKept = settings.add(new IntSetting("xpKept", "percent of your XP stored in the grave", 100, 0, 100));
+	private final BoolSetting announce = settings.add(new BoolSetting("announce", "show the grave coordinates on death", true));
 
-	private final JsonSpeicher speicher = new JsonSpeicher("graves");
-	private JsonObject daten;
+	private final JsonSpeicher storage = new JsonSpeicher("graves");
+	private JsonObject data;
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("graves", "Graves", settings)
-			.extra((root, ctx) -> root.then(Commands.literal("liste").executes(c -> {
-				JsonArray liste = graeber();
-				if (liste.isEmpty()) {
-					c.getSource().sendSuccess(() -> Component.literal("[Graves] Keine aktiven Gräber."), false);
+			.extra((root, ctx) -> root.then(Commands.literal("list").executes(c -> {
+				JsonArray list = graves();
+				if (list.isEmpty()) {
+					c.getSource().sendSuccess(() -> Component.literal("[Graves] No active graves."), false);
 					return 1;
 				}
-				for (int i = 0; i < liste.size(); i++) {
-					JsonObject g = liste.get(i).getAsJsonObject();
-					final String zeile = "  " + g.get("name").getAsString() + " — "
+				for (int i = 0; i < list.size(); i++) {
+					JsonObject g = list.get(i).getAsJsonObject();
+					final String line = "  " + g.get("name").getAsString() + " — "
 						+ g.get("x").getAsInt() + " " + g.get("y").getAsInt() + " " + g.get("z").getAsInt();
-					c.getSource().sendSuccess(() -> Component.literal(zeile).withStyle(ChatFormatting.GRAY), false);
+					c.getSource().sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);
 				}
 				return 1;
 			})))
 			.registrieren();
 
-		daten = speicher.laden();
+		data = storage.laden();
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (!settings.istAktiv() || !(entity instanceof ServerPlayer sp)) {
 				return;
 			}
-			grabAnlegen(sp);
+			createGrave(sp);
 		});
 
 		UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
 			if (level.isClientSide() || !settings.istAktiv() || !(player instanceof ServerPlayer sp)) {
 				return InteractionResult.PASS;
 			}
-			JsonObject grab = grabBei(hit.getBlockPos());
-			if (grab == null) {
+			JsonObject grave = graveAt(hit.getBlockPos());
+			if (grave == null) {
 				return InteractionResult.PASS;
 			}
-			boolean besitzer = grab.get("besitzer").getAsString().equals(sp.getUUID().toString());
-			long alterMin = (System.currentTimeMillis() - grab.get("zeit").getAsLong()) / 60000L;
-			if (!besitzer && schutzMin.get() > 0 && alterMin < schutzMin.get()) {
-				Broadcast.actionbar(sp, Component.literal("Das Grab von " + grab.get("name").getAsString()
-					+ " ist noch " + (schutzMin.get() - alterMin) + " Min. geschützt.").withStyle(ChatFormatting.RED));
+			boolean isOwner = grave.get("owner").getAsString().equals(sp.getUUID().toString());
+			long ageMinutes = (System.currentTimeMillis() - grave.get("time").getAsLong()) / 60000L;
+			if (!isOwner && protectMinutes.get() > 0 && ageMinutes < protectMinutes.get()) {
+				Broadcast.actionbar(sp, Component.literal("The grave of " + grave.get("name").getAsString()
+					+ " stays protected for another " + (protectMinutes.get() - ageMinutes) + " min.").withStyle(ChatFormatting.RED));
 				return InteractionResult.FAIL;
 			}
-			if (besitzer && grab.has("xp")) {
-				int xp = grab.get("xp").getAsInt();
+			if (isOwner && grave.has("xp")) {
+				int xp = grave.get("xp").getAsInt();
 				if (xp > 0) {
 					sp.giveExperiencePoints(xp);
-					grab.addProperty("xp", 0);
-					speicher.speichern(daten);
+					grave.addProperty("xp", 0);
+					storage.speichern(data);
 				}
 			}
-			return InteractionResult.PASS; // Vanilla oeffnet die Kiste
+			return InteractionResult.PASS; // vanilla opens the chest
 		});
 	}
 
-	private JsonArray graeber() {
-		if (!daten.has("graeber")) {
-			daten.add("graeber", new JsonArray());
+	private JsonArray graves() {
+		if (!data.has("graves")) {
+			data.add("graves", new JsonArray());
 		}
-		return daten.getAsJsonArray("graeber");
+		return data.getAsJsonArray("graves");
 	}
 
-	private JsonObject grabBei(BlockPos pos) {
-		for (var element : graeber()) {
+	private JsonObject graveAt(BlockPos pos) {
+		for (var element : graves()) {
 			JsonObject g = element.getAsJsonObject();
 			if (g.get("x").getAsInt() == pos.getX() && g.get("z").getAsInt() == pos.getZ()
 				&& Math.abs(g.get("y").getAsInt() - pos.getY()) <= 1) {
@@ -110,7 +110,7 @@ public class GravesMod implements ModInitializer {
 		return null;
 	}
 
-	private void grabAnlegen(ServerPlayer sp) {
+	private void createGrave(ServerPlayer sp) {
 		ServerLevel level = (ServerLevel) sp.level();
 		Inventory inv = sp.getInventory();
 
@@ -126,35 +126,35 @@ public class GravesMod implements ModInitializer {
 			return;
 		}
 
-		BlockPos pos = sicherePosition(level, sp.blockPosition());
-		// Zwei Kisten uebereinander fassen 54 Slots — mehr als das Spielerinventar hat.
-		int abgelegt = fuellen(level, pos, items, 0);
-		if (abgelegt < items.size()) {
-			abgelegt += fuellen(level, pos.above(), items, abgelegt);
+		BlockPos pos = safePosition(level, sp.blockPosition());
+		// Two stacked chests hold 54 slots — more than the player inventory has.
+		int stored = fill(level, pos, items, 0);
+		if (stored < items.size()) {
+			stored += fill(level, pos.above(), items, stored);
 		}
-		for (int i = abgelegt; i < items.size(); i++) {
-			sp.drop(items.get(i), false); // Notfall: Rest droppt wie in Vanilla
+		for (int i = stored; i < items.size(); i++) {
+			sp.drop(items.get(i), false); // fallback: the rest drops like in vanilla
 		}
 
-		JsonObject grab = new JsonObject();
-		grab.addProperty("besitzer", sp.getUUID().toString());
-		grab.addProperty("name", sp.getName().getString());
-		grab.addProperty("x", pos.getX());
-		grab.addProperty("y", pos.getY());
-		grab.addProperty("z", pos.getZ());
-		grab.addProperty("zeit", System.currentTimeMillis());
-		grab.addProperty("xp", sp.totalExperience * xpErhalt.get() / 100);
-		graeber().add(grab);
-		speicher.speichern(daten);
+		JsonObject grave = new JsonObject();
+		grave.addProperty("owner", sp.getUUID().toString());
+		grave.addProperty("name", sp.getName().getString());
+		grave.addProperty("x", pos.getX());
+		grave.addProperty("y", pos.getY());
+		grave.addProperty("z", pos.getZ());
+		grave.addProperty("time", System.currentTimeMillis());
+		grave.addProperty("xp", sp.totalExperience * xpKept.get() / 100);
+		graves().add(grave);
+		storage.speichern(data);
 
-		if (ansage.get()) {
-			sp.sendSystemMessage(Component.literal("⚰ Dein Grab: " + pos.getX() + " " + pos.getY() + " " + pos.getZ())
+		if (announce.get()) {
+			sp.sendSystemMessage(Component.literal("⚰ Your grave: " + pos.getX() + " " + pos.getY() + " " + pos.getZ())
 				.withStyle(ChatFormatting.GOLD));
 		}
 	}
 
-	/** Legt Items ab Index start in eine Kiste; gibt den neuen Index zurueck. */
-	private int fuellen(ServerLevel level, BlockPos pos, List<ItemStack> items, int start) {
+	/** Puts items from index start into a chest; returns the new index. */
+	private int fill(ServerLevel level, BlockPos pos, List<ItemStack> items, int start) {
 		level.setBlock(pos, Blocks.CHEST.defaultBlockState(), 3);
 		BlockEntity be = level.getBlockEntity(pos);
 		if (!(be instanceof Container container)) {
@@ -167,8 +167,8 @@ public class GravesMod implements ModInitializer {
 		return index;
 	}
 
-	/** Void/Lava vermeiden: nach oben bis zu einer freien, tragfaehigen Stelle wandern. */
-	private BlockPos sicherePosition(ServerLevel level, BlockPos start) {
+	/** Avoid the void and lava: walk upwards to the first free, solid-enough spot. */
+	private BlockPos safePosition(ServerLevel level, BlockPos start) {
 		BlockPos pos = start;
 		if (pos.getY() < level.getMinY() + 2) {
 			pos = new BlockPos(pos.getX(), level.getMinY() + 2, pos.getZ());

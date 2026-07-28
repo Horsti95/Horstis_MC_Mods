@@ -3,19 +3,19 @@ package com.horsti.events;
 import net.minecraft.server.MinecraftServer;
 
 /**
- * Ein Weltereignis. Bewusst ohne Querbezuege zu den anderen Events — so laesst
- * sich jedes Modul in einen eigenen Standalone-Mod heben (siehe PLAN.md, Prinzip 6).
+ * A world event. Deliberately without any cross-references to the other events, so each
+ * module can be lifted into a standalone mod of its own (see PLAN.md, principle 6).
  */
 public interface HorstiEvent {
 	String id();
 
-	/** Ankuendigung 60 Sekunden vor dem Start. */
-	void ankuendigen(MinecraftServer server);
+	/** Announcement 60 seconds before the start. */
+	void announce(MinecraftServer server);
 
-	void starten(MinecraftServer server);
+	void start(MinecraftServer server);
 
-	/** Jede Sekunde waehrend das Event laeuft; false = Event ist zu Ende. */
-	boolean tick(MinecraftServer server, long laufSekunden);
+	/** Every second while the event runs; false = the event is over. */
+	boolean tick(MinecraftServer server, long secondsRunning);
 
-	void aufraeumen(MinecraftServer server);
+	void cleanUp(MinecraftServer server);
 }

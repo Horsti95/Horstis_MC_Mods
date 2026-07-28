@@ -31,53 +31,54 @@ import net.minecraft.world.level.GameType;
 import java.util.UUID;
 
 public class LifestealMod implements ModInitializer {
-	private static final Identifier HERZ_ID = Attribute.id("lifesteal", "herzen");
+	private static final Identifier HEART_ID = Attribute.id("lifesteal", "hearts");
 
 	private final ModSettings settings = new ModSettings("lifesteal", true);
-	private final IntSetting startHerzen = settings.add(new IntSetting("startHerzen", "Start-Maximum in Herzen", 10, 5, 30));
-	private final IntSetting maxHerzen = settings.add(new IntSetting("maxHerzen", "Obergrenze in Herzen", 20, 10, 40));
-	private final IntSetting minHerzen = settings.add(new IntSetting("minHerzen", "Ausscheide-Schwelle", 0, 0, 5));
-	private final EnumSetting natTod = settings.add(new EnumSetting("natTod", "kostet ein Nicht-PvP-Tod ein Herz?", "frei", "frei", "herz"));
-	private final StringSetting herzItem = settings.add(new StringSetting("herzItem", "Item, das als Herz zaehlt", "minecraft:nether_star"));
+	private final IntSetting startHearts = settings.add(new IntSetting("startHearts", "starting maximum in hearts", 10, 5, 30));
+	private final IntSetting maxHearts = settings.add(new IntSetting("maxHearts", "upper limit in hearts", 20, 10, 40));
+	private final IntSetting minHearts = settings.add(new IntSetting("minHearts", "elimination threshold", 0, 0, 5));
+	private final EnumSetting naturalDeath = settings.add(new EnumSetting("naturalDeath", "does a non-PvP death cost a heart?", "free", "free", "heart"));
+	private final StringSetting heartItem = settings.add(new StringSetting("heartItem", "item that counts as a heart", "minecraft:nether_star"));
 
-	private final com.horsti.core.util.JsonSpeicher speicher = new com.horsti.core.util.JsonSpeicher("lifesteal");
-	private JsonObject daten;
+	private final com.horsti.core.util.JsonSpeicher storage = new com.horsti.core.util.JsonSpeicher("lifesteal");
+	private JsonObject data;
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("lifesteal", "Lifesteal", settings)
-			.onToggle(this::alleAktualisieren)
+			.onToggle(this::refreshAll)
 			.extra((root, ctx) -> {
 				root.then(Commands.literal("revive")
-					.then(Commands.argument("spieler", EntityArgument.player()).executes(c ->
-						wiederbeleben(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler"), null))));
-				root.then(Commands.literal("setze")
-					.then(Commands.argument("spieler", EntityArgument.player())
-						.then(Commands.argument("herzen", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 40))
+					.then(Commands.argument("player", EntityArgument.player()).executes(c ->
+						revive(c.getSource().getServer(), EntityArgument.getPlayer(c, "player"), null))));
+				// "hearts", not "set": core already generates a /lifesteal set <param> branch.
+				root.then(Commands.literal("hearts")
+					.then(Commands.argument("player", EntityArgument.player())
+						.then(Commands.argument("amount", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 40))
 							.executes(c -> {
-								ServerPlayer sp = EntityArgument.getPlayer(c, "spieler");
-								setzeHerzen(sp, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "herzen"));
+								ServerPlayer sp = EntityArgument.getPlayer(c, "player");
+								setHearts(sp, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "amount"));
 								c.getSource().sendSuccess(() -> Component.literal("[Lifesteal] " + sp.getName().getString()
-									+ " hat jetzt " + herzen(sp) + " Herzen"), true);
+									+ " now has " + hearts(sp) + " hearts"), true);
 								return 1;
 							}))));
 			})
 			.registrieren();
-		maxHerzen.onChange(w -> alleAktualisieren());
+		maxHearts.onChange(v -> refreshAll());
 
-		daten = speicher.laden();
+		data = storage.laden();
 
-		// Spieler-Commands: eigener Stand + Wiederbelebung gegen ein Herz-Item
+		// Player commands: your own standing + reviving someone for a heart item
 		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) -> {
-			dispatcher.register(Commands.literal("herzen").executes(c -> {
+			dispatcher.register(Commands.literal("hearts").executes(c -> {
 				ServerPlayer sp = c.getSource().getPlayerOrException();
-				sp.sendSystemMessage(Component.literal("Du hast " + herzen(sp) + " Herzen (max " + maxHerzen.get() + ").")
+				sp.sendSystemMessage(Component.literal("You have " + hearts(sp) + " hearts (max " + maxHearts.get() + ").")
 					.withStyle(ChatFormatting.GOLD));
 				return 1;
 			}));
 			dispatcher.register(Commands.literal("revive")
-				.then(Commands.argument("spieler", EntityArgument.player()).executes(c ->
-					wiederbeleben(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler"),
+				.then(Commands.argument("player", EntityArgument.player()).executes(c ->
+					revive(c.getSource().getServer(), EntityArgument.getPlayer(c, "player"),
 						c.getSource().getPlayerOrException()))));
 		});
 
@@ -86,111 +87,111 @@ public class LifestealMod implements ModInitializer {
 			if (!settings.istAktiv()) {
 				return;
 			}
-			if (!daten.has(sp.getUUID().toString())) {
-				setzeHerzen(sp, startHerzen.get());
+			if (!data.has(sp.getUUID().toString())) {
+				setHearts(sp, startHearts.get());
 			} else {
-				anwenden(sp);
+				apply(sp);
 			}
-			if (herzen(sp) <= minHerzen.get()) {
+			if (hearts(sp) <= minHearts.get()) {
 				sp.setGameMode(GameType.SPECTATOR);
 			}
 		});
 
-		ServerPlayerEvents.AFTER_RESPAWN.register((alt, neu, lebt) -> {
+		ServerPlayerEvents.AFTER_RESPAWN.register((old, fresh, alive) -> {
 			if (!settings.istAktiv()) {
 				return;
 			}
-			anwenden(neu);
-			if (herzen(neu) <= minHerzen.get()) {
-				neu.setGameMode(GameType.SPECTATOR);
+			apply(fresh);
+			if (hearts(fresh) <= minHearts.get()) {
+				fresh.setGameMode(GameType.SPECTATOR);
 			}
 		});
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-			if (!settings.istAktiv() || !(entity instanceof ServerPlayer opfer)) {
+			if (!settings.istAktiv() || !(entity instanceof ServerPlayer victim)) {
 				return;
 			}
 			MinecraftServer server = HorstiServer.get();
-			boolean pvp = source.getEntity() instanceof ServerPlayer killer && !killer.getUUID().equals(opfer.getUUID());
+			boolean pvp = source.getEntity() instanceof ServerPlayer killer && !killer.getUUID().equals(victim.getUUID());
 			if (pvp) {
 				ServerPlayer killer = (ServerPlayer) source.getEntity();
-				aendern(opfer, -1);
-				aendern(killer, +1);
-				Broadcast.chat(server, Component.literal(killer.getName().getString() + " klaut "
-					+ opfer.getName().getString() + " ein Herz! (" + herzen(killer) + " / " + herzen(opfer) + ")")
+				change(victim, -1);
+				change(killer, +1);
+				Broadcast.chat(server, Component.literal(killer.getName().getString() + " steals a heart from "
+					+ victim.getName().getString() + "! (" + hearts(killer) + " / " + hearts(victim) + ")")
 					.withStyle(ChatFormatting.RED));
-			} else if (natTod.get().equals("herz")) {
-				aendern(opfer, -1);
+			} else if (naturalDeath.get().equals("heart")) {
+				change(victim, -1);
 			}
-			if (herzen(opfer) <= minHerzen.get()) {
-				ausscheiden(server, opfer);
+			if (hearts(victim) <= minHearts.get()) {
+				eliminate(server, victim);
 			}
 		});
 	}
 
-	private int herzen(ServerPlayer sp) {
-		return daten.has(sp.getUUID().toString())
-			? daten.get(sp.getUUID().toString()).getAsInt()
-			: startHerzen.get();
+	private int hearts(ServerPlayer sp) {
+		return data.has(sp.getUUID().toString())
+			? data.get(sp.getUUID().toString()).getAsInt()
+			: startHearts.get();
 	}
 
-	private void setzeHerzen(ServerPlayer sp, int wert) {
-		daten.addProperty(sp.getUUID().toString(), Math.max(0, Math.min(maxHerzen.get(), wert)));
-		speicher.speichern(daten);
-		anwenden(sp);
+	private void setHearts(ServerPlayer sp, int value) {
+		data.addProperty(sp.getUUID().toString(), Math.max(0, Math.min(maxHearts.get(), value)));
+		storage.speichern(data);
+		apply(sp);
 	}
 
-	private void aendern(ServerPlayer sp, int delta) {
-		setzeHerzen(sp, herzen(sp) + delta);
+	private void change(ServerPlayer sp, int delta) {
+		setHearts(sp, hearts(sp) + delta);
 	}
 
-	private void anwenden(ServerPlayer sp) {
+	private void apply(ServerPlayer sp) {
 		if (!settings.istAktiv()) {
-			Attribute.entfernen(sp, Attributes.MAX_HEALTH, HERZ_ID);
+			Attribute.entfernen(sp, Attributes.MAX_HEALTH, HEART_ID);
 			return;
 		}
-		// Vanilla-Basis sind 20 HP = 10 Herzen; wir modifizieren die Differenz.
-		double ziel = herzen(sp) * 2.0;
-		Attribute.addieren(sp, Attributes.MAX_HEALTH, HERZ_ID, ziel - 20.0);
+		// The vanilla base is 20 HP = 10 hearts; we modify the difference.
+		double goal = hearts(sp) * 2.0;
+		Attribute.addieren(sp, Attributes.MAX_HEALTH, HEART_ID, goal - 20.0);
 		if (sp.getHealth() > sp.getMaxHealth()) {
 			sp.setHealth(sp.getMaxHealth());
 		}
 	}
 
-	private void alleAktualisieren() {
+	private void refreshAll() {
 		MinecraftServer server = HorstiServer.get();
 		if (server != null) {
-			server.getPlayerList().getPlayers().forEach(this::anwenden);
+			server.getPlayerList().getPlayers().forEach(this::apply);
 		}
 	}
 
-	private void ausscheiden(MinecraftServer server, ServerPlayer sp) {
+	private void eliminate(MinecraftServer server, ServerPlayer sp) {
 		sp.setGameMode(GameType.SPECTATOR);
-		Broadcast.titelAlle(server, Component.literal(sp.getName().getString() + " ist ausgeschieden!")
-			.withStyle(ChatFormatting.DARK_RED), Component.literal("Wiederbelebung: /revive " + sp.getName().getString()));
+		Broadcast.titelAlle(server, Component.literal(sp.getName().getString() + " is out!")
+			.withStyle(ChatFormatting.DARK_RED), Component.literal("Revive with: /revive " + sp.getName().getString()));
 	}
 
-	private int wiederbeleben(MinecraftServer server, ServerPlayer ziel, ServerPlayer spender) {
-		if (herzen(ziel) > minHerzen.get() && ziel.gameMode() != GameType.SPECTATOR) {
+	private int revive(MinecraftServer server, ServerPlayer target, ServerPlayer donor) {
+		if (hearts(target) > minHearts.get() && target.gameMode() != GameType.SPECTATOR) {
 			return 0;
 		}
-		if (spender != null) {
-			// Spieler zahlen mit einem Herz-Item aus dem Inventar
-			if (!herzItemAbziehen(spender)) {
-				spender.sendSystemMessage(Component.literal("[Lifesteal] Du brauchst ein Herz-Item ("
-					+ herzItem.get() + ") dafuer.").withStyle(ChatFormatting.RED));
+		if (donor != null) {
+			// Players pay with a heart item from their inventory
+			if (!takeHeartItem(donor)) {
+				donor.sendSystemMessage(Component.literal("[Lifesteal] You need a heart item ("
+					+ heartItem.get() + ") for that.").withStyle(ChatFormatting.RED));
 				return 0;
 			}
 		}
-		setzeHerzen(ziel, minHerzen.get() + 1);
-		ziel.setGameMode(GameType.SURVIVAL);
-		Broadcast.titelAlle(server, Component.literal(ziel.getName().getString() + " ist zurueck!")
+		setHearts(target, minHearts.get() + 1);
+		target.setGameMode(GameType.SURVIVAL);
+		Broadcast.titelAlle(server, Component.literal(target.getName().getString() + " is back!")
 			.withStyle(ChatFormatting.GOLD), null);
 		return 1;
 	}
 
-	private boolean herzItemAbziehen(ServerPlayer sp) {
-		Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(herzItem.get()));
+	private boolean takeHeartItem(ServerPlayer sp) {
+		Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(heartItem.get()));
 		if (item == Items.AIR) {
 			return false;
 		}

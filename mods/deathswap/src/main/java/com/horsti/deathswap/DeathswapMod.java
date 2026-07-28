@@ -29,144 +29,144 @@ import java.util.UUID;
 
 public class DeathswapMod implements ModInitializer {
 	private final ModSettings settings = new ModSettings("deathswap", true);
-	private final IntSetting intervallMin = settings.add(new IntSetting("intervallMin", "Basis-Intervall in Minuten", 5, 1, 30));
-	private final IntSetting zufallSek = settings.add(new IntSetting("zufallSek", "± Zufallsfenster in Sekunden", 60, 0, 120));
-	private final BoolSetting countdown = settings.add(new BoolSetting("countdown", "Tausch-Countdown sichtbar", false));
-	private final IntSetting minSpieler = settings.add(new IntSetting("minSpieler", "Mindestteilnehmer", 2, 2, 16));
+	private final IntSetting intervalMinutes = settings.add(new IntSetting("intervalMinutes", "base interval in minutes", 5, 1, 30));
+	private final IntSetting jitterSeconds = settings.add(new IntSetting("jitterSeconds", "± random window in seconds", 60, 0, 120));
+	private final BoolSetting countdown = settings.add(new BoolSetting("countdown", "show the swap countdown", false));
+	private final IntSetting minPlayers = settings.add(new IntSetting("minPlayers", "minimum participants", 2, 2, 16));
 
 	private final Random random = new Random();
-	private boolean laeuft = false;
-	private final Set<UUID> teilnehmer = new HashSet<>();
-	private final Set<UUID> ausgeschieden = new HashSet<>();
-	private long naechsterTauschTick = 0;
-	private long jetztTick = 0;
+	private boolean running = false;
+	private final Set<UUID> participants = new HashSet<>();
+	private final Set<UUID> eliminated = new HashSet<>();
+	private long nextSwapTick = 0;
+	private long nowTick = 0;
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("deathswap", "Deathswap", settings)
 			.onToggle(() -> {
 				if (!settings.istAktiv()) {
-					laeuft = false;
+					running = false;
 				}
 			})
 			.extra((root, ctx) -> {
 				root.then(Commands.literal("start").executes(c -> start(c.getSource().getServer())));
 				root.then(Commands.literal("stop").executes(c -> {
-					beenden(c.getSource().getServer(), null);
+					finish(c.getSource().getServer(), null);
 					return 1;
 				}));
 			})
 			.registrieren();
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-			if (laeuft && entity instanceof ServerPlayer sp && teilnehmer.remove(sp.getUUID())) {
-				ausgeschieden.add(sp.getUUID());
-				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist raus!").withStyle(ChatFormatting.RED));
-				pruefeSieg(HorstiServer.get());
+			if (running && entity instanceof ServerPlayer sp && participants.remove(sp.getUUID())) {
+				eliminated.add(sp.getUUID());
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " is out!").withStyle(ChatFormatting.RED));
+				checkWinner(HorstiServer.get());
 			}
 		});
-		ServerPlayerEvents.AFTER_RESPAWN.register((alt, neu, lebt) -> {
-			if (laeuft && ausgeschieden.contains(neu.getUUID())) {
-				neu.setGameMode(GameType.SPECTATOR);
+		ServerPlayerEvents.AFTER_RESPAWN.register((old, fresh, alive) -> {
+			if (running && eliminated.contains(fresh.getUUID())) {
+				fresh.setGameMode(GameType.SPECTATOR);
 			}
 		});
 
-		Ticker.alleTicks(20, this::sekundenTick);
+		Ticker.alleTicks(20, this::secondTick);
 	}
 
 	private int start(MinecraftServer server) {
-		List<ServerPlayer> spieler = server.getPlayerList().getPlayers().stream()
+		List<ServerPlayer> players = server.getPlayerList().getPlayers().stream()
 			.filter(p -> !p.isSpectator() && !p.isCreative())
 			.toList();
-		if (spieler.size() < minSpieler.get()) {
-			Broadcast.chat(server, Component.literal("[Deathswap] Zu wenige Spieler (" + spieler.size() + "/" + minSpieler.get() + ")").withStyle(ChatFormatting.RED));
+		if (players.size() < minPlayers.get()) {
+			Broadcast.chat(server, Component.literal("[Deathswap] Not enough players (" + players.size() + "/" + minPlayers.get() + ")").withStyle(ChatFormatting.RED));
 			return 0;
 		}
-		teilnehmer.clear();
-		ausgeschieden.clear();
-		spieler.forEach(p -> teilnehmer.add(p.getUUID()));
-		laeuft = true;
-		planeNaechstenTausch();
+		participants.clear();
+		eliminated.clear();
+		players.forEach(p -> participants.add(p.getUUID()));
+		running = true;
+		scheduleNextSwap();
 		Broadcast.titelAlle(server, Component.literal("DEATHSWAP").withStyle(ChatFormatting.RED),
-			Component.literal("Positions-Tausch alle ~" + intervallMin.get() + " Minuten — überlebe!"));
+			Component.literal("Positions swap roughly every " + intervalMinutes.get() + " minutes — survive!"));
 		return 1;
 	}
 
-	private void planeNaechstenTausch() {
-		int basis = intervallMin.get() * 1200;
-		int zufall = zufallSek.get() > 0 ? (random.nextInt(zufallSek.get() * 2 + 1) - zufallSek.get()) * 20 : 0;
-		naechsterTauschTick = jetztTick + Math.max(200, basis + zufall);
+	private void scheduleNextSwap() {
+		int base = intervalMinutes.get() * 1200;
+		int jitter = jitterSeconds.get() > 0 ? (random.nextInt(jitterSeconds.get() * 2 + 1) - jitterSeconds.get()) * 20 : 0;
+		nextSwapTick = nowTick + Math.max(200, base + jitter);
 	}
 
-	private void sekundenTick(MinecraftServer server) {
-		jetztTick += 20;
-		if (!laeuft || !settings.istAktiv()) {
+	private void secondTick(MinecraftServer server) {
+		nowTick += 20;
+		if (!running || !settings.istAktiv()) {
 			return;
 		}
-		long restSek = (naechsterTauschTick - jetztTick) / 20;
-		if (countdown.get() && restSek > 0 && restSek <= 10) {
+		long secondsLeft = (nextSwapTick - nowTick) / 20;
+		if (countdown.get() && secondsLeft > 0 && secondsLeft <= 10) {
 			for (ServerPlayer sp : online(server)) {
-				Broadcast.actionbar(sp, Component.literal("Tausch in " + restSek + "…").withStyle(ChatFormatting.YELLOW));
+				Broadcast.actionbar(sp, Component.literal("Swap in " + secondsLeft + "…").withStyle(ChatFormatting.YELLOW));
 			}
 		}
-		if (jetztTick >= naechsterTauschTick) {
-			tauschen(server);
+		if (nowTick >= nextSwapTick) {
+			swap(server);
 		}
 	}
 
-	private void tauschen(MinecraftServer server) {
-		List<ServerPlayer> aktive = online(server);
-		if (aktive.size() < 2) {
-			pruefeSieg(server);
+	private void swap(MinecraftServer server) {
+		List<ServerPlayer> active = online(server);
+		if (active.size() < 2) {
+			checkWinner(server);
 			return;
 		}
-		record Ort(ServerLevel level, double x, double y, double z, float yaw, float pitch) {
+		record Spot(ServerLevel level, double x, double y, double z, float yaw, float pitch) {
 		}
-		List<ServerPlayer> reihenfolge = new ArrayList<>(aktive);
-		Collections.shuffle(reihenfolge, random);
-		List<Ort> orte = reihenfolge.stream()
-			.map(p -> new Ort((ServerLevel) p.level(), p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot()))
+		List<ServerPlayer> order = new ArrayList<>(active);
+		Collections.shuffle(order, random);
+		List<Spot> spots = order.stream()
+			.map(p -> new Spot((ServerLevel) p.level(), p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot()))
 			.toList();
-		for (int i = 0; i < reihenfolge.size(); i++) {
-			Ort ziel = orte.get((i + 1) % orte.size());
-			ServerPlayer sp = reihenfolge.get(i);
-			sp.teleportTo(ziel.level(), ziel.x(), ziel.y(), ziel.z(), Set.of(), ziel.yaw(), ziel.pitch(), false);
-			Broadcast.titel(sp, Component.literal("TAUSCH!").withStyle(ChatFormatting.RED), null);
+		for (int i = 0; i < order.size(); i++) {
+			Spot target = spots.get((i + 1) % spots.size());
+			ServerPlayer sp = order.get(i);
+			sp.teleportTo(target.level(), target.x(), target.y(), target.z(), Set.of(), target.yaw(), target.pitch(), false);
+			Broadcast.titel(sp, Component.literal("SWAP!").withStyle(ChatFormatting.RED), null);
 		}
-		planeNaechstenTausch();
+		scheduleNextSwap();
 	}
 
 	private List<ServerPlayer> online(MinecraftServer server) {
 		return server.getPlayerList().getPlayers().stream()
-			.filter(p -> teilnehmer.contains(p.getUUID()) && !p.isDeadOrDying())
+			.filter(p -> participants.contains(p.getUUID()) && !p.isDeadOrDying())
 			.toList();
 	}
 
-	private void pruefeSieg(MinecraftServer server) {
-		List<ServerPlayer> aktive = online(server);
-		if (aktive.size() <= 1) {
-			beenden(server, aktive.isEmpty() ? null : aktive.get(0));
+	private void checkWinner(MinecraftServer server) {
+		List<ServerPlayer> active = online(server);
+		if (active.size() <= 1) {
+			finish(server, active.isEmpty() ? null : active.get(0));
 		}
 	}
 
-	private void beenden(MinecraftServer server, ServerPlayer sieger) {
-		if (!laeuft) {
+	private void finish(MinecraftServer server, ServerPlayer winner) {
+		if (!running) {
 			return;
 		}
-		laeuft = false;
-		if (sieger != null) {
-			Broadcast.titelAlle(server, Component.literal(sieger.getName().getString() + " gewinnt!").withStyle(ChatFormatting.GOLD), null);
+		running = false;
+		if (winner != null) {
+			Broadcast.titelAlle(server, Component.literal(winner.getName().getString() + " wins!").withStyle(ChatFormatting.GOLD), null);
 		} else {
-			Broadcast.chat(server, Component.literal("[Deathswap] Runde beendet.").withStyle(ChatFormatting.GRAY));
+			Broadcast.chat(server, Component.literal("[Deathswap] Round over.").withStyle(ChatFormatting.GRAY));
 		}
-		// Ausgeschiedene zurueck in den Ueberlebensmodus
-		for (UUID id : ausgeschieden) {
+		// Eliminated players go back to survival
+		for (UUID id : eliminated) {
 			ServerPlayer sp = server.getPlayerList().getPlayer(id);
 			if (sp != null) {
 				sp.setGameMode(GameType.SURVIVAL);
 			}
 		}
-		teilnehmer.clear();
-		ausgeschieden.clear();
+		participants.clear();
+		eliminated.clear();
 	}
 }

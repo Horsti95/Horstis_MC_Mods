@@ -20,65 +20,65 @@ import java.util.Map;
 import java.util.UUID;
 
 public class KeepmovingMod implements ModInitializer {
-	// Runden-Twist: startet bewusst deaktiviert und wird per /keepmoving on scharf geschaltet.
+	// Round twist: deliberately starts disabled and is armed with /keepmoving on.
 	private final ModSettings settings = new ModSettings("keepmoving", false);
-	private final IntSetting karenzSek = settings.add(new IntSetting("karenzSek", "Stillstand bis zum Malus", 10, 3, 120));
-	private final EnumSetting modus = settings.add(new EnumSetting("modus", "Malus-Art", "schaden", "schaden", "hunger", "wither"));
-	private final IntSetting staerke = settings.add(new IntSetting("staerke", "Malus-Staerke pro Sekunde", 1, 1, 5));
-	private final BoolSetting warnung = settings.add(new BoolSetting("warnung", "Actionbar-Countdown", true));
+	private final IntSetting graceSeconds = settings.add(new IntSetting("graceSeconds", "standing still before the penalty", 10, 3, 120));
+	private final EnumSetting mode = settings.add(new EnumSetting("mode", "kind of penalty", "damage", "damage", "hunger", "wither"));
+	private final IntSetting strength = settings.add(new IntSetting("strength", "penalty strength per second", 1, 1, 5));
+	private final BoolSetting warning = settings.add(new BoolSetting("warning", "action bar countdown", true));
 
-	private static final class Stand {
+	private static final class Spot {
 		double x, y, z;
-		int stillSekunden = 0;
+		int stillSeconds = 0;
 	}
 
-	private final Map<UUID, Stand> staende = new HashMap<>();
+	private final Map<UUID, Spot> spots = new HashMap<>();
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("keepmoving", "Keepmoving", settings)
-			.onToggle(staende::clear)
+			.onToggle(spots::clear)
 			.registrieren();
 
-		Ticker.alleTicks(20, this::sekundenTick);
+		Ticker.alleTicks(20, this::secondTick);
 	}
 
-	private void sekundenTick(MinecraftServer server) {
+	private void secondTick(MinecraftServer server) {
 		if (!settings.istAktiv()) {
 			return;
 		}
 		for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
 			if (sp.isCreative() || sp.isSpectator() || sp.isDeadOrDying()) {
-				staende.remove(sp.getUUID());
+				spots.remove(sp.getUUID());
 				continue;
 			}
-			Stand stand = staende.computeIfAbsent(sp.getUUID(), u -> new Stand());
-			boolean bewegt = Math.abs(sp.getX() - stand.x) > 0.05
-				|| Math.abs(sp.getY() - stand.y) > 0.05
-				|| Math.abs(sp.getZ() - stand.z) > 0.05;
-			stand.x = sp.getX();
-			stand.y = sp.getY();
-			stand.z = sp.getZ();
+			Spot spot = spots.computeIfAbsent(sp.getUUID(), u -> new Spot());
+			boolean moved = Math.abs(sp.getX() - spot.x) > 0.05
+				|| Math.abs(sp.getY() - spot.y) > 0.05
+				|| Math.abs(sp.getZ() - spot.z) > 0.05;
+			spot.x = sp.getX();
+			spot.y = sp.getY();
+			spot.z = sp.getZ();
 
-			if (bewegt) {
-				stand.stillSekunden = 0;
+			if (moved) {
+				spot.stillSeconds = 0;
 				continue;
 			}
-			stand.stillSekunden++;
-			int rest = karenzSek.get() - stand.stillSekunden;
-			if (rest > 0) {
-				if (warnung.get() && rest <= 5) {
-					Broadcast.actionbar(sp, Component.literal("Beweg dich! " + rest + "…").withStyle(ChatFormatting.RED));
+			spot.stillSeconds++;
+			int left = graceSeconds.get() - spot.stillSeconds;
+			if (left > 0) {
+				if (warning.get() && left <= 5) {
+					Broadcast.actionbar(sp, Component.literal("Move! " + left + "…").withStyle(ChatFormatting.RED));
 				}
 				continue;
 			}
-			switch (modus.get()) {
-				case "schaden" -> sp.hurtServer((net.minecraft.server.level.ServerLevel) sp.level(), sp.damageSources().generic(), staerke.get());
-				case "hunger" -> sp.getFoodData().addExhaustion(staerke.get() * 4.0f);
-				case "wither" -> sp.addEffect(new MobEffectInstance(MobEffects.WITHER, 40, staerke.get() - 1));
+			switch (mode.get()) {
+				case "damage" -> sp.hurtServer((net.minecraft.server.level.ServerLevel) sp.level(), sp.damageSources().generic(), strength.get());
+				case "hunger" -> sp.getFoodData().addExhaustion(strength.get() * 4.0f);
+				case "wither" -> sp.addEffect(new MobEffectInstance(MobEffects.WITHER, 40, strength.get() - 1));
 			}
-			if (warnung.get()) {
-				Broadcast.actionbar(sp, Component.literal("Wer rastet, der rostet!").withStyle(ChatFormatting.DARK_RED));
+			if (warning.get()) {
+				Broadcast.actionbar(sp, Component.literal("Rest and you rust!").withStyle(ChatFormatting.DARK_RED));
 			}
 		}
 	}

@@ -29,18 +29,18 @@ public class AfkMod implements ModInitializer {
 	private static final String TEAM_NAME = "horsti_afk";
 
 	private final ModSettings settings = new ModSettings("afk", true);
-	private final IntSetting minuten = settings.add(new IntSetting("minuten", "Inaktivitaet bis AFK", 5, 1, 60));
-	private final BoolSetting ansage = settings.add(new BoolSetting("ansage", "Chat-Ansage bei AFK/Rueckkehr", true));
-	private final IntSetting kickMinuten = settings.add(new IntSetting("kickMinuten", "danach kicken, 0 = nie", 0, 0, 120));
+	private final IntSetting minutes = settings.add(new IntSetting("minutes", "inactivity before AFK", 5, 1, 60));
+	private final BoolSetting announce = settings.add(new BoolSetting("announce", "chat message on going AFK / returning", true));
+	private final IntSetting kickMinutes = settings.add(new IntSetting("kickMinutes", "kick after that many more minutes, 0 = never", 0, 0, 120));
 
-	private static final class Zustand {
+	private static final class State {
 		double x, y, z;
 		float rotX, rotY;
-		long inaktivTicks = 0;
+		long idleTicks = 0;
 		boolean afk = false;
 	}
 
-	private final Map<UUID, Zustand> spieler = new HashMap<>();
+	private final Map<UUID, State> players = new HashMap<>();
 
 	@Override
 	public void onInitialize() {
@@ -48,32 +48,32 @@ public class AfkMod implements ModInitializer {
 			.onToggle(() -> {
 			}).registrieren();
 
-		// /afk! fuer alle Spieler (manuell AFK setzen)
+		// /afk! for every player (mark yourself AFK by hand)
 		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) ->
 			dispatcher.register(Commands.literal("afk!").executes(c -> {
 				ServerPlayer sp = c.getSource().getPlayerOrException();
-				setzeAfk(sp, true);
+				setAfk(sp, true);
 				return 1;
 			})));
 
-		ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> aktivitaet(sender));
+		ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> activity(sender));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-			Zustand z = spieler.remove(handler.getPlayer().getUUID());
+			State z = players.remove(handler.getPlayer().getUUID());
 			if (z != null && z.afk) {
-				teamEntfernen(server, handler.getPlayer());
+				teamRemove(server, handler.getPlayer());
 			}
 		});
 
-		Ticker.alleTicks(20, this::sekundenTick);
+		Ticker.alleTicks(20, this::secondTick);
 	}
 
-	private void sekundenTick(MinecraftServer server) {
+	private void secondTick(MinecraftServer server) {
 		if (!settings.istAktiv()) {
 			return;
 		}
 		for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
-			Zustand z = spieler.computeIfAbsent(sp.getUUID(), u -> new Zustand());
-			boolean bewegt = Math.abs(sp.getX() - z.x) > 0.01 || Math.abs(sp.getY() - z.y) > 0.01
+			State z = players.computeIfAbsent(sp.getUUID(), u -> new State());
+			boolean moved = Math.abs(sp.getX() - z.x) > 0.01 || Math.abs(sp.getY() - z.y) > 0.01
 				|| Math.abs(sp.getZ() - z.z) > 0.01 || sp.getXRot() != z.rotX || sp.getYRot() != z.rotY;
 			z.x = sp.getX();
 			z.y = sp.getY();
@@ -81,51 +81,51 @@ public class AfkMod implements ModInitializer {
 			z.rotX = sp.getXRot();
 			z.rotY = sp.getYRot();
 
-			if (bewegt) {
-				z.inaktivTicks = 0;
+			if (moved) {
+				z.idleTicks = 0;
 				if (z.afk) {
-					setzeAfk(sp, false);
+					setAfk(sp, false);
 				}
 				continue;
 			}
-			z.inaktivTicks += 20;
-			if (!z.afk && z.inaktivTicks >= minuten.get() * 1200L) {
-				setzeAfk(sp, true);
+			z.idleTicks += 20;
+			if (!z.afk && z.idleTicks >= minutes.get() * 1200L) {
+				setAfk(sp, true);
 			}
-			if (z.afk && kickMinuten.get() > 0
-				&& z.inaktivTicks >= (minuten.get() + kickMinuten.get()) * 1200L) {
-				sp.connection.disconnect(Component.literal("Zu lange AFK"));
+			if (z.afk && kickMinutes.get() > 0
+				&& z.idleTicks >= (minutes.get() + kickMinutes.get()) * 1200L) {
+				sp.connection.disconnect(Component.literal("AFK for too long"));
 			}
 		}
 	}
 
-	private void aktivitaet(ServerPlayer sp) {
-		Zustand z = spieler.get(sp.getUUID());
+	private void activity(ServerPlayer sp) {
+		State z = players.get(sp.getUUID());
 		if (z != null) {
-			z.inaktivTicks = 0;
+			z.idleTicks = 0;
 			if (z.afk) {
-				setzeAfk(sp, false);
+				setAfk(sp, false);
 			}
 		}
 	}
 
-	private void setzeAfk(ServerPlayer sp, boolean afk) {
-		Zustand z = spieler.computeIfAbsent(sp.getUUID(), u -> new Zustand());
+	private void setAfk(ServerPlayer sp, boolean afk) {
+		State z = players.computeIfAbsent(sp.getUUID(), u -> new State());
 		if (z.afk == afk) {
 			return;
 		}
 		z.afk = afk;
 		if (afk) {
-			z.inaktivTicks = Math.max(z.inaktivTicks, minuten.get() * 1200L);
-			teamHinzufuegen(HorstiServer.get(), sp);
-			if (ansage.get()) {
-				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist jetzt AFK").withStyle(ChatFormatting.GRAY));
+			z.idleTicks = Math.max(z.idleTicks, minutes.get() * 1200L);
+			teamAdd(HorstiServer.get(), sp);
+			if (announce.get()) {
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " is now AFK").withStyle(ChatFormatting.GRAY));
 			}
 		} else {
-			z.inaktivTicks = 0;
-			teamEntfernen(HorstiServer.get(), sp);
-			if (ansage.get()) {
-				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist zurueck").withStyle(ChatFormatting.GRAY));
+			z.idleTicks = 0;
+			teamRemove(HorstiServer.get(), sp);
+			if (announce.get()) {
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " is back").withStyle(ChatFormatting.GRAY));
 			}
 		}
 	}
@@ -140,11 +140,11 @@ public class AfkMod implements ModInitializer {
 		return team;
 	}
 
-	private static void teamHinzufuegen(MinecraftServer server, ServerPlayer sp) {
+	private static void teamAdd(MinecraftServer server, ServerPlayer sp) {
 		server.getScoreboard().addPlayerToTeam(sp.getScoreboardName(), team(server));
 	}
 
-	private static void teamEntfernen(MinecraftServer server, ServerPlayer sp) {
+	private static void teamRemove(MinecraftServer server, ServerPlayer sp) {
 		PlayerTeam team = server.getScoreboard().getPlayerTeam(TEAM_NAME);
 		if (team != null) {
 			server.getScoreboard().removePlayerFromTeam(sp.getScoreboardName(), team);

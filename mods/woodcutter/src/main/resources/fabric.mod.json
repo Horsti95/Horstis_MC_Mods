@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "horsti_woodcutter",
+	"version": "${version}",
+	"name": "Horsti Woodcutter",
+	"description": "The stonecutter also cuts wood: planks, stairs, slabs, doors and buttons without a crafting grid.",
+	"authors": [
+		"Horsti",
+		"Claude"
+	],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.horsti.woodcutter.WoodcutterMod"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.0",
+		"fabric-api": "*",
+		"minecraft": "~26.2",
+		"horsti_core": "*"
+	}
+}

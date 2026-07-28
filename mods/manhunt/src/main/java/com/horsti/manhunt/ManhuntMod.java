@@ -31,213 +31,214 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Statt einer Kompass-Nadel (die zwischen Dimensionen nutzlos wird) zeigt der
- * gehaltene Kompass eine Peilung in der Actionbar: Richtung, Entfernung, Dimension.
+ * Instead of a compass needle (useless across dimensions), the held compass shows a
+ * bearing: direction, distance, dimension. With horstihud it becomes a HUD line,
+ * without it the plain action bar.
  */
 public class ManhuntMod implements ModInitializer {
 	private final ModSettings settings = new ModSettings("manhunt", true);
-	private final IntSetting schonfristSek = settings.add(new IntSetting("schonfristSek", "Jaeger-Freeze am Start", 30, 0, 300));
-	private final BoolSetting runnerRespawn = settings.add(new BoolSetting("runnerRespawn", "Runner duerfen respawnen", false));
-	private final IntSetting peilungSek = settings.add(new IntSetting("peilungSek", "Sekunden zwischen Peilungen", 1, 1, 10));
+	private final IntSetting graceSeconds = settings.add(new IntSetting("graceSeconds", "hunter freeze at the start", 30, 0, 300));
+	private final BoolSetting runnerRespawn = settings.add(new BoolSetting("runnerRespawn", "runners may respawn", false));
+	private final IntSetting bearingSeconds = settings.add(new IntSetting("bearingSeconds", "seconds between bearings", 1, 1, 10));
 
-	private final Set<UUID> runner = new HashSet<>();
-	private final Set<UUID> jaeger = new HashSet<>();
-	private final Set<UUID> toteRunner = new HashSet<>();
-	private final Map<UUID, Integer> zielIndex = new HashMap<>();
-	private boolean laeuft = false;
+	private final Set<UUID> runners = new HashSet<>();
+	private final Set<UUID> hunters = new HashSet<>();
+	private final Set<UUID> deadRunners = new HashSet<>();
+	private final Map<UUID, Integer> targetIndex = new HashMap<>();
+	private boolean running = false;
 	private long startTick = 0;
-	private long jetztTick = 0;
+	private long nowTick = 0;
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("manhunt", "Manhunt", settings)
 			.onToggle(() -> {
 				if (!settings.istAktiv()) {
-					laeuft = false;
+					running = false;
 				}
 			})
 			.extra((root, ctx) -> {
 				root.then(Commands.literal("runner")
-					.then(Commands.literal("add").then(Commands.argument("spieler", EntityArgument.player())
-						.executes(c -> rolle(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler"), runner, true))))
-					.then(Commands.literal("remove").then(Commands.argument("spieler", EntityArgument.player())
-						.executes(c -> rolle(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler"), runner, false)))));
+					.then(Commands.literal("add").then(Commands.argument("player", EntityArgument.player())
+						.executes(c -> role(c.getSource().getServer(), EntityArgument.getPlayer(c, "player"), runners, true))))
+					.then(Commands.literal("remove").then(Commands.argument("player", EntityArgument.player())
+						.executes(c -> role(c.getSource().getServer(), EntityArgument.getPlayer(c, "player"), runners, false)))));
 				root.then(Commands.literal("hunter")
-					.then(Commands.literal("add").then(Commands.argument("spieler", EntityArgument.player())
-						.executes(c -> rolle(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler"), jaeger, true))))
-					.then(Commands.literal("remove").then(Commands.argument("spieler", EntityArgument.player())
-						.executes(c -> rolle(c.getSource().getServer(), EntityArgument.getPlayer(c, "spieler"), jaeger, false)))));
+					.then(Commands.literal("add").then(Commands.argument("player", EntityArgument.player())
+						.executes(c -> role(c.getSource().getServer(), EntityArgument.getPlayer(c, "player"), hunters, true))))
+					.then(Commands.literal("remove").then(Commands.argument("player", EntityArgument.player())
+						.executes(c -> role(c.getSource().getServer(), EntityArgument.getPlayer(c, "player"), hunters, false)))));
 				root.then(Commands.literal("start").executes(c -> start(c.getSource().getServer())));
 				root.then(Commands.literal("stop").executes(c -> {
-					beenden(c.getSource().getServer(), null);
+					finish(c.getSource().getServer(), null);
 					return 1;
 				}));
 			})
 			.registrieren();
 
-		// Jaeger schalten ihr Ziel per /ziel durch
+		// Hunters cycle their target with /target
 		CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) ->
-			dispatcher.register(Commands.literal("ziel").executes(c -> {
+			dispatcher.register(Commands.literal("target").executes(c -> {
 				ServerPlayer sp = c.getSource().getPlayerOrException();
-				if (!jaeger.contains(sp.getUUID())) {
+				if (!hunters.contains(sp.getUUID())) {
 					return 0;
 				}
-				List<ServerPlayer> ziele = lebendeRunner(HorstiServer.get());
-				if (ziele.isEmpty()) {
+				List<ServerPlayer> targets = livingRunners(HorstiServer.get());
+				if (targets.isEmpty()) {
 					return 0;
 				}
-				int neu = (zielIndex.getOrDefault(sp.getUUID(), 0) + 1) % ziele.size();
-				zielIndex.put(sp.getUUID(), neu);
-				Broadcast.actionbar(sp, Component.literal("Ziel: " + ziele.get(neu).getName().getString())
+				int next = (targetIndex.getOrDefault(sp.getUUID(), 0) + 1) % targets.size();
+				targetIndex.put(sp.getUUID(), next);
+				Broadcast.actionbar(sp, Component.literal("Target: " + targets.get(next).getName().getString())
 					.withStyle(ChatFormatting.GOLD));
 				return 1;
 			})));
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-			if (!laeuft || !(entity instanceof ServerPlayer sp)) {
+			if (!running || !(entity instanceof ServerPlayer sp)) {
 				return;
 			}
-			if (runner.contains(sp.getUUID()) && !runnerRespawn.get()) {
-				toteRunner.add(sp.getUUID());
-				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " ist gefallen!")
+			if (runners.contains(sp.getUUID()) && !runnerRespawn.get()) {
+				deadRunners.add(sp.getUUID());
+				Broadcast.chat(HorstiServer.get(), Component.literal(sp.getName().getString() + " has fallen!")
 					.withStyle(ChatFormatting.RED));
-				if (lebendeRunner(HorstiServer.get()).isEmpty()) {
-					beenden(HorstiServer.get(), "jaeger");
+				if (livingRunners(HorstiServer.get()).isEmpty()) {
+					finish(HorstiServer.get(), "hunters");
 				}
 			}
-			// Drachen-Sieg: der Enderdrache wird von einem Runner erlegt
+			// Dragon win: a runner slays the ender dragon
 			if (Mobs.istTyp(entity, "minecraft:ender_dragon")
-				&& source.getEntity() instanceof ServerPlayer toeter && runner.contains(toeter.getUUID())) {
-				beenden(HorstiServer.get(), "runner");
+				&& source.getEntity() instanceof ServerPlayer slayer && runners.contains(slayer.getUUID())) {
+				finish(HorstiServer.get(), "runners");
 			}
 		});
 
-		Ticker.alleTicks(20, this::sekundenTick);
+		Ticker.alleTicks(20, this::secondTick);
 	}
 
-	private int rolle(MinecraftServer server, ServerPlayer sp, Set<UUID> menge, boolean hinzu) {
-		if (hinzu) {
-			menge.add(sp.getUUID());
-			runner.removeIf(id -> menge != runner && id.equals(sp.getUUID()));
-			jaeger.removeIf(id -> menge != jaeger && id.equals(sp.getUUID()));
-			menge.add(sp.getUUID());
+	private int role(MinecraftServer server, ServerPlayer sp, Set<UUID> group, boolean add) {
+		if (add) {
+			group.add(sp.getUUID());
+			runners.removeIf(id -> group != runners && id.equals(sp.getUUID()));
+			hunters.removeIf(id -> group != hunters && id.equals(sp.getUUID()));
+			group.add(sp.getUUID());
 		} else {
-			menge.remove(sp.getUUID());
+			group.remove(sp.getUUID());
 		}
-		Broadcast.chat(server, Component.literal("[Manhunt] " + sp.getName().getString() + " ist "
-			+ (hinzu ? (menge == runner ? "Runner" : "Jäger") : "wieder frei")).withStyle(ChatFormatting.GRAY));
+		Broadcast.chat(server, Component.literal("[Manhunt] " + sp.getName().getString() + " is "
+			+ (add ? (group == runners ? "a runner" : "a hunter") : "free again")).withStyle(ChatFormatting.GRAY));
 		return 1;
 	}
 
 	private int start(MinecraftServer server) {
-		if (runner.isEmpty() || jaeger.isEmpty()) {
-			Broadcast.chat(server, Component.literal("[Manhunt] Erst Runner und Jäger festlegen.").withStyle(ChatFormatting.RED));
+		if (runners.isEmpty() || hunters.isEmpty()) {
+			Broadcast.chat(server, Component.literal("[Manhunt] Assign runners and hunters first.").withStyle(ChatFormatting.RED));
 			return 0;
 		}
-		laeuft = true;
-		startTick = jetztTick;
-		toteRunner.clear();
-		for (UUID id : jaeger) {
+		running = true;
+		startTick = nowTick;
+		deadRunners.clear();
+		for (UUID id : hunters) {
 			ServerPlayer sp = server.getPlayerList().getPlayer(id);
 			if (sp != null && !sp.getInventory().contains(new net.minecraft.world.item.ItemStack(Items.COMPASS))) {
 				sp.getInventory().add(new net.minecraft.world.item.ItemStack(Items.COMPASS));
 			}
 		}
 		Broadcast.titelAlle(server, Component.literal("MANHUNT!").withStyle(ChatFormatting.DARK_RED),
-			Component.literal(schonfristSek.get() > 0
-				? "Die Jäger warten noch " + schonfristSek.get() + " Sekunden — lauft!"
-				: "Los!"));
+			Component.literal(graceSeconds.get() > 0
+				? "The hunters wait another " + graceSeconds.get() + " seconds — run!"
+				: "Go!"));
 		return 1;
 	}
 
-	private List<ServerPlayer> lebendeRunner(MinecraftServer server) {
-		List<ServerPlayer> liste = new ArrayList<>();
-		for (UUID id : runner) {
-			if (toteRunner.contains(id)) {
+	private List<ServerPlayer> livingRunners(MinecraftServer server) {
+		List<ServerPlayer> list = new ArrayList<>();
+		for (UUID id : runners) {
+			if (deadRunners.contains(id)) {
 				continue;
 			}
 			ServerPlayer sp = server.getPlayerList().getPlayer(id);
 			if (sp != null) {
-				liste.add(sp);
+				list.add(sp);
 			}
 		}
-		return liste;
+		return list;
 	}
 
-	private void sekundenTick(MinecraftServer server) {
-		jetztTick += 20;
-		if (!laeuft || !settings.istAktiv()) {
+	private void secondTick(MinecraftServer server) {
+		nowTick += 20;
+		if (!running || !settings.istAktiv()) {
 			return;
 		}
-		long laufSek = (jetztTick - startTick) / 20;
-		boolean schonfrist = laufSek < schonfristSek.get();
-		List<ServerPlayer> ziele = lebendeRunner(server);
+		long secondsRunning = (nowTick - startTick) / 20;
+		boolean inGrace = secondsRunning < graceSeconds.get();
+		List<ServerPlayer> targets = livingRunners(server);
 
-		for (UUID id : jaeger) {
-			ServerPlayer jaegerSp = server.getPlayerList().getPlayer(id);
-			if (jaegerSp == null) {
+		for (UUID id : hunters) {
+			ServerPlayer hunter = server.getPlayerList().getPlayer(id);
+			if (hunter == null) {
 				continue;
 			}
-			if (schonfrist) {
-				jaegerSp.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 40, 0, true, false));
-				jaegerSp.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 250, true, false));
-				Broadcast.actionbar(jaegerSp, Component.literal("Schonfrist: noch "
-					+ (schonfristSek.get() - laufSek) + "s").withStyle(ChatFormatting.GRAY));
+			if (inGrace) {
+				hunter.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 40, 0, true, false));
+				hunter.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 250, true, false));
+				Broadcast.actionbar(hunter, Component.literal("Grace period: "
+					+ (graceSeconds.get() - secondsRunning) + "s left").withStyle(ChatFormatting.GRAY));
 				continue;
 			}
-			if (ziele.isEmpty() || laufSek % peilungSek.get() != 0) {
+			if (targets.isEmpty() || secondsRunning % bearingSeconds.get() != 0) {
 				continue;
 			}
-			boolean haeltKompass = jaegerSp.getMainHandItem().is(Items.COMPASS)
-				|| jaegerSp.getOffhandItem().is(Items.COMPASS);
-			if (!haeltKompass) {
-				Broadcast.hudAus(jaegerSp, "manhunt");
+			boolean holdsCompass = hunter.getMainHandItem().is(Items.COMPASS)
+				|| hunter.getOffhandItem().is(Items.COMPASS);
+			if (!holdsCompass) {
+				Broadcast.hudAus(hunter, "manhunt");
 				continue;
 			}
-			ServerPlayer ziel = ziele.get(Math.min(zielIndex.getOrDefault(id, 0), ziele.size() - 1));
-			// hud() statt actionbar(): mit horstihud steht die Peilung dauerhaft im Bild,
-			// ohne ihn bleibt es exakt die Actionbar-Zeile von vorher.
-			Broadcast.hud(jaegerSp, "manhunt", peilung(jaegerSp, ziel));
+			ServerPlayer target = targets.get(Math.min(targetIndex.getOrDefault(id, 0), targets.size() - 1));
+			// hud() instead of actionbar(): with horstihud the bearing stays on screen,
+			// without it this is exactly the action bar line from before.
+			Broadcast.hud(hunter, "manhunt", bearing(hunter, target));
 		}
 	}
 
-	private Component peilung(ServerPlayer jaegerSp, ServerPlayer ziel) {
-		if (jaegerSp.level().dimension() != ziel.level().dimension()) {
-			return Component.literal("✦ " + ziel.getName().getString() + " ist in " + dimensionsName(ziel.level()))
+	private Component bearing(ServerPlayer hunter, ServerPlayer target) {
+		if (hunter.level().dimension() != target.level().dimension()) {
+			return Component.literal("✦ " + target.getName().getString() + " is " + dimensionName(target.level()))
 				.withStyle(ChatFormatting.LIGHT_PURPLE);
 		}
-		double dx = ziel.getX() - jaegerSp.getX();
-		double dz = ziel.getZ() - jaegerSp.getZ();
-		int entfernung = (int) Math.sqrt(dx * dx + dz * dz);
-		// Winkel zwischen Blickrichtung und Ziel, auf 8 Pfeile gerundet
-		double zielWinkel = Math.toDegrees(Math.atan2(dz, dx)) - 90.0;
-		double relativ = ((zielWinkel - jaegerSp.getYRot()) % 360 + 540) % 360 - 180;
-		String[] pfeile = {"▲", "◤", "◀", "◣", "▼", "◢", "▶", "◥"};
-		String pfeil = pfeile[(int) Math.round((relativ + 180) / 45.0) % 8];
-		return Component.literal(pfeil + " " + ziel.getName().getString() + " — " + entfernung + " Blöcke")
+		double dx = target.getX() - hunter.getX();
+		double dz = target.getZ() - hunter.getZ();
+		int distance = (int) Math.sqrt(dx * dx + dz * dz);
+		// Angle between the view direction and the target, rounded to 8 arrows
+		double targetAngle = Math.toDegrees(Math.atan2(dz, dx)) - 90.0;
+		double relative = ((targetAngle - hunter.getYRot()) % 360 + 540) % 360 - 180;
+		String[] arrows = {"▲", "◤", "◀", "◣", "▼", "◢", "▶", "◥"};
+		String arrow = arrows[(int) Math.round((relative + 180) / 45.0) % 8];
+		return Component.literal(arrow + " " + target.getName().getString() + " — " + distance + " blocks")
 			.withStyle(ChatFormatting.GOLD);
 	}
 
-	private static String dimensionsName(Level level) {
+	private static String dimensionName(Level level) {
 		if (level.dimension() == Level.NETHER) {
-			return "im Nether";
+			return "in the Nether";
 		}
 		if (level.dimension() == Level.END) {
-			return "im Ende";
+			return "in the End";
 		}
-		return "in der Oberwelt";
+		return "in the Overworld";
 	}
 
-	private void beenden(MinecraftServer server, String sieger) {
-		if (!laeuft) {
+	private void finish(MinecraftServer server, String winner) {
+		if (!running) {
 			return;
 		}
-		laeuft = false;
-		if (sieger != null) {
-			Broadcast.titelAlle(server, Component.literal(sieger.equals("runner")
-					? "Die Runner gewinnen!" : "Die Jäger gewinnen!").withStyle(ChatFormatting.GOLD),
+		running = false;
+		if (winner != null) {
+			Broadcast.titelAlle(server, Component.literal(winner.equals("runners")
+					? "The runners win!" : "The hunters win!").withStyle(ChatFormatting.GOLD),
 				null);
 		}
-		toteRunner.clear();
+		deadRunners.clear();
 	}
 }

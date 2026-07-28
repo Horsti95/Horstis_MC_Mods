@@ -24,50 +24,50 @@ import java.util.UUID;
 
 public class TotemMod implements ModInitializer {
 	private final ModSettings settings = new ModSettings("totem", true);
-	private final EnumSetting bereich = settings.add(new EnumSetting("bereich", "wo Totems zaehlen", "inventar", "inventar", "hotbar"));
-	private final IntSetting cooldownSek = settings.add(new IntSetting("cooldownSek", "Sperrzeit nach Ausloesung, 0 = aus", 0, 0, 600));
-	private final BoolSetting ansage = settings.add(new BoolSetting("ansage", "Actionbar-Meldung", true));
+	private final EnumSetting scope = settings.add(new EnumSetting("scope", "where totems count", "inventory", "inventory", "hotbar"));
+	private final IntSetting cooldownSeconds = settings.add(new IntSetting("cooldownSeconds", "lockout after a save, 0 = off", 0, 0, 600));
+	private final BoolSetting announce = settings.add(new BoolSetting("announce", "action bar message", true));
 
-	private final Map<UUID, Long> letzteRettung = new HashMap<>();
+	private final Map<UUID, Long> lastSave = new HashMap<>();
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("totem", "Totem", settings).registrieren();
 
-		// Feuert nur, wenn der Vanilla-Totem-Check (Haende) schon fehlgeschlagen ist.
-		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, betrag) -> {
+		// Only fires once the vanilla totem check (the hands) has already failed.
+		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
 			if (!settings.istAktiv() || !(entity instanceof ServerPlayer sp)) {
 				return true;
 			}
 			if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-				return true; // /kill und Void retten wie in Vanilla nicht
+				return true; // /kill and the void are not survivable, same as vanilla
 			}
-			long jetzt = sp.level().getGameTime();
-			Long letzte = letzteRettung.get(sp.getUUID());
-			if (cooldownSek.get() > 0 && letzte != null && jetzt - letzte < cooldownSek.get() * 20L) {
+			long now = sp.level().getGameTime();
+			Long last = lastSave.get(sp.getUUID());
+			if (cooldownSeconds.get() > 0 && last != null && now - last < cooldownSeconds.get() * 20L) {
 				return true;
 			}
-			if (!totemVerbrauchen(sp)) {
+			if (!consumeTotem(sp)) {
 				return true;
 			}
-			letzteRettung.put(sp.getUUID(), jetzt);
+			lastSave.put(sp.getUUID(), now);
 			sp.setHealth(1.0f);
 			sp.removeAllEffects();
 			sp.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 900, 1));
 			sp.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 1));
 			sp.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 800, 0));
-			sp.level().broadcastEntityEvent(sp, (byte) 35); // Vanilla-Totem-Animation + Sound
-			if (ansage.get()) {
-				Broadcast.actionbar(sp, Component.literal("Totem aus dem Inventar!").withStyle(ChatFormatting.GOLD));
+			sp.level().broadcastEntityEvent(sp, (byte) 35); // vanilla totem animation + sound
+			if (announce.get()) {
+				Broadcast.actionbar(sp, Component.literal("Totem from your inventory!").withStyle(ChatFormatting.GOLD));
 			}
 			return false;
 		});
 	}
 
-	private boolean totemVerbrauchen(ServerPlayer sp) {
+	private boolean consumeTotem(ServerPlayer sp) {
 		Inventory inv = sp.getInventory();
-		int grenze = bereich.get().equals("hotbar") ? 9 : inv.getContainerSize();
-		for (int slot = 0; slot < grenze; slot++) {
+		int limit = scope.get().equals("hotbar") ? 9 : inv.getContainerSize();
+		for (int slot = 0; slot < limit; slot++) {
 			ItemStack stack = inv.getItem(slot);
 			if (stack.is(Items.TOTEM_OF_UNDYING)) {
 				stack.shrink(1);

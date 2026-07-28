@@ -6,46 +6,46 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Was der Server zuletzt geschickt hat, pro Abschnitt.
+ * What the server last sent, per section.
  *
- * <p>Jeder Eintrag verfaellt von selbst: die Server-Mods senden im Sekundentakt, wer
- * drei Sekunden schweigt, wird ausgeblendet. Damit braucht es kein „Ende"-Paket, wenn
- * eine Runde vorbei ist oder der Mod abgeschaltet wird — die Anzeige raeumt sich auf.
+ * <p>Every entry expires by itself: the server mods send once per second, and anything
+ * silent for three seconds disappears. That means no "end" packet is needed when a round
+ * finishes or a mod is switched off — the display cleans itself up.
  */
 public final class HudState {
-	private static final long LEBENSDAUER_MS = 3000;
+	private static final long LIFETIME_MS = 3000;
 
-	private record Eintrag(String text, long empfangen) {
+	private record Entry(String text, long received) {
 	}
 
-	private static final Map<String, Eintrag> ABSCHNITTE = new LinkedHashMap<>();
+	private static final Map<String, Entry> SECTIONS = new LinkedHashMap<>();
 
 	private HudState() {
 	}
 
-	public static synchronized void setzen(String abschnitt, String text) {
+	public static synchronized void set(String section, String text) {
 		if (text == null || text.isEmpty()) {
-			ABSCHNITTE.remove(abschnitt);
+			SECTIONS.remove(section);
 			return;
 		}
-		ABSCHNITTE.put(abschnitt, new Eintrag(text, System.currentTimeMillis()));
+		SECTIONS.put(section, new Entry(text, System.currentTimeMillis()));
 	}
 
-	public static synchronized void leeren() {
-		ABSCHNITTE.clear();
+	public static synchronized void clear() {
+		SECTIONS.clear();
 	}
 
-	/** Alle noch gueltigen Zeilen, in Empfangsreihenfolge. */
-	public static synchronized List<Zeile> sichtbar() {
-		long jetzt = System.currentTimeMillis();
-		ABSCHNITTE.entrySet().removeIf(e -> jetzt - e.getValue().empfangen() > LEBENSDAUER_MS);
-		List<Zeile> zeilen = new ArrayList<>(ABSCHNITTE.size());
-		for (Map.Entry<String, Eintrag> e : ABSCHNITTE.entrySet()) {
-			zeilen.add(new Zeile(e.getKey(), e.getValue().text()));
+	/** All still-valid lines, in the order they arrived. */
+	public static synchronized List<Line> visible() {
+		long now = System.currentTimeMillis();
+		SECTIONS.entrySet().removeIf(e -> now - e.getValue().received() > LIFETIME_MS);
+		List<Line> lines = new ArrayList<>(SECTIONS.size());
+		for (Map.Entry<String, Entry> e : SECTIONS.entrySet()) {
+			lines.add(new Line(e.getKey(), e.getValue().text()));
 		}
-		return zeilen;
+		return lines;
 	}
 
-	public record Zeile(String abschnitt, String text) {
+	public record Line(String section, String text) {
 	}
 }

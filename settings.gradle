@@ -14,8 +14,8 @@ rootProject.name = 'horstis-mc-mods'
 include ':core'
 
 [
-	'todesort', 'afk', 'killmagnet', 'anvilfix', 'keepmoving', 'totem', 'holzsaege',
-	'deathswap', 'tag', 'sit', 'bounty', 'mobgriefing', 'ernte',
+	'deathpoint', 'afk', 'killmagnet', 'anvilfix', 'keepmoving', 'totem', 'woodcutter',
+	'deathswap', 'tag', 'sit', 'bounty', 'mobgriefing', 'harvest',
 	'juggernaut', 'pets', 'giftburden', 'lifesteal', 'graves', 'manhunt', 'events', 'nemesis',
 	'wrapped', 'toolguard', 'refill', 'spawnguard', 'horstihud'
 ].each { include ":mods:${it}" }

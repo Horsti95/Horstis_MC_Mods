@@ -7,14 +7,14 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 /**
- * Der gemeinsame Vertrag zwischen unseren Server-Mods und horstihud.
+ * The shared contract between our server mods and horstihud.
  *
- * <p>Liegt in core, damit beide Seiten dieselbe Kanal-ID und denselben Codec benutzen —
- * und damit jede Mod ihn per Jar-in-Jar automatisch dabei hat.
+ * <p>It lives in core so both sides use the same channel id and the same codec — and so
+ * every mod carries it automatically via jar-in-jar.
  *
- * <p>Bewusst nur zwei Strings: ein Abschnitt ("manhunt", "nemesis" …) und der fertige Text.
- * Kein serialisiertes Component, keine Zahlenfelder — so bleibt der Kanal stabil, auch wenn
- * eine Mod ihre Anzeige umbaut.
+ * <p>Deliberately just two strings: a section ("manhunt", "nemesis" …) and the finished
+ * text. No serialised Component, no numeric fields — that keeps the channel stable even
+ * when a mod reworks its own display.
  */
 public record HudPayload(String section, String text) implements CustomPacketPayload {
 	public static final CustomPacketPayload.Type<HudPayload> TYPE =
@@ -25,8 +25,8 @@ public record HudPayload(String section, String text) implements CustomPacketPay
 		ByteBufCodecs.STRING_UTF8, HudPayload::text,
 		HudPayload::new);
 
-	/** Leerer Text = Abschnitt ausblenden. */
-	public boolean istLeer() {
+	/** Empty text = hide the section. */
+	public boolean isEmpty() {
 		return text == null || text.isEmpty();
 	}
 

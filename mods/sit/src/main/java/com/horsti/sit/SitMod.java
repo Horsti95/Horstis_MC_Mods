@@ -28,35 +28,35 @@ import java.util.Set;
 import java.util.UUID;
 
 public class SitMod implements ModInitializer {
-	/** Tag am Sitz-Entity; Notfall-Aufraeumen: /kill @e[tag=horsti_sit] */
-	private static final String SITZ_TAG = "horsti_sit";
+	/** Tag on the seat entity; emergency cleanup: /kill @e[tag=horsti_sit] */
+	private static final String SEAT_TAG = "horsti_sit";
 
 	private final ModSettings settings = new ModSettings("sit", true);
-	private final BoolSetting treppen = settings.add(new BoolSetting("treppen", "Treppen klickbar", true));
-	private final BoolSetting stufen = settings.add(new BoolSetting("stufen", "Stufen klickbar", true));
-	private final BoolSetting command = settings.add(new BoolSetting("command", "/sitz fuer alle erlauben", false));
-	private final BoolSetting nurLeereHand = settings.add(new BoolSetting("nurLeereHand", "nur mit leerer Hand", true));
-	private final BoolSetting aufstehenBeiSchaden = settings.add(new BoolSetting("aufstehenBeiSchaden", "bei Schaden aufstehen", true));
+	private final BoolSetting stairs = settings.add(new BoolSetting("stairs", "stairs are clickable", true));
+	private final BoolSetting slabs = settings.add(new BoolSetting("slabs", "slabs are clickable", true));
+	private final BoolSetting command = settings.add(new BoolSetting("command", "allow /sitdown for everyone", false));
+	private final BoolSetting emptyHandOnly = settings.add(new BoolSetting("emptyHandOnly", "only with an empty hand", true));
+	private final BoolSetting standUpOnDamage = settings.add(new BoolSetting("standUpOnDamage", "stand up when damaged", true));
 
-	private final List<ArmorStand> sitze = new ArrayList<>();
-	private final Set<UUID> sitzIds = new HashSet<>();
+	private final List<ArmorStand> seats = new ArrayList<>();
+	private final Set<UUID> seatIds = new HashSet<>();
 
 	@Override
 	public void onInitialize() {
 		new HorstiMod("sit", "Sit", settings)
-			.onToggle(this::alleAufstehen)
+			.onToggle(this::standEveryoneUp)
 			.extra((root, ctx) -> {
 			})
 			.registrieren();
 
-		// /sitz fuer alle Spieler (wenn per Setting erlaubt)
+		// /sitdown for every player (when the setting allows it)
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, ctx, env) ->
-			dispatcher.register(Commands.literal("sitz").executes(c -> {
+			dispatcher.register(Commands.literal("sitdown").executes(c -> {
 				ServerPlayer sp = c.getSource().getPlayerOrException();
 				if (!settings.istAktiv() || !command.get()) {
 					return 0;
 				}
-				hinsetzen(sp, sp.getX(), sp.getY(), sp.getZ());
+				sitDown(sp, sp.getX(), sp.getY(), sp.getZ());
 				return 1;
 			})));
 
@@ -67,45 +67,45 @@ public class SitMod implements ModInitializer {
 			if (!(player instanceof ServerPlayer sp) || sp.isPassenger() || sp.isShiftKeyDown()) {
 				return InteractionResult.PASS;
 			}
-			if (nurLeereHand.get() && !sp.getMainHandItem().isEmpty()) {
+			if (emptyHandOnly.get() && !sp.getMainHandItem().isEmpty()) {
 				return InteractionResult.PASS;
 			}
 			BlockPos pos = hit.getBlockPos();
 			BlockState state = level.getBlockState(pos);
-			double sitzHoehe;
-			if (state.getBlock() instanceof StairBlock && treppen.get()
+			double seatHeight;
+			if (state.getBlock() instanceof StairBlock && stairs.get()
 				&& state.getValue(StairBlock.HALF) == Half.BOTTOM) {
-				sitzHoehe = 0.3;
-			} else if (state.getBlock() instanceof SlabBlock && stufen.get()
+				seatHeight = 0.3;
+			} else if (state.getBlock() instanceof SlabBlock && slabs.get()
 				&& state.getValue(SlabBlock.TYPE) == SlabType.BOTTOM) {
-				sitzHoehe = 0.3;
+				seatHeight = 0.3;
 			} else {
 				return InteractionResult.PASS;
 			}
 			if (!level.getBlockState(pos.above()).isAir()) {
 				return InteractionResult.PASS;
 			}
-			hinsetzen(sp, pos.getX() + 0.5, pos.getY() + sitzHoehe - 1.05, pos.getZ() + 0.5);
+			sitDown(sp, pos.getX() + 0.5, pos.getY() + seatHeight - 1.05, pos.getZ() + 0.5);
 			return InteractionResult.SUCCESS;
 		});
 
-		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, betrag) -> {
-			if (aufstehenBeiSchaden.get() && entity instanceof ServerPlayer sp
-				&& sp.getVehicle() instanceof ArmorStand as && sitzIds.contains(as.getUUID())) {
+		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
+			if (standUpOnDamage.get() && entity instanceof ServerPlayer sp
+				&& sp.getVehicle() instanceof ArmorStand as && seatIds.contains(as.getUUID())) {
 				sp.stopRiding();
 			}
 			return true;
 		});
 
-		// Verwaiste Sitze entsorgen
+		// Clean up orphaned seats
 		Ticker.alleTicks(10, server -> {
-			sitze.removeIf(as -> {
+			seats.removeIf(as -> {
 				if (as.isRemoved()) {
-					sitzIds.remove(as.getUUID());
+					seatIds.remove(as.getUUID());
 					return true;
 				}
 				if (!as.isVehicle()) {
-					sitzIds.remove(as.getUUID());
+					seatIds.remove(as.getUUID());
 					as.discard();
 					return true;
 				}
@@ -114,27 +114,27 @@ public class SitMod implements ModInitializer {
 		});
 	}
 
-	private void hinsetzen(ServerPlayer sp, double x, double y, double z) {
+	private void sitDown(ServerPlayer sp, double x, double y, double z) {
 		ServerLevel level = (ServerLevel) sp.level();
-		ArmorStand sitz = new ArmorStand(level, x, y, z);
-		sitz.setInvisible(true);
-		sitz.setNoGravity(true);
-		sitz.setInvulnerable(true);
-		sitz.addTag(SITZ_TAG);
-		level.addFreshEntity(sitz);
-		sitze.add(sitz);
-		sitzIds.add(sitz.getUUID());
-		sp.startRiding(sitz);
+		ArmorStand seat = new ArmorStand(level, x, y, z);
+		seat.setInvisible(true);
+		seat.setNoGravity(true);
+		seat.setInvulnerable(true);
+		seat.addTag(SEAT_TAG);
+		level.addFreshEntity(seat);
+		seats.add(seat);
+		seatIds.add(seat.getUUID());
+		sp.startRiding(seat);
 	}
 
-	private void alleAufstehen() {
-		for (ArmorStand as : sitze) {
+	private void standEveryoneUp() {
+		for (ArmorStand as : seats) {
 			if (!as.isRemoved()) {
 				as.ejectPassengers();
 				as.discard();
 			}
 		}
-		sitze.clear();
-		sitzIds.clear();
+		seats.clear();
+		seatIds.clear();
 	}
 }
