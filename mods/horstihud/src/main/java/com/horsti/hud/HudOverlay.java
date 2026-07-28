@@ -15,10 +15,10 @@ import java.util.Map;
 /**
  * Draws the server-side state as a block of text.
  *
- * <p>26.2 hat die HUD-API umgebaut: es gibt kein {@code HudRenderCallback} und kein
- * {@code GuiGraphics#drawString} mehr. Ein HUD-Element traegt jetzt seinen Zustand in einen
- * {@link GuiGraphicsExtractor} ein, gezeichnet wird spaeter zentral. Fuer uns heisst das nur:
- * andere Klasse, andere Methodennamen — {@code text(...)} statt {@code drawString(...)}.
+ * <p>26.2 reworked the HUD API: there is no {@code HudRenderCallback} and no
+ * {@code GuiGraphics#drawString} any more. A HUD element now writes its state into a
+ * {@link GuiGraphicsExtractor} and the drawing happens centrally later. For us that just means
+ * a different class and different names — {@code text(...)} instead of {@code drawString(...)}.
  *
  * <p>No graphics of our own: the vanilla font, a translucent rectangle, nothing else
  * (PLAN.md, principle 2).
