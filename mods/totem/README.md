@@ -1,39 +1,40 @@
 # Horsti Totem
 
-**`horsti-totem` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-totem` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Das Totem der Unsterblichkeit wirkt aus dem Inventar — nicht nur aus der Hand.
+> The Totem of Undying works from your inventory — not just from your hand.
 
-## Was macht der Mod?
+## What it does
 
-Vanilla rettet dich ein Totem nur in Haupt- oder Nebenhand. Mit diesem Mod zählt wahlweise die Hotbar
-oder das ganze Inventar; das Totem wird wie gewohnt verbraucht (erstes gefundene, Vanilla-Effekte inklusive
-Partikel/Sound). Optionaler Cooldown verhindert Totem-Ketten in PvP-Runden.
+In vanilla a totem only saves you from the main hand or off hand. With this mod either the hotbar or
+the whole inventory counts; the totem is consumed as usual (first one found, vanilla effects including
+particles and sound). An optional cooldown prevents totem chains in PvP rounds.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/totem` | Status + aktuelle Werte |
-| `/totem on \| off` | Mod an/aus |
-| `/totem set bereich hotbar\|inventar` | Wo Totems zählen (Default: **inventar**) |
-| `/totem set cooldownSek <0–600>` | Sperrzeit nach Auslösung, 0 = aus (Default: **0**) |
-| `/totem set ansage on\|off` | Kurze Actionbar-Meldung „Totem aus dem Inventar!“ (Default: **on**) |
+| `/totem` | Status and current values |
+| `/totem on \| off` | Enable/disable |
+| `/totem set scope hotbar\|inventory` | Where totems count (default: **inventory**) |
+| `/totem set cooldownSeconds <0–600>` | Lockout after a save, 0 = off (default: **0**) |
+| `/totem set announce on\|off` | Short action bar message "Totem from your inventory!" (default: **on**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/totem.json`, live per `/totem reload`.
+`config/horsti/totem.json`, reloadable with `/totem reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (regelmäßiger Wunsch, spaltet Balance-Puristen → deshalb togglebar + Cooldown) |
-| Gibt’s das schon? / Mehrwert | Als Datapack verbreitet. Mehrwert: sauber togglebar, Cooldown-Option, PvP-tauglich |
-| Geschätzter Aufwand | Leicht |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — a recurring wish that splits balance purists, hence toggleable + cooldown |
+| Does this exist? / our edge | Widespread as a datapack. Our edge: cleanly toggleable, cooldown option, PvP-ready |
+| Estimated effort | Low |
+| Target | SP + MP |
+| Horsti priority | TBD |

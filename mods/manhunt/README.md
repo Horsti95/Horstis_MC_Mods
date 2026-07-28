@@ -1,51 +1,54 @@
 # Horsti Manhunt
 
-**`horsti-manhunt` · Minigame · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-manhunt` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Runner wollen den Drachen legen. Jäger haben einen Kompass, der immer auf die Beute zeigt.
+> Runners want to slay the dragon. Hunters carry a compass that always points at the prey.
 
-## Was macht der Mod?
+## What it does
 
-Das Dream-Format für die eigene Runde: Rollen per Command verteilen, Jäger bekommen beim Start einen
-**Kompass**. Solange ein Jäger ihn in der Hand hält, bekommt er sekündlich eine **Peilung** in die Actionbar:
-Richtungspfeil relativ zur eigenen Blickrichtung, Entfernung in Blöcken — und bei einem Runner in einer
-anderen Dimension die Meldung „ist im Nether/Ende“. Mit `/ziel` schaltet man durch mehrere Runner.
+The Dream format for your own round: hand out roles by command, and hunters get a **compass** at the start.
+While a hunter holds it, they get a **bearing** every second: a direction arrow relative to their own view,
+the distance in blocks — and if a runner is in another dimension, "is in the Nether/End" instead. `/target`
+cycles through multiple runners.
 
-*Warum keine Kompass-Nadel? Eine Nadel zeigt beim Dimensionswechsel ins Leere und verrät keine Entfernung.
-Die Peilung funktioniert überall, braucht keine Item-Komponenten und ist damit auch update-fester.*
+*Why no compass needle? A needle points nowhere across dimensions and gives away no distance. The bearing
+works everywhere, needs no item components, and is therefore more update-proof.*
 
-Schonfrist beim Start (Jäger blind + eingefroren, konfigurierbar). Sieg-Erkennung: Enderdrache von einem
-Runner erlegt → Runner gewinnen; alle Runner tot → Jäger gewinnen (Runner-Respawn togglebar).
+There is a grace period at the start (hunters blinded and frozen, configurable). Win detection: the ender
+dragon slain by a runner → runners win; all runners dead → hunters win (runner respawn is toggleable).
 
-## In-Game-Steuerung (OP-Level 2)
+With [`horsti-hud`](../horstihud) installed the bearing becomes a permanent HUD line instead of an action
+bar message. Without it, nothing changes.
 
-| Command | Wirkung |
+## In-game control (OP level 2)
+
+| Command | Effect |
 |---|---|
-| `/manhunt` | Status: Rollen + aktuelle Werte |
-| `/manhunt runner add\|remove <Spieler>` | Runner setzen |
-| `/manhunt hunter add\|remove <Spieler>` | Jäger setzen |
-| `/manhunt start` | Spiel starten (Schonfrist läuft) |
-| `/manhunt stop` | Spiel sauber beenden |
-| `/manhunt set schonfristSek <0–300>` | Jäger-Freeze am Start (Default: **30**) |
-| `/manhunt set runnerRespawn on\|off` | Runner dürfen respawnen (Default: **off** = klassisch) |
-| `/manhunt set peilungSek <1–10>` | Sekunden zwischen zwei Peilungen (Default: **1**) |
+| `/manhunt` | Status: roles and current values |
+| `/manhunt runner add\|remove <player>` | Assign runners |
+| `/manhunt hunter add\|remove <player>` | Assign hunters |
+| `/manhunt start` | Start the game (grace period runs) |
+| `/manhunt stop` | End the game cleanly |
+| `/manhunt set graceSeconds <0–300>` | Hunter freeze at the start (default: **30**) |
+| `/manhunt set runnerRespawn on\|off` | Runners may respawn (default: **off** = classic) |
+| `/manhunt set bearingSeconds <1–10>` | Seconds between two bearings (default: **1**) |
 
-Für Jäger: **`/ziel`** schaltet zum nächsten Runner durch.
+For hunters: **`/target`** cycles to the next runner.
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/manhunt.json`, live per `/manhunt reload`.
+`config/horsti/manhunt.json`, reloadable with `/manhunt reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Hoch (YouTube-Dauerbrenner) |
-| Gibt’s das schon? / Mehrwert | Mehrere gute Server-Mods (Compass Manhunt u. a.). Mehrwert: an unsere Runde angepasst — Ziel-Durchschalten, Portal-Tracking, Schonfrist, Respawn-Modi. Öffentlich nur bei echtem Mehrwert nach Playtest |
-| Geschätzter Aufwand | Mittel |
-| Zielgruppe | MP |
-| Horsti-Priorität | TBD |
+| Community demand | High — a YouTube staple |
+| Does this exist? / our edge | Several good server mods (Compass Manhunt among them). Our edge: tuned to our round — target cycling, cross-dimension bearing, grace period, respawn modes. Only worth publishing if the playtest shows real added value |
+| Estimated effort | Medium |
+| Target | MP |
+| Horsti priority | TBD |

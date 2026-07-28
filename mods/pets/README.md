@@ -1,49 +1,50 @@
 # Horsti Pets
 
-**`horsti-pets` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-pets` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Nie wieder das eigene Haustier verprügeln oder verlieren: Schutz + Suchbefehl + Sammel-Kommandos.
+> Never punch or lose your own pet again: protection, a find command, and bulk orders.
 
-## Was macht der Mod?
+## What it does
 
-Drei Dinge, die Haustier-Besitzer seit Jahren wollen:
+Three things pet owners have wanted for years:
 
-1. **Friendly-Fire-Schutz:** Du kannst deine eigenen gezähmten Tiere (Hund, Katze, Papagei, Pferd …) nicht
-   mehr versehentlich schlagen — auch nicht mit Pfeil oder Trident (togglebar, z. B. fürs Schlachten).
-2. **Wiederfinden:** `/pets find` lässt alle deine Tiere in der Nähe kurz glühen; `/pets liste` zeigt Art,
-   Name und Entfernung deiner registrierten Tiere.
-3. **Sammel-Kommandos:** `/pets stay` / `/pets follow` setzt alle deine Hunde/Katzen in der Nähe auf
-   Sitzen/Folgen — ohne jedem einzeln hinterherzuklicken.
+1. **Friendly-fire protection:** you can no longer hit your own tamed animals (dog, cat, parrot, horse …)
+   by accident — arrows and tridents included. Toggleable, e.g. for deliberate slaughtering.
+2. **Finding them again:** `/pets find` makes all your nearby pets glow briefly; `/pets list` shows the
+   name and distance of every pet of yours in range.
+3. **Bulk orders:** `/pets stay` and `/pets follow` set every nearby pet of yours to sitting or following
+   — without clicking each one individually.
 
-Alle Spieler dürfen die `/pets`-Befehle für ihre eigenen Tiere nutzen; die Einstellungen sind OP-Sache.
+Any player may use the `/pets` commands for their own animals; the settings are an OP matter.
 
-## In-Game-Steuerung
+## In-game control
 
-Für alle Spieler: `/pets liste` · `/pets find` · `/pets stay` · `/pets follow`
+For every player: `/pets list` · `/pets find` · `/pets stay` · `/pets follow`
 
-| Command (OP-Level 2) | Wirkung |
+| Command (OP level 2) | Effect |
 |---|---|
-| `/pets` | Status + aktuelle Werte |
-| `/pets on \| off` | Mod an/aus |
-| `/pets set schutz on\|off` | Friendly-Fire-Schutz (Default: **on**) |
-| `/pets set schutzSneak on\|off` | Sneak + Schlag umgeht den Schutz (Default: **on**) |
-| `/pets set findGlowSek <5–60>` | Glow-Dauer bei `/pets find` (Default: **30**) |
-| `/pets set radius <16–128>` | Wirkradius für find/stay/follow (Default: **48**) |
+| `/pets` | Status and current values |
+| `/pets on \| off` | Enable/disable |
+| `/pets set protect on\|off` | Friendly-fire protection (default: **on**) |
+| `/pets set sneakBypass on\|off` | Sneak + hit bypasses the protection (default: **on**) |
+| `/pets set findGlowSeconds <5–60>` | Glow duration for `/pets find` (default: **30**) |
+| `/pets set radius <16–128>` | Range for find/stay/follow (default: **48**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/pets.json`, live per `/pets reload`.
+`config/horsti/pets.json`, reloadable with `/pets reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (Haustier-QoL ist Dauerthema im Feedback-Portal) |
-| Gibt’s das schon? / Mehrwert | Verstreut über große Pet-Mods (meist mit Client-Teil). Mehrwert: die drei wichtigsten Funktionen als Mini-Mod, rein server-seitig |
-| Geschätzter Aufwand | Mittel |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — pet QoL is a standing topic on the feedback site |
+| Does this exist? / our edge | Scattered across big pet mods, usually with a client component. Our edge: the three most useful features as a mini mod, purely server-side |
+| Estimated effort | Medium |
+| Target | SP + MP |
+| Horsti priority | TBD |

@@ -1,51 +1,55 @@
 # Horsti Lifesteal
 
-**`horsti-lifesteal` · SMP-Twist · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-lifesteal` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Spieler-Kill klaut ein Herz. Wer auf null fällt, ist raus — bis ihn jemand wiederbelebt.
+> A player kill steals a heart. Drop to zero and you are out — until somebody revives you.
 
-## Was macht der Mod?
+## What it does
 
-Das bekannte Lifesteal-SMP-Format, aber fair und reversibel: Tötet Spieler A Spieler B, wandert ein
-Maximal-Herz von B zu A (Server-Ansage mit beiden Ständen). Fällt jemand auf die Mindest-Herzenzahl, wird er
-**Spectator statt gebannt** — und bleibt es auch über Neustarts hinweg.
+The well-known lifesteal SMP format, but fair and reversible: if player A kills player B, one maximum
+heart moves from B to A (announced to the server with both standings). Fall to the minimum heart count and
+you become a **spectator instead of getting banned** — and stay one across restarts.
 
-**Wiederbelebung:** Jeder Spieler kann `/revive <Name>` benutzen und zahlt dafür ein **Herz-Item** aus seinem
-Inventar (Default: Netherstern, per `herzItem` auf jedes beliebige Item umstellbar — z. B. auf einen
-Diamantblock, wenn es günstiger sein soll). Admins nutzen `/lifesteal revive <Name>` ohne Kosten.
+**Reviving:** any player can use `/revive <name>` and pays with a **heart item** from their inventory
+(default: a nether star, changeable to any item via `heartItem` — a diamond block, say, if it should be
+cheaper). Admins use `/lifesteal revive <name>` at no cost.
 
-Natürliche Tode (Mobs, Lava) kosten wahlweise ebenfalls ein Herz oder sind frei.
+Natural deaths (mobs, lava) either cost a heart too or are free, your choice.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/lifesteal` | Status + aktuelle Werte |
-| `/lifesteal on \| off` | Mod an/aus (Herzen werden eingefroren, nicht gelöscht) |
-| `/lifesteal set startHerzen <5–30>` | Start-Maximum (Default: **10**) |
-| `/lifesteal set maxHerzen <10–40>` | Obergrenze (Default: **20**) |
-| `/lifesteal set minHerzen <0–5>` | Ausscheide-Schwelle (Default: **0**) |
-| `/lifesteal set natTod herz\|frei` | Kostet ein Nicht-PvP-Tod ein Herz? (Default: **frei**) |
-| `/lifesteal set herzItem <item-id>` | Item, das als Herz zählt (Default: **minecraft:nether_star**) |
-| `/lifesteal revive <Spieler>` | Admin-Revive ohne Kosten |
-| `/lifesteal setze <Spieler> <herzen>` | Herzen direkt setzen |
+| `/lifesteal` | Status and current values |
+| `/lifesteal on \| off` | Enable/disable (hearts are frozen, not deleted) |
+| `/lifesteal set startHearts <5–30>` | Starting maximum (default: **10**) |
+| `/lifesteal set maxHearts <10–40>` | Upper limit (default: **20**) |
+| `/lifesteal set minHearts <0–5>` | Elimination threshold (default: **0**) |
+| `/lifesteal set naturalDeath heart\|free` | Does a non-PvP death cost a heart? (default: **free**) |
+| `/lifesteal set heartItem <item-id>` | Item that counts as a heart (default: **minecraft:nether_star**) |
+| `/lifesteal revive <player>` | Admin revive at no cost |
+| `/lifesteal hearts <player> <amount>` | Set someone's hearts directly |
 
-Für alle Spieler: **`/herzen`** (eigener Stand) und **`/revive <Spieler>`** (kostet ein Herz-Item).
+For every player: **`/hearts`** (your own standing) and **`/revive <player>`** (costs a heart item).
+
+*Why `/lifesteal hearts` and not `set`? `core` already generates a `/lifesteal set <parameter>` branch,
+so the sub-command needs its own name.*
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/lifesteal.json`, live per `/lifesteal reload`. Herzen-Stände: `config/horsti/daten/lifesteal.json`.
+`config/horsti/lifesteal.json`, reloadable with `/lifesteal reload`.
+Heart standings live in `config/horsti/daten/lifesteal.json`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | **Sehr hoch** (eines der populärsten SMP-Formate) |
-| Gibt’s das schon? / Mehrwert | Viele Varianten, teils Client-Pflicht, teils Ban-basiert. Mehrwert: Spectator statt Ban, Revive gegen frei wählbares Item, alles live tunebar. Öffentlich nur bei echtem Mehrwert nach Playtest |
-| Geschätzter Aufwand | Mittel |
-| Zielgruppe | MP |
-| Horsti-Priorität | TBD |
+| Community demand | **Very high** — one of the most popular SMP formats |
+| Does this exist? / our edge | Many variants, some requiring a client, some ban-based. Our edge: spectator instead of ban, revive against a freely chosen item, everything tunable live. Only worth publishing if the playtest shows real added value |
+| Estimated effort | Medium |
+| Target | MP |
+| Horsti priority | TBD |

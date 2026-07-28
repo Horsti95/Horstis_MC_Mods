@@ -1,45 +1,44 @@
 # Horsti Bounty
 
-**`horsti-bounty` · Minigame/SMP · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-bounty` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Alle Stunde ein Kopfgeld auf einen Zufallsspieler: Er leuchtet, alle jagen, der Killer kassiert.
+> A bounty on a random player: they glow, everyone hunts, the killer collects.
 
-## Was macht der Mod?
+## What it does
 
-In konfigurierbaren Abständen wird ein zufälliger Online-Spieler zur Zielscheibe: Server-Ansage, das Ziel
-bekommt Glowing (optional erst nach Schonfrist) und einen Boss-Bar-Timer. Wer das Ziel innerhalb der Frist
-tötet, bekommt die Belohnung (konfigurierbare Item-Liste). Überlebt das Ziel, kassiert es selbst die
-Belohnung („Überlebensprämie“). Faire Ziele: niemand wird zweimal hintereinander gezogen, frisch gejoinete
-Spieler haben Karenz.
+At configurable intervals a random online player becomes the target: a server announcement, glowing on the
+target, and a boss bar timer. Kill the target inside the window and you get the reward (a configurable
+item). If the target survives, it collects the reward itself — the survival bonus. Targets stay fair:
+nobody is drawn twice in a row, and freshly joined players get a grace period.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/bounty` | Status + aktuelle Werte |
-| `/bounty on \| off` | Automatik an/aus |
-| `/bounty jetzt [<Spieler>]` | Sofort ein Kopfgeld (zufällig oder gezielt) |
-| `/bounty belohnung <item> <anzahl>` | Belohnung setzen, mit Item-Autovervollständigung (Default: **3× Diamant**) |
-| `/bounty set intervallMin <10–240>` | Abstand zwischen Kopfgeldern (Default: **45**) |
-| `/bounty set dauerMin <5–60>` | Jagd-Frist (Default: **15**) |
-| `/bounty set glow on\|off` | Ziel leuchtet (Default: **on**) |
-| `/bounty set minSpieler <2–16>` | Automatik erst ab X Online-Spielern (Default: **3**) |
-| `/bounty set ueberlebensPraemie on\|off` | Ziel kassiert bei Überleben (Default: **on**) |
+| `/bounty` | Status and current values |
+| `/bounty on \| off` | Enable/disable the automation |
+| `/bounty now [<player>]` | Start a bounty right away (random or specific) |
+| `/bounty reward <item> <amount>` | Set the reward, with item autocompletion (default: **3× diamond**) |
+| `/bounty set intervalMinutes <10–240>` | Gap between bounties (default: **45**) |
+| `/bounty set durationMinutes <5–60>` | Hunting window (default: **15**) |
+| `/bounty set glow on\|off` | The target glows (default: **on**) |
+| `/bounty set minPlayers <2–16>` | Automatic start needs this many online players (default: **3**) |
+| `/bounty set survivalReward on\|off` | The target collects if it survives (default: **on**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/bounty.json`, live per `/bounty reload`.
+`config/horsti/bounty.json`, reloadable with `/bounty reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (beliebtes SMP-Würzmittel) |
-| Gibt’s das schon? / Mehrwert | Fast nur als Paper-Plugin — im Fabric-Bereich Lücke. Mehrwert: Standalone-Modul, Überlebensprämie als eigener Dreh |
-| Geschätzter Aufwand | Leicht–mittel |
-| Zielgruppe | MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — a popular SMP seasoning |
+| Does this exist? / our edge | Covered by "Bounty Hunt" and "Spoorn Bounty Mobs", so we keep this one private |
+| Estimated effort | Low–medium |
+| Target | MP |
+| Horsti priority | TBD |

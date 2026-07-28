@@ -89,19 +89,19 @@ Kategorien: **QoL** = Community-Wunsch/Quality-of-Life · **Spiel** = Minigame �
 
 | Rang | Mod (Ordner) | Umgebung | Kat. | Kurzbeschreibung | Aufwand | Öffentlich? | Status |
 |--:|--------------|---|------|------------------|---------|-------------|--------|
-| 1 | `todesort` | 🖥️ | QoL | Todeskoordinaten privat im Chat (klickbar) | Trivial | Kandidat | ✅ gebaut (CI grün) |
+| 1 | `deathpoint` | 🖥️ | QoL | Todeskoordinaten privat im Chat (klickbar) | Trivial | Kandidat | ✅ gebaut (CI grün) |
 | 2 | `afk` | 🖥️ | QoL | AFK-Markierung in der Tab-Liste | Trivial | Kandidat | ✅ gebaut (CI grün) |
 | 3 | `killmagnet` | 🖥️ | Twist | Drops deiner Kills fliegen zu dir | Trivial | Kandidat | ✅ gebaut (CI grün) |
 | 4 | `anvilfix` | 🖥️ | QoL | „Too Expensive“ aus, Kosten regelbar | Leicht | **Kandidat ⭐** | ✅ gebaut (CI grün) |
 | 5 | `keepmoving` | 🖥️ | Twist | Stillstand = Schaden (nach Karenz) | Leicht | Kandidat (Lücke) | ✅ gebaut (CI grün) |
 | 6 | `totem` | 🖥️ | QoL | Totem wirkt aus dem Inventar | Leicht | Kandidat | ✅ gebaut (CI grün) |
-| 7 | `holzsaege` | 🖥️ | QoL | Steinsäge verarbeitet Holz | Leicht | Kandidat | ✅ gebaut (CI grün) |
+| 7 | `woodcutter` | 🖥️ | QoL | Steinsäge verarbeitet Holz | Leicht | Kandidat | ✅ gebaut (CI grün) |
 | 8 | `deathswap` | 🖥️ | Spiel | Alle N Min. Positions-Tausch | Leicht | erst Playtest | ✅ gebaut (CI grün) |
 | 9 | `tag` | 🖥️ | Spiel | Fangen: „Es“ mit Speed+Glow, Timer, Punkte | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
 | 10 | `sit` | 🖥️ | QoL | Sitzen auf Treppen/Stufen + /sit | Leicht–mittel | erst Playtest | ✅ gebaut (CI grün) |
 | 11 | `bounty` | 🖥️ | Spiel | Kopfgeld auf Zufallsspieler (Glow) | Leicht–mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
 | 12 | `mobgriefing` | 🖥️ | QoL | mobGriefing pro Mob-Typ statt global | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
-| 13 | `ernte` | 🖥️ | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
+| 13 | `harvest` | 🖥️ | QoL | Rechtsklick-Ernte + Auto-Replant | Leicht–mittel | Kandidat | ✅ gebaut (CI grün) |
 | 14 | `juggernaut` | 🖥️ | Spiel | Einer gegen alle, auto-balanciert | Mittel | Kandidat (Lücke) | ✅ gebaut (CI grün) |
 | 15 | `pets` | 🖥️ | QoL | /pets find·stay·follow + Friendly-Fire-Schutz | Mittel | Kandidat | ✅ gebaut (CI grün) |
 | 16 | `giftburden` | 🖥️ | Twist | Zufälliges Stärke/Schwäche-Paar pro Spieler | Mittel | Kandidat | ✅ gebaut (CI grün) |
@@ -275,7 +275,7 @@ in 26.2 nicht mehr.**
 |---|---|
 | `HudRenderCallback` (Fabric) | **weg** — ersatzlos entfernt |
 | `GuiGraphics#drawString` / `#fill` | **weg** — die Klasse hat keine Zeichen-Methoden mehr |
-| `KeyBindingHelper` (Fabric) | **weg** aus `…client.keybinding.v1` |
+| `KeyBindingHelper` (Fabric) | **umbenannt** → `…client.keymapping.v1.KeyMappingHelper` |
 | `HudElement` (Fabric) | da, aber neue Signatur: `extractRenderState(GuiGraphicsExtractor, DeltaTracker)` |
 | `KeyMapping` | da, Kategorie ist jetzt ein Record `KeyMapping.Category` mit `register(Identifier)` |
 | Netzwerk (`PayloadTypeRegistry`, `ServerPlayNetworking.canSend`, `ClientPlayNetworking`) | **unverändert nutzbar** ✅ |
@@ -288,14 +288,21 @@ Modell — der Aufwand für `horstihud` liegt damit **über** der „Mittel"-Sch
 alles, was `GuiGraphics` verloren hat — `text(Font, Component, x, y, farbe)`, `fill(...)`,
 `guiWidth()`/`guiHeight()`. Damit steht `horstihud`; es kompiliert auf Anhieb.
 
-**Was offen bleibt:** der **Hotkey**. Fabrics `KeyBindingHelper` ist aus
-`…client.keybinding.v1` verschwunden, und wohin die Registrierung gewandert ist, ist noch nicht
-bestätigt — geraten wird hier nichts, ein falscher Klassenname wäre ein Absturz beim Start. Bis dahin
-schaltet die Config-Datei das HUD. Der Klassen-Index im CI-Dump sucht weiter danach.
+**Hotkey — Blocker gelöst, noch nicht gebaut.** Fabric hat das Modul nicht gelöscht, sondern
+umbenannt (passend zur Mojang-Mappings-Umstellung, wo die Klasse `KeyMapping` heißt):
+
+```
+net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper   ← weg
+net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper   ← das ist es
+```
+
+Gefunden über den Klassen-Index im CI-Dump. Seit 1.21.9 nimmt der Konstruktor eine
+`KeyMapping.Category` statt eines Kategorie-Strings — deckt sich mit unserem API-Dump. Damit ist
+`H`/`Shift+H` ein ~20-Zeilen-Nachtrag; bis dahin schaltet die Config-Datei das HUD.
 
 **Verkabelt ist bisher nur `manhunt`.** Der Kanal, die Farben und der Fallback stehen für alle
 Abschnitte; jeder weitere ist eine Zeile in der jeweiligen Server-Mod
-(`Broadcast.actionbar(...)` → `Broadcast.hud(spieler, "<abschnitt>", ...)`). Bewusst zurückgehalten,
+(`Broadcast.actionbar(...)` → `Broadcast.hud(player, "<section>", ...)`). Bewusst zurückgehalten,
 bis die Server-Mods im Playtest waren — vorher an fünf fertigen Mods die Ausgabe umzubauen wäre
 Risiko ohne Gegenwert.
 
@@ -325,9 +332,9 @@ sortiert. Veröffentlicht wird nur, wo wir etwas liefern, das es so **nicht** gi
 
 ### 🔒 Privat behalten (14) — gut abgedeckt, wir nutzen selbst was da ist
 
-`graves` (Universal Graves ist stark) · `sit` (Polysit) · `ernte` (Right Click Harvest) ·
-`todesort`, `afk`, `killmagnet` (Teil größerer QoL-Pakete) · `deathswap`, `manhunt` (mehrere gute
-Versionen) · `lifesteal` (viele Varianten) · `holzsaege` (Datapacks) · `totem` (Datapacks) ·
+`graves` (Universal Graves ist stark) · `sit` (Polysit) · `harvest` (Right Click Harvest) ·
+`deathpoint`, `afk`, `killmagnet` (Teil größerer QoL-Pakete) · `deathswap`, `manhunt` (mehrere gute
+Versionen) · `lifesteal` (viele Varianten) · `woodcutter` (Datapacks) · `totem` (Datapacks) ·
 `events` (Blutmond existiert) · `keepmoving` (Nische ohne Publikum) ·
 **`bounty`** (neu bewertet: „Bounty Hunt“ und „Spoorn Bounty Mobs“ decken das ab → **von Kandidat auf privat**)
 
@@ -347,23 +354,84 @@ Vorläufige Einschätzung nach dem Bauen:
 - **`cobble-keys`** — nichts Vergleichbares gefunden, und ohne Cobblemon-Abhängigkeit gebaut, also
   update-fest. Klein, aber echte Lücke → **Kandidat.**
 
-## 10. Sprache: Deutsch → Englisch (Stand 26.07.2026)
+## 10. Sprache: Englisch — abgeschlossen (27.07.2026)
 
-Für Modrinth ist eine **englische Projektbeschreibung Pflicht**. Der Umfang ist gestaffelt:
+**Alle 26 Mods sind vollständig englisch:** README, Command-Namen, Setting-Keys, In-Game-Texte und
+Code-Bezeichner. Damit ist jeder Mod ohne Nacharbeit Modrinth-tauglich.
 
-| Ebene | Status | Nötig für Modrinth? |
+### Was dabei umbenannt wurde
+
+| Alt | Neu | Was daran hing |
 |---|---|---|
-| Root-README | Horsti stellt selbst um | Ja |
-| Mod-READMEs (21 Stück) | **Deutsch** — Umstellung offen | Ja (jede README = eine Projektbeschreibung) |
-| READMEs Welle 3 + Cobblemon | **Englisch** ✅ (ab sofort Standard) | — |
-| Command-Namen (`/holzsaege`, `/gabe`, `/herzen`, `/ziel`) | **Deutsch** | Ja, sonst unbenutzbar für internationale Spieler |
-| Setting-Keys (`rundenMin`, `schutzSek`) | **Deutsch** | Ja (stehen in der Config und im Command) |
-| In-Game-Texte | **Deutsch** | Ja |
-| Code-Bezeichner + Kommentare | **Deutsch** | Nein (intern, kein Nutzer sieht das) |
-| PLAN.md | **Deutsch** (Horstis Arbeitsdokument) | Nein |
+| `todesort` | **`deathpoint`** | Ordner, Package, Mod-ID `horsti_deathpoint`, Command `/deathpoint`, Config-Datei |
+| `ernte` | **`harvest`** | dito, Command `/harvest` |
+| `holzsaege` | **`woodcutter`** | dito — **plus** fünf gekoppelte Stellen: `getModContainer`, Pack-`Identifier`, Pack-ID-String, das `data/`-Verzeichnis in allen drei eingebauten Resourcepacks (125 Rezept-Dateien) und `fabric.mod.json`. Deshalb steht die ID jetzt als Konstante `MOD_ID` im Code — damit sie nicht wieder auseinanderlaufen kann |
+| `/sitz` | **`/sitdown`** | nicht `/sit` — das ist bereits der OP-Command des Mods |
+| `/lifesteal setze` | **`/lifesteal hearts`** | nicht `set` — `core` erzeugt selbst einen `/lifesteal set <param>`-Zweig |
+| `/ziel` | **`/target`** | Jäger-Ziel durchschalten (manhunt) |
+| `/herzen` | **`/hearts`** | Spieler-Command (lifesteal) |
+| Event-Klassen | `Blutmond`→`BloodMoon`, `Meteorregen`→`MeteorShower`, `Schrumpfgrenze`→`ShrinkingBorder` | Event-IDs `blutmond`→`bloodmoon`, `grenze`→`border` |
 
-**Empfehlung:** Nicht alle 21 Mods auf Verdacht übersetzen, sondern **nur die, die tatsächlich öffentlich
-gehen** — und die dann *vollständig* (README + Commands + Settings + Texte). Halbe Übersetzungen sind
-schlimmer als gar keine. Ordnernamen wie `holzsaege`/`todesort` würden dabei ebenfalls englisch
-(`woodcutter`/`deathpoint`). Achtung: Command- und Setting-Umbenennungen brechen bestehende
-Configs — deshalb sinnvollerweise **vor** dem ersten öffentlichen Release, nicht danach.
+### Was dadurch bricht (und warum das egal war)
+
+- **Setting-Keys** — alte Werte in `config/horsti/<mod>.json` werden beim Laden ignoriert, es gilt der
+  Default. Einmal neu setzen.
+- **Persistierte Daten** — `graves` (`besitzer`/`zeit`/`graeber` → `owner`/`time`/`graves`) und
+  `lifesteal` (Attribut-ID `herzen` → `hearts`).
+- **Nichts davon existiert bisher**, weil noch kein Playtest gelaufen ist. Genau deshalb war jetzt der
+  richtige Zeitpunkt: nach einem Release hätte es fremde Configs zerlegt.
+
+### Was *nicht* brechen konnte
+
+Der Abhängigkeits-Audit vor der Umbenennung: **kein Mod importiert aus einem anderen Mod.** Alle hängen
+nur an `core`. Es gibt genau **eine** echte Laufzeit-Kopplung zwischen zwei Mods — `manhunt` →
+`core.HudPayload` → `horstihud`, verbunden über den Abschnitts-String `"manhunt"` — und der blieb
+unverändert. Der offene Cross-Mod-Hook `wrapped.Kategorien.register(...)` ist noch ungenutzt.
+Kombi-Packs gibt es noch keine (Abschnitt 8, Future Work), also gab es dort nichts zu zerreißen.
+
+## 11. Virale Mod-Ideen (Brainstorm, 27.07.2026)
+
+Format „Minecraft But …" — Ideen mit Clickbait-Potenzial, alle im Rahmen unserer No-Asset-Regel
+(reine Logik, Vanilla-Blöcke/Sounds/Effekte).
+
+**Realitäts-Check vorweg:** Diese Mods sind Werkzeuge für Content Creator, keine Mods, die jemand
+dauerhaft installiert lässt. Downloads kommen in Wellen, wenn ein Video läuft, und brechen danach ein.
+Als Reichweiten-Hebel taugt das, als Fundament nicht — `anvilfix` oder `nemesis` bleiben die Mods, die
+ein Jahr lang im Ordner liegen.
+
+### Runde 1 — recherchiert (siehe Chat 27.07.2026)
+
+| # | Idee | Marktlage |
+|--:|---|---|
+| 1 | **Tickrate Climber** — jeder abgebaute Block erhöht die Tickrate dauerhaft | 🟢 Lücke (Tickrate-Challenges viral, an Mining gekoppelt nichts gefunden) |
+| 2 | **Vein Nuke** — ein Block abbauen sprengt alle dieses Typs weltweit | 🔴 besetzt |
+| 3 | **Shared Health** — ein Lebensbalken für alle | 🔴 dreifach besetzt |
+| 4 | **Erosion** — Boden verschwindet hinter dir | 🔴 besetzt (Disappearing Worlds) |
+| 5 | **Mob-Evolution** — jeder Kill macht *diese Spezies* server-weit dauerhaft stärker | 🟢 Lücke (Konkurrenz skaliert über Zeit, nicht über deine Kills) |
+| 6 | **Delayed Damage** — jeder Treffer landet erst 10 s später | 🟢 vermutlich Lücke |
+| 7–15 | Bullet Time · Inventory Roulette · Reverse Progression · Advancement Tax · Chunk-Lotterie · Loud = Dead · Block-Eigentum · Titel-Stapel · Gravitationswellen | ⚠️ nicht recherchiert |
+
+**Top 3 daraus:** #1 Tickrate Climber, #5 Mob-Evolution (passt zu `nemesis`), #10 Advancement Tax.
+
+### Runde 2 — Brainstorm, noch nicht recherchiert
+
+| # | Idee | Mechanik in einem Satz |
+|--:|---|---|
+| 16 | **Mining Interest** | Jeder abgebaute Block wird verzinst: nach 10 Minuten bekommst du 5 % davon nochmal — Basen werden zu Sparkonten |
+| 17 | **The Floor Is Data** | Jeder Block, auf dem du stehst, merkt sich das; nach dem 10. Mal bricht er unter dir weg. Trampelpfade werden tödlich |
+| 18 | **Sympathy Damage** | Was du tötest, verteilt seinen letzten Schaden auf alle Mobs derselben Art in 50 Blöcken — Massenschlachten kaskadieren |
+| 19 | **Enchant Roulette** | Jeder Amboss-Vorgang würfelt die Verzauberung neu, statt sie zu setzen. Der „Too Expensive"-Fix als Glücksspiel |
+| 20 | **Hunger Economy** | Hunger sinkt nicht durch Zeit, sondern durch Distanz. Sprinten kostet, Stillstehen ist gratis — invertiert `keepmoving` |
+| 21 | **Backseat Mobs** | Jeder Mob, der dich sieht und überlebt, „lernt" deine Position und erzählt sie weiter. Eine Mob-Gerüchteküche |
+| 22 | **Crafting Debt** | Du darfst alles craften, auch ohne Material — aber die Schuld wird eingezogen, sobald du sie hast. Bis dahin sinkt dein Max-Leben |
+| 23 | **The Long Night** | Jeder Tod verlängert die Nacht für den ganzen Server um 30 Sekunden, dauerhaft, kumulativ |
+| 24 | **Weight** | Jedes Item im Inventar verlangsamt dich messbar. Hamsterer kriechen, Minimalisten rennen |
+| 25 | **Echo** | Alles, was du in den letzten 30 s getan hast, wiederholt ein unsichtbarer Doppelgänger hinter dir — inklusive deiner Fehler |
+| 26 | **Block Tax** | Alle 5 Minuten verschwindet 1 % deiner platzierten Blöcke, zufällig verteilt. Bauen wird zur Instandhaltung |
+| 27 | **Loud Mining** | Jeder Blockabbau macht Lärm proportional zur Härte; Lärm zieht Mobs an. Deepslate ist eine Einladung |
+| 28 | **Shared Inventory** | Alle Spieler teilen sich ein Inventar. Kooperation oder Bürgerkrieg, nichts dazwischen |
+| 29 | **Mortal Coil** | Deine maximale Lebenszeit ist ein Countdown, den nur Advancements verlängern. Fortschritt wird zur Atemluft |
+| 30 | **Reverse Mob Griefing** | Creeper reparieren, Endermen platzieren, Zombies bauen. Die Welt baut sich selbst um, während du schläfst |
+
+Alle 15 sind **ungeprüft** — vor dem Bauen gegen bestehende Mods und Videos gegenchecken, wie bei
+Runde 1 geschehen.

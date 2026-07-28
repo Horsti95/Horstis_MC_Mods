@@ -1,39 +1,41 @@
 # Horsti Killmagnet
 
-**`horsti-killmagnet` · SMP-Twist · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-killmagnet` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Was du tötest, gehört dir: Drops deiner Kills fliegen direkt zu dir (oder ins Inventar).
+> What you kill is yours: the drops from your kills come straight to you.
 
-## Was macht der Mod?
+## What it does
 
-Tötest du einen Mob, landen dessen Drops und XP nicht auf dem Boden, sondern kommen zu dir — wahlweise
-als „Magnet“ (Items fliegen sichtbar zu dir) oder direkt ins Inventar (voll = fällt normal). Gilt nur für
-**deine** Kills; Umgebungs-Drops (Abbau, andere Todesursachen) bleiben vanilla. Kein „Staubsauger“-Mod.
+Kill a mob and its drops and XP do not land on the ground — they come to you, either as a "magnet"
+(items visibly fly over) or straight into your inventory (full inventory = they drop normally).
+This applies to **your** kills only; ambient drops from mining or other causes stay vanilla.
+It is not a vacuum-cleaner mod.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/killmagnet` | Status + aktuelle Werte |
-| `/killmagnet on \| off` | Mod an/aus |
-| `/killmagnet set modus magnet\|inventar` | Flug-Animation oder Direkteinzug (Default: **magnet**) |
-| `/killmagnet set xp on\|off` | XP ebenfalls einziehen (Default: **on**) |
-| `/killmagnet set spielerKills on\|off` | Auch bei PvP-Kills (Default: **off**) |
+| `/killmagnet` | Status and current values |
+| `/killmagnet on \| off` | Enable/disable |
+| `/killmagnet set mode magnet\|inventory` | Flight animation or straight pickup (default: **magnet**) |
+| `/killmagnet set xp on\|off` | Pull in experience too (default: **on**) |
+| `/killmagnet set playerKills on\|off` | Also on PvP kills (default: **off**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/killmagnet.json`, live per `/killmagnet reload`.
+`config/horsti/killmagnet.json`, reloadable with `/killmagnet reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel-hoch (Auto-Pickup ist beliebtes QoL) |
-| Gibt’s das schon? / Mehrwert | Item-Magnete existieren als Dauer-Sauger; Mehrwert: **kill-gebunden** (originell, balance-schonend), togglebar |
-| Geschätzter Aufwand | Trivial |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium–high — auto-pickup is a popular QoL feature |
+| Does this exist? / our edge | Item magnets exist as permanent vacuums. Our edge: **tied to kills** — original, and much easier on the balance |
+| Estimated effort | Trivial |
+| Target | SP + MP |
+| Horsti priority | TBD |

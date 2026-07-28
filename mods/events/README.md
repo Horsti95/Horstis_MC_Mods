@@ -1,66 +1,66 @@
 # Horsti Events
 
-**`horsti-events` · SMP-Twist · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-events` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Die Welt schlägt zurück: Blutmond-Horden, Meteoritenregen, schrumpfende Grenze — als schaltbare Module.
+> The world strikes back: blood moon hordes, meteor showers, a closing border — as switchable modules.
 
-## Was macht der Mod?
+## What it does
 
-Ein schlanker Event-Scheduler plus drei unabhängige Event-Module (je einzeln togglebar und **rauslösbar**,
-siehe Modularität):
+A lean event scheduler plus three independent event modules, each toggleable and each **extractable**
+(see modularity below):
 
-1. **Blutmond** — Eine markierte Phase (roter Titel, Wither-Sound): alle 10 Sekunden spawnt rund um jeden
-   Spieler eine Welle aggressiver Mobs, die sofort auf ihn zielen. Nach der eingestellten Dauer endet der
-   Blutmond mit Belohnungs-XP für alle Überlebenden.
-2. **Meteoritenregen** — Eine Minute lang schlagen rund um jeden Spieler Einschläge ein (Vanilla-
-   Explosionen, kein neues Asset). Blockschaden ist per Default **aus**, damit SMP-Basen heil bleiben —
-   gefährlich ist es trotzdem, wer im Freien steht.
-3. **Schrumpfgrenze** — Die Weltgrenze zieht sich gleichmäßig auf den Ziel-Radius zusammen (Battle-Royale-
-   Gefühl für Runden-Spiele). Nur manuell startbar; `/events abbrechen` stellt die alte Grenze wieder her.
+1. **Blood moon** — a marked phase (red title, wither sound): every 10 seconds a wave of aggressive mobs
+   spawns around each player and immediately targets them. After the configured duration the blood moon
+   ends with bonus XP for every survivor.
+2. **Meteor shower** — for one minute, impacts land around each player (vanilla explosions, no new asset).
+   Block damage is **off** by default so SMP bases stay intact — it is still dangerous to stand in the open.
+3. **Shrinking border** — the world border closes evenly onto the target radius (battle-royale feel for
+   round-based play). Manual start only; `/events cancel` restores the previous border.
 
-Events feuern zufällig (Automatik, Default **aus**) oder manuell per Command. Mehrspieler-fair: Jedes Event
-kündigt sich 60 Sekunden vorher an.
+Events fire randomly (automation, **off** by default) or manually by command. Multiplayer-fair: every event
+announces itself 60 seconds ahead.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/events` | Status + aktuelle Werte |
-| `/events on \| off` | Zufalls-Automatik an/aus (Default: **off**) |
-| `/events trigger blutmond\|meteor\|grenze` | Event sofort starten |
-| `/events abbrechen` | Laufendes Event sauber beenden |
-| `/events set pruefIntervallMin <5–240>` | Minuten zwischen zwei Würfen der Automatik (Default: **20**) |
-| `/events set blutmondChance <0–100>` | %-Chance je Wurf (Default: **15**) |
-| `/events set meteorChance <0–100>` | %-Chance je Wurf (Default: **10**) |
-| `/events set blutmondDauerMin <1–30>` | Blutmond-Dauer (Default: **8**) |
-| `/events set blutmondProWelle <1–10>` | Mobs je Welle und Spieler (Default: **3**) |
-| `/events set meteorBlockschaden on\|off` | Einschläge beschädigen Blöcke (Default: **off**) |
-| `/events set grenzeDauerMin <5–120>` + `grenzeZielRadius <16–512>` | Schrumpf-Parameter (Default: **30**, **64**) |
+| `/events` | Status and current values |
+| `/events on \| off` | Random automation on/off (default: **off**) |
+| `/events trigger bloodmoon\|meteor\|border` | Start an event right away |
+| `/events cancel` | End the running event cleanly |
+| `/events set checkIntervalMinutes <5–240>` | Minutes between two rolls of the automation (default: **20**) |
+| `/events set bloodMoonChance <0–100>` | % chance per roll (default: **15**) |
+| `/events set meteorChance <0–100>` | % chance per roll (default: **10**) |
+| `/events set bloodMoonMinutes <1–30>` | Blood moon duration (default: **8**) |
+| `/events set bloodMoonPerWave <1–10>` | Mobs per wave and player (default: **3**) |
+| `/events set meteorBlockDamage on\|off` | Impacts damage blocks (default: **off**) |
+| `/events set borderMinutes <5–120>` + `borderTargetRadius <16–512>` | Shrink parameters (defaults: **30**, **64**) |
 
-*Hinweis: Die Automatik würfelt in Echtzeit-Intervallen statt an Tag/Nacht-Wechseln — in 26.x gibt es keine
-öffentliche Tageszeit-API mehr. Vorteil: funktioniert unabhängig von Schlafen und `/time set`.*
+*Note: the automation rolls on real-time intervals rather than on day/night changes — 26.x no longer has a
+public time-of-day API we could find. Upside: it works regardless of sleeping and `/time set`.*
 
-## Modularität / Rauslösen
+## Modularity / extracting a module
 
-Jedes Event ist ein eigenes Modul hinter einem Interface (`HorstiEvent`: announce → run → cleanup) ohne
-Querbezüge — ein Modul lässt sich in unter einer Stunde in einen eigenen Standalone-Mod heben (z. B.
-„horsti-blutmond“), falls es einzeln glänzen soll. Der Scheduler ist die gemeinsame Infrastruktur, deshalb
-sind die drei hier gebündelt (Bündel-Regel aus PLAN.md).
+Every event is its own module behind an interface (`HorstiEvent`: announce → start → tick → cleanUp) with no
+cross-references — a module can be lifted into a standalone mod of its own in under an hour (say
+"horsti-bloodmoon") if it deserves to shine alone. The scheduler is the shared infrastructure, which is why
+these three are bundled here (the bundling rule from PLAN.md).
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/events.json`, live per `/events reload`.
+`config/horsti/events.json`, reloadable with `/events reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (Blutmond-Mods beliebt; „lebendige Welt“ ist Dauerwunsch) |
-| Gibt’s das schon? / Mehrwert | Blutmond existiert einzeln (oft Client-Visuals). Mehrwert: drei Events server-seitig, ankündigungs-fair, modular |
-| Geschätzter Aufwand | Mittel |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — blood moon mods are popular, and "a living world" is a standing wish |
+| Does this exist? / our edge | Blood moon exists on its own, often with client visuals. Our edge: three events server-side, announced fairly, modular |
+| Estimated effort | Medium |
+| Target | SP + MP |
+| Horsti priority | TBD |

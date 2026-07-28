@@ -1,41 +1,42 @@
-# Horsti Ernte
+# Horsti Harvest
 
-**`horsti-ernte` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-harvest` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Rechtsklick auf reifes Getreide: ernten und automatisch neu pflanzen. Der QoL-Klassiker.
+> Right-click a ripe crop: harvest and replant in one motion. The QoL classic.
 
-## Was macht der Mod?
+## What it does
 
-Rechtsklick auf eine ausgewachsene Pflanze erntet sie und pflanzt sofort neu — ein Samen wird dabei aus dem
-Drop abgezogen. Funktioniert generisch für alle Standard-Crops (Weizen, Kartoffeln, Karotten, Rüben),
-Netherwarze und Kakao; unreife Pflanzen bleiben unberührt. Fortune auf dem gehaltenen Werkzeug wirkt wie
-beim Abbau. Kein Client nötig, kein neues Item — nur ein Klick weniger Frust.
+Right-clicking a fully grown plant harvests it and replants it immediately — one seed is taken out of the
+drop for that. It works generically for all standard crops (wheat, potatoes, carrots, beetroot), nether
+wart and cocoa; unripe plants are left alone. Fortune on the held tool applies just like it does when
+breaking. No client needed, no new item — just one less click of frustration.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/ernte` | Status + aktuelle Werte |
-| `/ernte on \| off` | Mod an/aus |
-| `/ernte set nether on\|off` | Netherwarze einschließen (Default: **on**) |
-| `/ernte set kakao on\|off` | Kakao einschließen (Default: **on**) |
-| `/ernte set fortune on\|off` | Fortune wirkt bei Klick-Ernte (Default: **on**) |
-| `/ernte set sound on\|off` | Ernte-Sound (Default: **on**) |
+| `/harvest` | Status and current values |
+| `/harvest on \| off` | Enable/disable |
+| `/harvest set netherWart on\|off` | Include nether wart (default: **on**) |
+| `/harvest set cocoa on\|off` | Include cocoa beans (default: **on**) |
+| `/harvest set fortune on\|off` | Fortune applies to click harvesting (default: **on**) |
+| `/harvest set sound on\|off` | Play a harvest sound (default: **on**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/ernte.json`, live per `/ernte reload`.
+`config/horsti/harvest.json`, reloadable with `/harvest reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | **Sehr hoch** (einer der meistinstallierten QoL-Wünsche überhaupt) |
-| Gibt’s das schon? / Mehrwert | „Right Click Harvest“ u. a. existieren. Mehrwert: bewusst minimal (keine Hoe-Pflicht, keine Extra-Mechanik), rein server-seitig, Horsti-Command-Schema. Öffentlich nur bei echtem Mehrwert nach Playtest |
-| Geschätzter Aufwand | Leicht–mittel (generische Crop-Erkennung über Block-Properties) |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | **Very high** — one of the most installed QoL wishes there is |
+| Does this exist? / our edge | "Right Click Harvest" and others exist. Our edge: deliberately minimal (no hoe requirement, no extra mechanics), purely server-side, in the Horsti command scheme. Only worth publishing if the playtest shows real added value |
+| Estimated effort | Low–medium (generic crop detection via block properties) |
+| Target | SP + MP |
+| Horsti priority | TBD |

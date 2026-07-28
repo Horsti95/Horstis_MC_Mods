@@ -1,42 +1,43 @@
-# Horsti Holzsäge
+# Horsti Woodcutter
 
-**`horsti-holzsaege` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-woodcutter` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Die Steinsäge kann endlich Holz: Stamm rein, Bretter/Treppen/Stufen/Zäune raus.
+> The stonecutter finally cuts wood: log in, planks, stairs, slabs and fences out.
 
-## Was macht der Mod?
+## What it does
 
-Fügt der Vanilla-Steinsäge (Stonecutter) Rezepte für alle Holzarten hinzu: Stamm → Bretter, Bretter →
-Stufen/Treppen/Zäune/Zauntore/Türen/Falltüren/Knöpfe/Druckplatten/Schilder. Rezepte werden zur Laufzeit für
-**alle** Holzarten generiert (inkl. Bambus, Kirsche, Mangrove, Karmesin/Wirr) und automatisch an die Clients
-gesynct — Vanilla-Clients sehen sie ganz normal in der Säge. Keine neuen Blöcke, keine neuen Assets.
+Adds stonecutter recipes for wood: log → planks, planks → slabs, stairs, fences, fence gates, doors,
+trapdoors, buttons, pressure plates and signs. The recipes ship as **three built-in datapacks**
+(base / doors / redstone) and are synced to clients automatically — vanilla clients simply see them in the
+stonecutter. No new blocks, no new assets.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/holzsaege` | Status + aktuelle Werte |
-| `/holzsaege on \| off` | Rezepte aktiv/inaktiv (lädt die Rezeptliste live neu) |
-| `/holzsaege set tueren on\|off` | Auch Türen/Falltüren (Default: **on**) |
-| `/holzsaege set redstone on\|off` | Auch Knöpfe/Druckplatten (Default: **on**) |
+| `/woodcutter` | Status and current values |
+| `/woodcutter on \| off` | Recipes active/inactive (reloads the recipe list live) |
+| `/woodcutter set doors on\|off` | Also doors and trapdoors (default: **on**) |
+| `/woodcutter set redstone on\|off` | Also buttons and pressure plates (default: **on**) |
 
-*Technik: Die Rezepte stecken in drei eingebauten Datapacks (Basis/Türen/Redstone); Toggles schalten die
-Packs um und laden live neu. Erträge fest an Vanilla angelehnt (Stamm→4 Bretter, Bambus-Block→2).*
+*How it works: the toggles switch the built-in packs on and off and reload the recipes live, so the change
+reaches every player without a restart. Yields follow vanilla (log → 4 planks).*
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/holzsaege.json`, live per `/holzsaege reload`.
+`config/horsti/woodcutter.json`, reloadable with `/woodcutter reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel-hoch (Evergreen: „Warum kann die Steinsäge kein Holz?“) |
-| Gibt’s das schon? / Mehrwert | Als Datapack verbreitet. Mehrwert: automatische Abdeckung **aller** Holzarten (auch künftiger), Ertrag regelbar, togglebar |
-| Geschätzter Aufwand | Leicht |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium–high — the evergreen "why can't the stonecutter do wood?" |
+| Does this exist? / our edge | Widespread as a datapack. Our edge: toggleable live in-game, split into three parts you can enable separately |
+| Estimated effort | Low |
+| Target | SP + MP |
+| Horsti priority | TBD |

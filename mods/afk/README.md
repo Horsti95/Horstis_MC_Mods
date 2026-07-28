@@ -1,40 +1,41 @@
 # Horsti AFK
 
-**`horsti-afk` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-afk` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Wer eine Weile nichts tut, wird in der Tab-Liste als AFK markiert.
+> Stand still for a while and the tab list says so.
 
-## Was macht der Mod?
+## What it does
 
-Keine Bewegung, kein Chat, kein Klick für X Minuten → der Spielername in der Tab-Liste wird grau und
-bekommt das Suffix `[AFK]`; optional eine dezente Chat-Ansage. Jede Aktivität hebt den Status sofort auf.
+No movement, no chat, no click for X minutes → the player name in the tab list turns grey and gets an
+`[AFK]` suffix, plus an optional low-key chat message. Any activity clears the status immediately.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/afk` | Status + aktuelle Werte |
-| `/afk on \| off` | Mod an/aus |
-| `/afk set minuten <1–60>` | Inaktivität bis AFK (Default: **5**) |
-| `/afk set ansage on\|off` | Chat-Ansage bei AFK/Rückkehr (Default: **on**) |
-| `/afk set kickMinuten <0–120>` | Nach weiteren X Min. kicken, 0 = nie (Default: **0**) |
+| `/afk` | Status and current values |
+| `/afk on \| off` | Enable/disable |
+| `/afk set minutes <1–60>` | Inactivity before AFK (default: **5**) |
+| `/afk set announce on\|off` | Chat message on going AFK / returning (default: **on**) |
+| `/afk set kickMinutes <0–120>` | Kick after that many more minutes, 0 = never (default: **0**) |
 
-Spieler ohne OP können sich mit `/afk!` manuell als AFK markieren.
+Any player can mark themselves AFK by hand with `/afk!`.
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ [Fabric API](https://modrinth.com/mod/fabric-api)) into the server's `mods` folder.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/afk.json`, live per `/afk reload`. Alle Werte auch per Command.
+`config/horsti/afk.json`, reloadable with `/afk reload`. Every value is also reachable by command.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (SMP-Standardwunsch) |
-| Gibt’s das schon? / Mehrwert | Existiert in Essentials-artigen Paketen; Mehrwert: Mini-Standalone ohne Beiwerk, rein Tab-Listen-basiert |
-| Geschätzter Aufwand | Trivial |
-| Zielgruppe | MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — a standard SMP request |
+| Does this exist? / our edge | Part of Essentials-style bundles. Our edge: a tiny standalone with no baggage, purely tab-list based |
+| Estimated effort | Trivial |
+| Target | MP |
+| Horsti priority | TBD |

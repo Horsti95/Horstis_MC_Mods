@@ -1,41 +1,41 @@
 # Horsti Keepmoving
 
-**`horsti-keepmoving` · SMP-Twist · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-keepmoving` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Wer rastet, der rostet: Stillstand tut nach einer Karenzzeit weh. Für Nervenkitzel-Runden.
+> Rest and you rust: standing still starts to hurt after a grace period. For high-tension rounds.
 
-## Was macht der Mod?
+## What it does
 
-Bewegst du dich X Sekunden lang nicht (Position ± kleine Toleranz), beginnt ein wählbarer Malus zu ticken:
-direkter Schaden, Hunger oder Wither-Effekt. Actionbar-Warnung während der Karenz („Beweg dich! 3…2…1“).
-Gedacht als Runden-Twist („Keep-Moving-SMP“), nicht als Dauerzustand — daher startet der Mod **aus** und
-wird pro Session per Command scharf geschaltet.
+Stop moving for X seconds (position ± a small tolerance) and a penalty of your choice starts ticking:
+direct damage, hunger or a wither effect. An action bar warning counts down during the grace period
+("Move! 3…2…1"). Meant as a round twist, not a permanent state — which is why the mod starts **off**
+and gets armed per session by command.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/keepmoving` | Status + aktuelle Werte |
-| `/keepmoving on \| off` | scharf/entschärft (Default: **off**) |
-| `/keepmoving set karenzSek <3–120>` | Stillstand bis zum Malus (Default: **10**) |
-| `/keepmoving set modus schaden\|hunger\|wither` | Malus-Art (Default: **schaden**) |
-| `/keepmoving set staerke <1–5>` | Malus-Stärke pro Sekunde (Default: **1**, = ½ Herz) |
-| `/keepmoving set warnung on\|off` | Actionbar-Countdown (Default: **on**) |
+| `/keepmoving` | Status and current values |
+| `/keepmoving on \| off` | Armed / disarmed (default: **off**) |
+| `/keepmoving set graceSeconds <3–120>` | Standing still before the penalty (default: **10**) |
+| `/keepmoving set mode damage\|hunger\|wither` | Kind of penalty (default: **damage**) |
+| `/keepmoving set strength <1–5>` | Penalty strength per second (default: **1**, = half a heart) |
+| `/keepmoving set warning on\|off` | Action bar countdown (default: **on**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/keepmoving.json`, live per `/keepmoving reload`.
+`config/horsti/keepmoving.json`, reloadable with `/keepmoving reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Niedrig-mittel (Nischen-Twist, aber origineller Party-Effekt) |
-| Gibt’s das schon? / Mehrwert | Kaum vorhanden — praktisch eine Lücke. Mehrwert: fertiges, tunebares Runden-Format |
-| Geschätzter Aufwand | Leicht |
-| Zielgruppe | MP (SP für Selbst-Challenges) |
-| Horsti-Priorität | TBD |
+| Community demand | Low–medium — a niche twist, but an original party effect |
+| Does this exist? / our edge | Barely anything out there — effectively a gap. Our edge: a finished, tunable round format |
+| Estimated effort | Low |
+| Target | MP (SP for self-challenges) |
+| Horsti priority | TBD |

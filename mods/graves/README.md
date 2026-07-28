@@ -1,50 +1,54 @@
 # Horsti Graves
 
-**`horsti-graves` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-graves` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Kein Item-Despawn mehr: Beim Tod entsteht ein Grab mit deinem Inventar — geschützt, auffindbar, fair.
+> No more despawning items: dying leaves a grave holding your inventory — protected, findable, fair.
 
-## Was macht der Mod?
+## What it does
 
-Stirbst du, entsteht am Todesort ein Grab aus **zwei gestapelten Vanilla-Kisten** (54 Slots — mehr als dein
-Inventar fassen kann, es geht also nichts verloren). Weil es echte Kisten sind, speichert Minecraft den
-Inhalt selbst: Verzauberungen, Haltbarkeit und Namen bleiben unangetastet, auch über Server-Neustarts.
+When you die, a grave appears at the spot, made of **two stacked vanilla chests** (54 slots — more than
+your inventory can hold, so nothing is lost). Because they are real chests, Minecraft stores the contents
+itself: enchantments, durability and names survive untouched, server restarts included.
 
-Öffnen geht ganz normal per Rechtsklick. Eine Schutzzeit lang kann **nur der Besitzer** das Grab öffnen —
-danach ist es für alle offen (Loot-Anreiz). Beim ersten eigenen Öffnen bekommst du deine XP zurück
-(Anteil konfigurierbar). Stirbst du im Void oder in Lava, wandert das Grab an die nächste sichere Stelle
-darüber.
+You open it by right-clicking as normal. For a protection window **only the owner** can open the grave —
+after that it is open to everyone, which is the loot incentive. The first time you open your own grave you
+get your XP back (the share is configurable). Die in the void or in lava and the grave moves up to the
+nearest safe spot.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/graves` | Status + aktuelle Werte |
-| `/graves on \| off` | Mod an/aus (off = Vanilla-Drop) |
-| `/graves set schutzMin <0–120>` | Nur-Besitzer-Schutzzeit, 0 = sofort offen (Default: **15**) |
-| `/graves set xpErhalt <0–100>` | Prozent der XP im Grab (Default: **100**) |
-| `/graves set ansage on\|off` | Todesort-Koordinaten beim Tod anzeigen (Default: **on**) |
-| `/graves liste [<Spieler>]` | Aktive Gräber mit Koordinaten |
+| `/graves` | Status and current values |
+| `/graves on \| off` | Enable/disable (off = vanilla drop) |
+| `/graves set protectMinutes <0–120>` | Owner-only protection, 0 = open immediately (default: **15**) |
+| `/graves set xpKept <0–100>` | Percent of your XP stored in the grave (default: **100**) |
+| `/graves set announce on\|off` | Show the grave coordinates on death (default: **on**) |
+| `/graves list` | Active graves with coordinates |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der SP-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder, or into a single-player instance.
+Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/graves.json`, live per `/graves reload`. Grab-Metadaten: `config/horsti/daten/graves.json` (die Items selbst liegen in den Kisten, also in der Welt).
+`config/horsti/graves.json`, reloadable with `/graves reload`. Grave metadata lives in
+`config/horsti/daten/graves.json` — the items themselves sit in the chests, i.e. in the world.
 
-## Hinweis Modularität
+## Note on overlap
 
-Die „Todesort-Ansage“ überschneidet sich bewusst mit `horsti-todesort` — wer Graves nutzt, braucht
-Todesort nicht (und umgekehrt). Beide erkennen sich gegenseitig und deaktivieren die Doppel-Ansage.
+The death-coordinates announcement deliberately overlaps with
+[`horsti-deathpoint`](../deathpoint) — if you run Graves you do not need Deathpoint, and the other way
+round. The two do **not** detect each other; running both simply means the message appears twice, so turn
+one of them off with `/graves set announce off` or `/deathpoint off`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | **Sehr hoch** (Item-Verlust ist Frustquelle Nr. 1) |
-| Gibt’s das schon? / Mehrwert | „Universal Graves“ (Polymer) ist stark. Mehrwert: dependency-frei, bewusst schlank, Loot-Anreiz nach Schutzzeit als eigener Dreh. Öffentlich nur bei echtem Mehrwert nach Playtest |
-| Geschätzter Aufwand | Mittel (Randfälle: Void, Lava, Grief-Schutz, Mehrfach-Tode) |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | **Very high** — losing items is frustration source number one |
+| Does this exist? / our edge | "Universal Graves" (Polymer) is strong. Our edge: dependency-free, deliberately lean, and the loot incentive after the protection window as our own twist. Only worth publishing if the playtest shows real added value |
+| Estimated effort | Medium (edge cases: void, lava, grief protection, repeated deaths) |
+| Target | SP + MP |
+| Horsti priority | TBD |

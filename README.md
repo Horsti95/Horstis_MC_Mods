@@ -32,18 +32,17 @@ Install only what you want — each mod stands alone and bundles `horsti-core` i
 Everything is OP level 2 and works from the server console (including the Aternos web console).
 Values are stored in `config/horsti/<mod>.json`, saved game state in `config/horsti/daten/`.
 
-> **Note:** commands and settings currently use German names (`/holzsaege`, `/gabe`, `rundenMin`).
-> They will be renamed to English before any public release — see PLAN.md section 10.
+> **Note:** all commands, settings and in-game text are English (see PLAN.md section 10).
 
 ## The mods
 
-**Built and compiling (21)**
+**Built and compiling (26)**
 
 *Quality of life* — [`anvilfix`](mods/anvilfix) (no more "Too Expensive") ·
-[`ernte`](mods/ernte) (right-click harvest) · [`graves`](mods/graves) (a grave instead of lost items) ·
-[`sit`](mods/sit) (sit on stairs) · [`holzsaege`](mods/holzsaege) (stonecutter for wood) ·
+[`harvest`](mods/harvest) (right-click harvest) · [`graves`](mods/graves) (a grave instead of lost items) ·
+[`sit`](mods/sit) (sit on stairs) · [`woodcutter`](mods/woodcutter) (stonecutter for wood) ·
 [`mobgriefing`](mods/mobgriefing) (per mob type) · [`totem`](mods/totem) (works from the inventory) ·
-[`pets`](mods/pets) · [`todesort`](mods/todesort) (death coordinates) · [`afk`](mods/afk)
+[`pets`](mods/pets) · [`deathpoint`](mods/deathpoint) (death coordinates) · [`afk`](mods/afk)
 
 *Minigames* — [`tag`](mods/tag) · [`deathswap`](mods/deathswap) · [`manhunt`](mods/manhunt) ·
 [`juggernaut`](mods/juggernaut) · [`bounty`](mods/bounty)

@@ -1,41 +1,41 @@
-# Horsti Todesort
+# Horsti Deathpoint
 
-**`horsti-todesort` · QoL · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-deathpoint` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Beim Tod bekommst du deine Todeskoordinaten privat in den Chat — klickbar zum Kopieren.
+> When you die you get your death coordinates in chat — privately, and clickable to copy.
 
-## Was macht der Mod?
+## What it does
 
-Stirbst du, erscheint (nur für dich) eine Chatzeile wie
-`☠ Du starbst bei X 120 / Y 64 / Z -338 (Overworld)` — ein Klick kopiert die Koordinaten in die
-Zwischenablage. Ergänzt den Vanilla-Recovery-Kompass, ersetzt ihn nicht: Die Zeile bleibt im Chatverlauf,
-auch nach mehrmaligem Sterben.
+Die, and a line appears (only for you) like `☠ You died at 120 64 -338 (Overworld)` — one click copies
+the coordinates to your clipboard. It complements the vanilla recovery compass rather than replacing it:
+the line stays in your chat history, even after dying several times over.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/todesort` | Status + aktuelle Werte |
-| `/todesort on \| off` | Mod an/aus |
-| `/todesort set oeffentlich on\|off` | Koordinaten für alle sichtbar statt privat (Default: **off**) |
-| `/todesort set dimension on\|off` | Dimension mit anzeigen (Default: **on**) |
-| `/todesort reset` | Defaults wiederherstellen |
+| `/deathpoint` | Status and current values |
+| `/deathpoint on \| off` | Enable/disable |
+| `/deathpoint set broadcast on\|off` | Show the coordinates to everyone instead of privately (default: **off**) |
+| `/deathpoint set dimension on\|off` | Include the dimension (default: **on**) |
+| `/deathpoint reset` | Restore the defaults |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers bzw. der Singleplayer-Instanz. Mitspieler brauchen nichts.
+Drop the jar (+ [Fabric API](https://modrinth.com/mod/fabric-api)) into the server's `mods` folder, or
+into a single-player instance. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/todesort.json` — wird automatisch erzeugt; Datei-Änderungen greifen per `/todesort reload`.
-Jeder Wert ist auch per Command erreichbar (siehe oben).
+`config/horsti/deathpoint.json` — created automatically; file edits apply with `/deathpoint reload`.
+Every value is also reachable by command (see above).
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel (Dauer-QoL-Wunsch; „wo bin ich gestorben?“) |
-| Gibt’s das schon? / Mehrwert | Teil größerer Mods; als Mini-Standalone selten. Mehrwert: 5-KB-Mod, togglebar, klickbare Koordinaten |
-| Geschätzter Aufwand | Trivial |
-| Zielgruppe | SP + MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium — the evergreen "where did I die?" |
+| Does this exist? / our edge | Part of larger mods, rarely as a mini standalone. Our edge: a 5 KB mod, toggleable, with clickable coordinates |
+| Estimated effort | Trivial |
+| Target | SP + MP |
+| Horsti priority | TBD |

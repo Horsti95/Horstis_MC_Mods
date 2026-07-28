@@ -1,42 +1,42 @@
 # Horsti Deathswap
 
-**`horsti-deathswap` · Minigame · server-seitig · Vanilla-Clients kompatibel**
+**`horsti-deathswap` · 🖥️ Server-side · vanilla clients supported · Minecraft 26.2 (Fabric)**
 
-> Alle paar Minuten tauschen alle Spieler die Positionen. Bau die Falle, bevor du selbst drinsteckst.
+> Every few minutes everyone swaps positions. Build the trap before you are standing in it yourself.
 
-## Was macht der Mod?
+## What it does
 
-Klassisches Death-Swap-Format: Nach einem (leicht zufälligen) Intervall tauschen alle teilnehmenden Spieler
-gleichzeitig und ringförmig die Positionen (A→B→C→A, zufällig gemischt — nie zurück auf sich selbst).
-Wer stirbt, scheidet aus (Spectator); Sieger ist, wer übrig bleibt. Countdown optional sichtbar oder
-versteckt (Überraschungs-Modus). `/deathswap off` mitten in der Runde beendet sauber (Ansage, Spectator zurück).
+The classic death-swap format: after a slightly randomised interval every participating player swaps
+position at the same time, in a ring (A→B→C→A, shuffled — never back onto yourself). Die and you are out
+(spectator); the last one standing wins. The countdown is optionally visible or hidden (surprise mode).
+`/deathswap stop` mid-round ends it cleanly — announcement, spectators back to survival.
 
-## In-Game-Steuerung (OP-Level 2)
+## In-game control (OP level 2)
 
-| Command | Wirkung |
+| Command | Effect |
 |---|---|
-| `/deathswap` | Status + aktuelle Werte |
-| `/deathswap start [alle\|<Spieler…>]` | Runde starten (Default: alle Überlebensmodus-Spieler) |
-| `/deathswap stop` | Runde sauber beenden |
-| `/deathswap set intervallMin <1–30>` | Basis-Intervall (Default: **5**) |
-| `/deathswap set zufallSek <0–120>` | ± Zufallsfenster aufs Intervall (Default: **60**) |
-| `/deathswap set countdown on\|off` | Tausch-Countdown sichtbar (Default: **off** — Überraschung!) |
-| `/deathswap set minSpieler <2–16>` | Mindestteilnehmer (Default: **2**) |
+| `/deathswap` | Status and current values |
+| `/deathswap start` | Start a round with every survival-mode player |
+| `/deathswap stop` | End the round cleanly |
+| `/deathswap set intervalMinutes <1–30>` | Base interval (default: **5**) |
+| `/deathswap set jitterSeconds <0–120>` | ± random window on the interval (default: **60**) |
+| `/deathswap set countdown on\|off` | Show the swap countdown (default: **off** — surprise!) |
+| `/deathswap set minPlayers <2–16>` | Minimum participants (default: **2**) |
 
 ## Installation
 
-Jar (+ Fabric API) in den `mods/`-Ordner des Servers. Mitspieler brauchen nichts.
+Drop the jar (+ Fabric API) into the server's `mods` folder. Other players need nothing.
 
-## Konfiguration
+## Configuration
 
-`config/horsti/deathswap.json`, live per `/deathswap reload`.
+`config/horsti/deathswap.json`, reloadable with `/deathswap reload`.
 
-## Steckbrief
+## Fact sheet
 
 | | |
 |---|---|
-| Community-Nachfrage | Mittel-hoch (YouTube-Klassiker) |
-| Gibt’s das schon? / Mehrwert | Existiert als Datapack/Mod-Hybrid. Mehrwert: integrierte, live tunebare Version im Horsti-Command-Schema; Ring-Tausch für >2 Spieler |
-| Geschätzter Aufwand | Leicht |
-| Zielgruppe | MP |
-| Horsti-Priorität | TBD |
+| Community demand | Medium–high — a YouTube classic |
+| Does this exist? / our edge | Exists as a datapack/mod hybrid. Our edge: live-tunable in the Horsti command scheme, and a ring swap that works for more than two players |
+| Estimated effort | Low |
+| Target | MP |
+| Horsti priority | TBD |
