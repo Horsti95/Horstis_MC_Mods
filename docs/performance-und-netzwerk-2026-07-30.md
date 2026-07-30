@@ -1,4 +1,18 @@
-# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 6)
+# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 7)
+
+> **Rev. 7 — Korrektur: es ist keine Versionsregression.**
+> Mit **e4mc 6.2.0** scheitert die Welt genauso. Damit ist die Rev.-6-Erklärung („6.2.1 ist zwei
+> Tage alt und kaputt") **widerlegt**. Beide Versionen zeigen im Log denselben
+> `@Redirect conflict` mit Krypton — **die einzige noch untestete Kombination ist e4mc AN +
+> Krypton AUS**, und sie ist jetzt der Hauptverdächtige (6.2.9).
+> **Sofort spielbar ohne e4mc:** Portfreigabe 25565 statt Relay — geht heute, ist schneller, und
+> braucht keinen einzigen Mod (**6.2.10**).
+> **Neue Außen-Messung:** GPU **98 %** im Kirschhain gegen 58 % im Haus. Das ändert die Antwort
+> auf die Texturpaket-Frage (**3.6**).
+
+---
+
+# Rev. 6
 
 > **Rev. 6 — gelöst: e4mc 6.2.1.**
 > Bisect-Ergebnis: beide aus → läuft · e4mc aus / Krypton an → läuft · **beide an → bricht ab**.
@@ -315,6 +329,74 @@ sich jede Änderung aus Test A sofort bewerten — **auf p99.5 achten, nicht auf
 
 **Unverändert bestätigt:** LambDynamicLights kostet 0,034 ms von 5,68 ms = **0,60 %** im Stehen.
 EntityCulling überspringt **324 von 360** Entity-Renderings und **207 von 224** Entity-Ticks.
+
+### 3.6 Außen-Messung (Rev. 7) — und was das für Texturpakete heißt
+
+Zweiter F3, diesmal **im Freien** (Kirschhain, XYZ 30 / 69 / 449), e4mc aus, Singleplayer:
+
+```
+174 fps  T: 190  fast  B: 2  GPU: 98%
+p50=177  p98=118  p99.5=85 fps
+Integrated server @ 11.4/50.0 ms, 21 tx, 1477 rx
+C: 1588/32664 D: 20     E: 41/230  SD: 8
+Mem: 34% 2827/8192MB    Allocation rate 174MB/s
+Pools: Geometry 774/1234 MiB, Index 3/29 MiB (79 buffers)
+[Culling] Rendered Block Entities: 558 Skipped: 0
+[Culling] Rendered Entities: 198 Skipped: 234
+[Culling] Ticked Entities: 33 Skipped: 196
+[Iris] Shadow info: C: 836/32664 D: 20
+```
+
+**Der wichtige Unterschied zur Innen-Messung aus 3.5:**
+
+| | im Haus | **im Freien** |
+|---|---|---|
+| **GPU** | 58 % | **98 %** |
+| fps / p50 | 176 / 190 | 174 / 177 |
+| p98 / p99.5 | 107 / 84 | 118 / 85 |
+| MSPT | 7,9 | **11,4** |
+| gerenderte Entities | 36 (324 übersprungen) | **198** (234 übersprungen) |
+| gerenderte Block-Entities | 387 (45 übersprungen) | **558 (0 übersprungen)** |
+| Entities gesamt | 226 | 230 |
+
+**Die 58 % aus 3.5 waren ein Innenraum-Artefakt.** Draußen liegt die GPU bei **98 %** — dort ist
+die Karte tatsächlich der Flaschenhals, und p50 fällt vom Limit (190) auf 177. Die Aussage aus
+Rev. 3 („die 5090 langweilt sich zu einem Drittel") gilt nur in geschlossenen Räumen.
+
+Weitere Befunde:
+* **EntityCulling überspringt draußen 0 von 558 Block-Entities** — im freien Feld verdeckt nichts
+  etwas, der Mod kann nichts ausrichten. 558 ist der bisher höchste Wert.
+* **MSPT 11,4** statt 7,9 — 198 sichtbare Entities gegenüber 36 im Haus.
+* Heap weiterhin entspannt: 34 % von 8192 MB.
+
+### 3.6.1 Texturpaket trotz Shader — ja, aber mit Auflagen
+
+Die Frage war „die GPU ist ja nicht am Limit". **Draußen ist sie es** (98 %). Trotzdem lautet die
+Antwort ja, weil ein Texturpaket etwas anderes kostet als der Shader:
+
+* **Reine Auflösung kostet VRAM und Speicherbandbreite, kaum Rechenzeit.** Der Geometry Pool liegt
+  bei 774 MiB, die 5090 hat davon reichlich. **32× ist auf diesem Gerät gefahrlos**, 64× ebenfalls
+  vertretbar.
+* **PBR-Pakete sind die Ausnahme.** Pakete mit Normal- und Specular-Maps (LabPBR) verdreifachen die
+  Texturmenge **und** geben Complementary echte Zusatzarbeit. Bei 98 % GPU ist das die eine
+  Kategorie, die man draußen merkt. → **Für den Anfang kein PBR.**
+* **Nicht anfassen:** Pakete mit eigenen Entity-Modellen (z. B. Fresh Animations) brauchen
+  Zusatzmods (Entity Model/Texture Features), kosten extra und können mit Cobblemons eigenen
+  Renderern kollidieren.
+* **Cobblemon-Texturen dürfen nicht überschrieben werden** — Vanilla-orientierte Pakete tun das
+  nicht. Ein Paket, das Cobblemon-Assets ersetzt, wäre ein Kompatibilitätsrisiko.
+
+**Kandidaten, die zu Cobblemon passen** (jeweils auf 1.21.1 filtern, Verfügbarkeit selbst prüfen):
+
+| Paket | Charakter | Mit Complementary |
+|---|---|---|
+| **Faithful 32×** | Vanilla, nur doppelte Auflösung | sehr sicher, sieht immer richtig aus |
+| **Stay True** | Vanilla-plus, warm, weich | sehr beliebt in Kombination mit Shadern |
+| **Bare Bones** | flach, hell, cartoonig — der „Pokémon-Look" | passt inhaltlich am besten, wirkt mit Shadern aber flach, weil es für genau die entgegengesetzte Optik gebaut ist |
+| **Mizuno's 16 Craft** | weich, gemütlich, viel Detail an Deko | beliebt für Cobblemon-Basen |
+
+**Messvorgabe:** vorher/nachher **an derselben Stelle im Freien** messen und **p99.5 plus GPU %**
+vergleichen — nicht den Mittelwert. Bei 98 % GPU zeigt sich ein zu teures Paket sofort in p99.5.
 
 ### 3.4 Machen Shader Sinn?
 
@@ -766,6 +848,67 @@ bringt auf dem Client ohnehin fast nichts, das schreibt es selbst ins Log:
 
 **Für Paul:** e4mc braucht nur der Host. In seiner Instanz kann es komplett weg.
 
+### 6.2.9 Korrektur (Rev. 7): keine Versionsregression, sondern der Konflikt
+
+**Mit e4mc 6.2.0 scheitert die Welt genauso** (Log 17:36–17:38). Damit ist die Rev.-6-Erklärung
+widerlegt — es liegt nicht an der zwei Tage alten 6.2.1.
+
+Beide Versionen zeigen an derselben Stelle dieselbe letzte Meldung:
+```
+[17:38:27] [Netty Server IO #1] @Redirect conflict. Skipping
+  krypton…ServerLoginNetworkHandlerMixin … already redirected by e4mc…ServerLoginPacketListenerImplMixin
+```
+
+Aktualisierte Matrix:
+
+| e4mc | Krypton | Ergebnis |
+|---|---|---|
+| aus | aus | läuft ✅ |
+| aus | an | läuft ✅ |
+| **6.2.1** | an | bricht ab ❌ |
+| **6.2.0** | an | **bricht ab ❌** |
+| **an** | **aus** | **← immer noch ungetestet, jetzt der Hauptverdächtige** |
+
+**Nächster Test: e4mc AN + Krypton AUS.** Krypton bringt auf dem Client praktisch nichts — das
+steht wörtlich im Log (*„Note that Krypton is most effective on servers, not the client"*). Wenn
+es damit läuft, ist der Fall geklärt und beide Mods können bleiben, nur eben nicht zusammen.
+
+**Zur Frage „Versions- oder Dependency-Check":** Es gibt keinen, der das finden würde.
+Der Block `Loading 142 mods:` im Log **ist** der aufgelöste Abhängigkeitsbaum — Fabric startet gar
+nicht erst, wenn eine deklarierte Abhängigkeit nicht passt. Das Spiel startet, also gibt es kein
+Versionsproblem zu finden. Was hier kollidiert, sind **zwei Mixins auf derselben Methode zur
+Laufzeit** — das deklariert kein Mod, das taucht in keiner Kompatibilitätsmatrix auf, und es fällt
+nur im Log auf. Mod Menu zeigt zwar Abhängigkeiten pro Mod, aber auch das hilft hier nicht.
+
+### 6.2.10 Ohne e4mc mit Paul spielen — drei Wege
+
+**Weg 1 (empfohlen): Portfreigabe 25565.** Kein Zusatzmod, kein Relay, **und schneller als e4mc**
+(der Relay-Hop von 20–40 ms aus 1.4 fällt weg). Voraussetzung ist erfüllt: die FRITZ!Box meldet
+eine **öffentliche IPv4 (31.150.130.183)**, kein CGNAT.
+
+1. **FRITZ!Box → Internet → Freigaben → Portfreigaben** → *Gerät für Freigaben hinzufügen* →
+   **Horsti5090** → *Neue Freigabe* → „Andere Anwendung", **TCP, Port 25565 → 25565**.
+2. **MyFRITZ!-Konto aktivieren** (Internet → MyFRITZ!-Konto). Die öffentliche IP wechselt
+   regelmäßig; MyFRITZ! gibt einen festen Namen wie `xxxx.myfritz.net`.
+3. In Minecraft: Welt öffnen → **Esc → „Für LAN öffnen"** → im Feld **Port `25565`** eintragen →
+   öffnen.
+4. Windows-Firewall fragt beim ersten Mal nach → **für private *und* öffentliche Netzwerke
+   erlauben**.
+5. Paul verbindet sich über **Mehrspieler → Direkt verbinden** mit `xxxx.myfritz.net:25565`.
+
+> Der feste Port ist wichtig: „Für LAN öffnen" würfelt sonst jedes Mal einen neuen aus, und die
+> Freigabe zeigt ins Leere.
+
+**Weg 2: Tailscale oder ZeroTier.** Beide Rechner in ein virtuelles LAN, dann verbindet Paul sich
+mit Horstis Tailscale-IP:25565. Keine Portfreigabe, funktioniert hinter jedem Router, minimaler
+Overhead. Gute Wahl, wenn Weg 1 am Router scheitert.
+
+**Weg 3: eigener Fabric-Server** (Server-Jar im selben Ordner-Prinzip, dieselbe Modliste minus
+der reinen Client-Mods). Robuster als „Für LAN öffnen" — die Welt läuft weiter, wenn Horstis
+Client abstürzt, und Horsti verbindet sich selbst als normaler Spieler. Mehr Einrichtungsaufwand,
+aber die sauberste Dauerlösung. Beachten: bei 11,3 Mbit/s Upload `view-distance=8`,
+`simulation-distance=6`, `network-compression-threshold=256` (1.4).
+
 ### 6.3 Konflikte
 
 **ModernFix ↔ Lithium — harmlos, nichts tun**
@@ -1118,11 +1261,14 @@ Portfreigabe 25565 — die Differenz ist der Relay-Aufschlag · EWE anschreiben 
 
 ## 11. Fahrplan (Stand Rev. 6)
 
-### Phase 1 — läuft wieder (jetzt)
-1. **Alle `javaw.exe` im Task-Manager beenden**, Modrinth-App neu starten.
-2. **e4mc auf 6.2.0-fabric zurücksetzen** (6.2.8).
-3. Alte Welt laden, **Open to LAN testen**, Paul einmal joinen lassen.
-4. Optional zur Absicherung: e4mc 6.2.1 + Krypton aus — sagt, ob es e4mc allein oder der Konflikt war.
+### Phase 1 — mit Paul spielen (jetzt)
+1. ~~javaw beenden~~ · ~~e4mc auf 6.2.0~~ — **erledigt, hat nicht geholfen** (6.2.9).
+2. **Test: e4mc AN + Krypton AUS.** Die letzte ungetestete Kombination und der Hauptverdächtige.
+   * Läuft es → Fall geklärt, Krypton bleibt draußen, e4mc funktioniert wieder.
+   * Läuft es nicht → e4mc ist auf diesem Setup unbrauchbar, weiter mit Punkt 3.
+3. **Portfreigabe 25565 einrichten** (6.2.10, Weg 1). Braucht keinen Mod, ist schneller als e4mc
+   und funktioniert unabhängig vom Testergebnis. Danach e4mc dauerhaft deaktiviert lassen.
+4. Paul einmal joinen lassen, F3-Ping und `/spark ping` notieren.
 
 ### Phase 2 — Performance messen (danach)
 5. **F3 im Pokémon-Feld**, nicht im Haus — dort entscheidet sich alles. Auf **p99.5** achten,
