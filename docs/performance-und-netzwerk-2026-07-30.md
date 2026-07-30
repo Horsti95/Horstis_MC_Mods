@@ -1,4 +1,19 @@
-# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 4)
+# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 5)
+
+> **Rev. 5, Stand 16:34 Uhr — endlich eine echte Exception.**
+> Renderdistanz steht bestätigt auf 8 (`Changing view distance to 8, from 10`) und die alte Welt
+> lädt trotzdem nicht — **also war auch die Rev.-4-Hypothese („zu wenig gewartet") falsch.** Es ist
+> kein Geduldsproblem, sondern ein harter Fehler.
+> **Der Fund:** `java.lang.IllegalStateException: Multiple servers running at once is not
+> supported!` aus **XaeroLib** — weil der integrierte Server der *ersten* Welt nie gestoppt hat.
+> Die vollständige Kette und das Bisect-Protokoll stehen in **6.2**. Leitender Verdacht:
+> **e4mc** (bzw. der e4mc-↔-Krypton-Konflikt im Login-Pfad).
+> **Wichtigste Sofortregel: nach jedem Fehlversuch Minecraft komplett beenden** — der Prozess ist
+> danach vergiftet, jeder weitere Versuch im selben Lauf ist wertlos (6.2.2).
+
+---
+
+# Rev. 4
 
 > **Rev. 4, Stand 16:11 Uhr — was sich geändert hat:**
 > **Terralith ist gelöst.** Der 16:10-Start zeigt `Applied 1823 biome modifications to 159 of 159
@@ -417,7 +432,124 @@ der Terralith-losen Sessions geladen und gespeichert wurde, insbesondere die Sta
 **Wenn Terralith aktiv ist, muss Paul es ebenfalls installiert haben** — es ist ein
 Worldgen-/Registry-Mod, das ist keine Wahl.
 
-### 6.2 Warum die Welt nicht lädt — neue Hypothese nach dem 16:11-Start
+### 6.2 Warum die Welt nicht lädt — der 16:32-Lauf mit Renderdistanz 8 (Rev. 5)
+
+Renderdistanz steht jetzt auf 8 (`16:33:34 Changing view distance to 8, from 10`) und die Welt
+lädt trotzdem nicht: der Client zeigt 0–10 % und dann **„Failed to connect"**. Damit ist die
+Rev.-4-Erklärung („zu wenig gewartet") ebenfalls **widerlegt**. Es ist ein harter Fehler.
+
+#### 6.2.1 Die Kette
+
+```
+16:33:30  Starting integrated minecraft server           ← Server 1 startet
+16:33:31  Preparing spawn area: 0% → Time elapsed: 840 ms
+16:33:34  Registered 1559 trainers
+16:33:34  Changing view distance to 8 / simulation distance to 8
+16:33:34  Can't keep up! Running 2617ms behind
+16:33:34  @Redirect conflict … krypton … already redirected by e4mc   [Netty Server IO #1] ×2
+          ↓ 49 Sekunden Stille — Client zeigt „Failed to connect"
+16:34:23  Failed to read …\saves\CObblemon test v2 Backup lock
+          java.nio.channels.OverlappingFileLockException
+16:34:23  Saving and pausing game…
+16:34:23  Saving chunks for level 'ServerLevel[CObblemon test v2]'    ← Server 1 lebt noch!
+16:34:33  Starting background profiler… / Starting integrated server  ← Server 2 startet
+16:34:33  Encountered an unexpected exception
+          java.lang.IllegalStateException: Multiple servers running at once is not supported!
+            at xaero.lib.common.config.server.ServerConfigManager.setServer(ServerConfigManager.java:68)
+            at xaero.lib.common.event.CommonEvents.serverStarting(CommonEvents.java:44)
+16:34:33  crash-2026-07-30_16.34.33-server.txt / Stopping server
+16:34:33  Exception stopping the server
+          NullPointerException: Cannot invoke "class_3218.method_8621()" because "$$5" is null
+```
+
+**Der Kernbefund: zwischen 16:33:34 und 16:34:33 steht nirgends `Stopping server`.** Der
+integrierte Server der ersten Welt **hat nie heruntergefahren**. Er hat um 16:34:23 sogar noch
+Chunks gespeichert. Alles danach ist Folgeschaden:
+
+* **`OverlappingFileLockException`** heißt: *dieselbe JVM* hält den Lock auf
+  `saves\CObblemon test v2 Backup` bereits. Also hängt noch ein Server-Objekt aus einem früheren
+  Versuch im Prozess.
+* **`Multiple servers running at once is not supported!`** ist XaeroLibs eigene Prüfung: sie hält
+  eine einzelne statische Server-Referenz und wirft, wenn `setServer` aufgerufen wird, solange die
+  alte noch gesetzt ist. XaeroLib **verursacht das Problem nicht**, es macht daraus einen harten
+  Absturz statt eines stillen Fehlers.
+* Die `NullPointerException` beim Stoppen und `Negative index in crash report handler (8/10)` sind
+  reine Folgefehler. Ignorieren.
+* `Opening a config that was already loaded … rctmod-server.toml` — dasselbe Symptom von der
+  anderen Seite.
+
+#### 6.2.2 Sofortregel
+
+**Nach jedem Fehlversuch Minecraft komplett beenden, bevor der nächste Versuch startet.**
+Sobald ein Weltladen einmal schiefgeht, hängt ein Server-Objekt im Prozess, die Weltlocks bleiben
+gehalten und XaeroLib killt jeden weiteren Startversuch. **Der Test „neue Welt anlegen" aus dem
+16:34-Log ist damit ungültig** — der ist nicht an der Welt gescheitert, sondern am Altlast-Server.
+
+#### 6.2.3 Leitender Verdacht: e4mc
+
+Was passiert genau an der Stelle, an der es stehenbleibt? Der Server ist fertig hochgefahren, die
+Sichtweite ist gesetzt — als Nächstes verbindet sich der Client mit seinem eigenen Server. Und
+genau dort steht die einzige Meldung, die noch kommt:
+
+```
+[Netty Server IO #1]  @Redirect conflict. Skipping krypton…ServerLoginNetworkHandlerMixin
+                      … already redirected by e4mc…ServerLoginPacketListenerImplMixin
+```
+
+Drei Dinge sprechen für e4mc:
+
+1. **Es ist der einzige Mod im Verbindungs-/Login-Pfad.** Sonst greift dort nichts ein.
+2. **Der Thread `Netty Server IO #1` existiert überhaupt** — es läuft also ein echter
+   Netzwerk-Listener, direkt beim Weltladen, ohne dass „Open to LAN" gedrückt wurde.
+3. **e4mc verdrängt Kryptons Redirect auf `initializeVelocityCipher`.** Beide Mods hängen an
+   derselben Cipher-Erzeugung im Login. Rev. 3 hat das als harmlos eingestuft — mit dem Wissen,
+   dass genau danach „Failed to connect" kommt, ist das nicht mehr haltbar.
+
+Ehrlich dazu: **der Log enthält die eigentliche Fehlerzeile nicht** — nach dem Netty-Konflikt
+kommt einfach nichts mehr. Das ist keine Beweiskette, sondern der beste Kandidat. Deshalb wird
+halbiert statt geraten.
+
+#### 6.2.4 Bisect-Protokoll
+
+**Vor jedem Schritt: Minecraft komplett beenden. Kein zweiter Versuch im selben Lauf.**
+
+| Schritt | Deaktivieren | Erwartung |
+|---|---|---|
+| **B1** | **e4mc + Krypton** | Lädt die Welt → der Schuldige ist einer der beiden. Dann in B1a/B1b einzeln wieder an. |
+| B1a | nur Krypton aus, e4mc an | |
+| B1b | nur e4mc aus, Krypton an | |
+| **B2** | zusätzlich **Xaero's Minimap** (XaeroLib geht als Abhängigkeit mit) | Beseitigt zumindest den Folgeabsturz. |
+| **B3** | zusätzlich **Radical Cobblemon Trainers + RCT API** | 1559 Trainer, 60 gleichzeitig, `forceBattleOnSight`. Nur als Test — es ist ein Inhalts-Mod, es wird Warnungen zu unbekannten Entities geben. |
+| **B4** | brandneue Welt mit minimalem Modsatz | Wenn selbst das scheitert, liegt es nicht an der Welt. |
+
+**Wenn e4mc der Schuldige ist:** e4mc wird nur zum Hosten gebraucht. Optionen: auf eine neuere
+e4mc-Version aktualisieren · oder e4mc dauerhaft deaktiviert lassen und stattdessen eine
+**Portfreigabe 25565** in der FRITZ!Box einrichten (spart obendrein den Relay-Hop von 20–40 ms,
+siehe 1.4).
+
+#### 6.2.5 Nebenbei: die RCT-Konfiguration ist jetzt sichtbar
+
+Aus dem Log, `config/rctmod-server.toml` — das sind direkte Performance-Regler für später:
+
+```
+maxTrainersTotal = 60          maxTrainersPerPlayer = 12
+spawnIntervalTicks = 180       uniqueTrainerRadius = 500
+maxHorizontalDistanceToPlayers = 70    despawnTicksIfUnseen = 6000
+forceBattleOnSight = true      forceBattleMaxDistance = 8.0
+```
+
+**Bis zu 60 Trainer-NPCs gleichzeitig in der Welt**, alle 9 Sekunden ein Spawnversuch, und jeder
+greift den Spieler auf 8 Blöcke Sicht automatisch an. Das ist die wichtigste Stellschraube, sobald
+das spark-Profil vorliegt.
+
+#### 6.2.6 Kleinigkeit: der Ton geht ins Leere
+
+`OpenAL initialized on device OpenAL Soft on G27Q2 (2- HD Audio Driver for Display Audio)` —
+Minecraft nutzt den DisplayPort-Audioausgang des Monitors, der keine Lautsprecher hat. Solange die
+USB-Soundkarte nicht als Standardgerät gesetzt ist, ist im Spiel schlicht kein Ton. Keine
+Performancefrage, aber leicht zu übersehen.
+
+### 6.2.7 Alte Hypothese (Rev. 4, widerlegt)
 
 Die Terralith-Erklärung aus Rev. 3 ist **widerlegt**: die Fehler sind weg, die Welt lädt trotzdem
 nicht. Der neue Ablauf:
@@ -858,12 +990,13 @@ Portfreigabe 25565 — die Differenz ist der Relay-Aufschlag · EWE anschreiben 
 
 ---
 
-## 11. Was noch offen ist (Stand Rev. 4)
+## 11. Was noch offen ist (Stand Rev. 5)
 
-**Blockiert alles andere:**
-1. **Lädt die Welt mit Renderdistanz 8 und 5 Minuten Geduld?** (6.2)
-2. Falls nein: `latest.log` **während** des Hängens + CPU-Last von `javaw.exe` aus dem
-   Task-Manager.
+**Blockiert alles andere — das Bisect aus 6.2.4:**
+1. **B1: e4mc + Krypton deaktivieren, Minecraft neu starten, alte Welt laden.** Lädt sie?
+2. Je nach Ergebnis B1a/B1b bzw. B2–B4 durchgehen. **Zwischen jedem Schritt Minecraft komplett
+   beenden** (6.2.2).
+3. `crash-2026-07-30_16.34.33-server.txt` aus dem Ordner `crash-reports` — zur Absicherung.
 
 **Danach:**
 3. **Neuer F3-Screenshot** — die alte Baseline ist ungültig (5.1).
