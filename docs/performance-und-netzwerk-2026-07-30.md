@@ -1,4 +1,16 @@
-# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 5)
+# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 6)
+
+> **Rev. 6 — gelöst: e4mc 6.2.1.**
+> Bisect-Ergebnis: beide aus → läuft · e4mc aus / Krypton an → läuft · **beide an → bricht ab**.
+> Und die Ursache steht auf der Modrinth-Seite: **e4mc 6.2.1 ist zwei Tage alt**, die Welt lief
+> vorher mit **6.2.0**. Eine frische Version hat es kaputtgemacht. → **Downgrade auf 6.2.0**,
+> Anleitung inkl. `os error 32` in **6.3**.
+> **Und es gibt endlich eine echte Baseline** aus einem laufenden Spiel: 176 fps im Mittel,
+> p50 190 (= Limit), **p98 107, p99.5 84** bei Renderdistanz 20, MSPT 7,9. Auswertung in **3.5**.
+
+---
+
+# Rev. 5
 
 > **Rev. 5, Stand 16:34 Uhr — endlich eine echte Exception.**
 > Renderdistanz steht bestätigt auf 8 (`Changing view distance to 8, from 10`) und die alte Welt
@@ -237,6 +249,72 @@ zusammen mit dem Profil-Umschalter. Nicht unter „Shadows" oder „Lighting".
 
 **Kontrolle im Spiel:** F3-Zeile `[Iris] Shadow info: C: …` — die Zahl vor dem `/` muss fallen.
 Und `[Iris] Profile: HIGH` wird nach einer Änderung zu `HIGH (+1 options changed by user)`.
+
+### 3.5 Neue Baseline (Rev. 6) — erster F3 aus einem laufenden Spiel
+
+Aufgenommen mit **e4mc deaktiviert**, allen sechs neuen Performance-Mods aktiv, Sodium
+0.8.13-beta.1, Iris 1.8.14-beta.1, Complementary HIGH, 2560×1440, XYZ 16,7 / 71 / 480,6.
+
+```
+176 fps  T: 190  fast  B: 2  GPU: 58%
+p50=190  p98=107  p99.5=84 fps
+Integrated server @ 7.9/50.0 ms, 15 tx, 1323 rx
+C: 1328/32664 D: 20     E: 38/226  SD: 8     P: 628  T: 226
+Mem: 30% 2466/8192MB    Allocation rate 133MB/s
+Pools: Geometry 601/1102 MiB, Index 2/23 MiB (63 buffers)
+Chunk Builder: Schd=00 | Busy=00 | Total=10
+[Culling] Rendered Block Entities: 387 Skipped: 45
+[Culling] Rendered Entities: 36 Skipped: 324
+[Culling] Ticked Entities: 17 Skipped: 207
+[Iris] Shadow info: C: 1033/32664 D: 20   [Iris] E: 2  BE: 0
+[LDL] Spatial Lookup 0,026ms | Scheduled Chunk Rebuilds 0/12 | 0,008ms
+```
+
+**Was sich gegenüber dem alten Screenshot geändert hat** (der ist als Vergleich nur bedingt
+brauchbar — andere Renderdistanz, andere Mods, andere Position):
+
+| | alt (RD 26, nur Lithium) | neu (RD 20, alle Mods) |
+|---|---|---|
+| fps | 148 | **176** (p50 190) |
+| MSPT | 9,0 | **7,9** |
+| Geometry Pool | 1055/1813 MiB | **601/1102 MiB** |
+| VSync | **an** (T: inf) | **aus, Limit 190** ✅ |
+| Grafik | fancy | fast |
+| Entities gesamt | 194 | 226 |
+
+**Die Empfehlungen aus Rev. 2/3 sind umgesetzt und wirken:** VSync ist aus, das Limit steht auf
+190 (G-Sync-tauglich), der Heap steht auf 8192 MB und ist zu **30 % (2466 MB)** belegt — genau die
+Größenordnung, die Abschnitt 4.1 vorhergesagt hat. Er könnte sogar auf 6 GB.
+
+**Das eigentliche Thema ist jetzt nicht mehr die Bildrate, sondern die Gleichmäßigkeit:**
+
+| Kennzahl | fps | Frametime |
+|---|---|---|
+| p50 | 190 | 5,26 ms ← am Limit |
+| Mittel | 176 | 5,68 ms |
+| **p98** | **107** | **9,35 ms** |
+| **p99.5** | **84** | **11,90 ms** |
+
+Über die Hälfte der Zeit läuft das Spiel **ins Limit** (p50 = 190 = der eingestellte Cap) — die
+GPU liegt bei 58 %, es ist also Luft da. Der Mittelwert von 176 wird ausschließlich von den
+Einbrüchen gedrückt: **die schlechtesten Frames dauern 2,26× so lange wie der Median.** Genau das
+sind die spürbaren Ruckler.
+
+Kandidaten für die Einbrüche, in dieser Reihenfolge zu prüfen:
+
+1. **387 gerenderte Block-Entities** (nur 45 geculled) — trotz Enhanced Block Entities. Der
+   höchste Wert bisher.
+2. **Der Shadow-Pass mit 1033 Sections** — plus `[Iris] E: 2`, also sind Entity Shadows aktiv,
+   momentan aber nur mit 2 Entities im Schattenvolumen. **Der Test aus 3.2 ist damit noch nicht
+   entschieden** — er wird erst in einem Pokémon-Feld aussagekräftig.
+3. **Xaero's Minimap** — scannt im Hintergrund Chunks.
+4. **Chunk-Rebuilds beim Laufen** (`Chunk Builder` steht hier auf idle, weil gestanden wurde).
+
+**Gute Nachricht zum Messen:** Sodium 0.8 zeigt **p50/p98/p99.5 direkt im F3 an**. Damit lässt
+sich jede Änderung aus Test A sofort bewerten — **auf p99.5 achten, nicht auf den Mittelwert.**
+
+**Unverändert bestätigt:** LambDynamicLights kostet 0,034 ms von 5,68 ms = **0,60 %** im Stehen.
+EntityCulling überspringt **324 von 360** Entity-Renderings und **207 von 224** Entity-Ticks.
 
 ### 3.4 Machen Shader Sinn?
 
@@ -640,6 +718,54 @@ dafür, dass Minecraft nicht abgestürzt ist, sondern hing bzw. beendet wurde.
 4. `latest.log` **vollständig** sichern — der interessante Teil ist die letzte Minute vor dem
    Hängen, nicht der Start.
 
+### 6.2.8 GELÖST (Rev. 6): e4mc 6.2.1 ist eine Regression
+
+**Bisect-Ergebnis:**
+
+| e4mc | Krypton | Ergebnis |
+|---|---|---|
+| aus | aus | **läuft** ✅ |
+| aus | **an** | **läuft** ✅ |
+| **an** | **an** | **bricht ab** ❌ |
+| **an** | aus | *nicht getestet* |
+
+Damit ist **e4mc notwendige Bedingung für den Fehler** — Krypton allein ist unschuldig. Und die
+Modrinth-Versionsliste liefert die Erklärung:
+
+| Version | veröffentlicht | Downloads |
+|---|---|---|
+| **6.2.1-fabric** ← installiert | **vor 2 Tagen** | 11 K |
+| **6.2.0-fabric** ← lief vorher | vor 1 Monat | 181,7 K |
+| 6.1.2-fabric | vor 2 Monaten | 50,8 K |
+
+Die Welt wurde mit **6.2.0** erstellt und lief damit. **6.2.1 ist zwei Tage alt und hat 11 K
+Downloads** — eine frische Version mit einer Regression im Login-Pfad. Das passt exakt zum
+Symptom: der Server startet, die Sichtweite wird gesetzt, dann bleibt der Client bei „Failed to
+connect" hängen, weil der Login nicht durchgeht.
+
+**Fix: auf 6.2.0-fabric zurück.**
+
+**Wenn dabei dieser Fehler kommt:**
+```
+I/O error: Der Prozess kann nicht auf die Datei zugreifen, da sie von einem anderen
+Prozess verwendet wird. (os error 32)
+path: …\profiles\Preset_to_clone\mods/e4mc-fabric-6.2.1.jar
+```
+Windows-Dateisperre: **Fabric hält die Mod-Jars offen, solange das Spiel läuft** — und wegen des
+Zombie-Server-Problems aus 6.2.1 läuft `javaw.exe` oft weiter, obwohl das Fenster zu ist.
+
+1. **Task-Manager → Details → alle `javaw.exe` / „OpenJDK Platform binary" beenden.**
+2. Modrinth-App schließen und neu öffnen.
+3. Dann erst die Version wechseln.
+
+**Optionaler Erkenntnisgewinn** (nicht nötig, um zu spielen): einmal **e4mc 6.2.1 AN + Krypton
+AUS** testen. Läuft es damit, ist es nicht e4mc allein, sondern der Mixin-Konflikt der beiden auf
+`initializeVelocityCipher` — und dann wäre auch „Krypton weglassen" ein gültiger Fix. Krypton
+bringt auf dem Client ohnehin fast nichts, das schreibt es selbst ins Log:
+*„Note that Krypton is most effective on servers, not the client."*
+
+**Für Paul:** e4mc braucht nur der Host. In seiner Instanz kann es komplett weg.
+
 ### 6.3 Konflikte
 
 **ModernFix ↔ Lithium — harmlos, nichts tun**
@@ -990,13 +1116,37 @@ Portfreigabe 25565 — die Differenz ist der Relay-Aufschlag · EWE anschreiben 
 
 ---
 
-## 11. Was noch offen ist (Stand Rev. 5)
+## 11. Fahrplan (Stand Rev. 6)
 
-**Blockiert alles andere — das Bisect aus 6.2.4:**
-1. **B1: e4mc + Krypton deaktivieren, Minecraft neu starten, alte Welt laden.** Lädt sie?
-2. Je nach Ergebnis B1a/B1b bzw. B2–B4 durchgehen. **Zwischen jedem Schritt Minecraft komplett
-   beenden** (6.2.2).
-3. `crash-2026-07-30_16.34.33-server.txt` aus dem Ordner `crash-reports` — zur Absicherung.
+### Phase 1 — läuft wieder (jetzt)
+1. **Alle `javaw.exe` im Task-Manager beenden**, Modrinth-App neu starten.
+2. **e4mc auf 6.2.0-fabric zurücksetzen** (6.2.8).
+3. Alte Welt laden, **Open to LAN testen**, Paul einmal joinen lassen.
+4. Optional zur Absicherung: e4mc 6.2.1 + Krypton aus — sagt, ob es e4mc allein oder der Konflikt war.
+
+### Phase 2 — Performance messen (danach)
+5. **F3 im Pokémon-Feld**, nicht im Haus — dort entscheidet sich alles. Auf **p99.5** achten,
+   nicht auf den Mittelwert (3.5).
+6. **`/spark profiler start --timeout 120 --only-ticks-over 20`** → Report-Link.
+   Erwartete Rangliste: Radical Cobblemon Trainers, Cobblemon, Fight or Flight, Trainer Battle.
+7. **Test A aus 10.3** durchgehen, beginnend mit **Entity Shadows OFF** (3.2) — der Test ist erst
+   im Feld aussagekräftig, im Haus stehen nur 2 Entities im Schattenvolumen.
+8. **Dieselbe Messung auf Pauls Laptop**, sobald seine Instanz steht (7.1, 8.x).
+
+### Phase 3 — Tweaks (zuletzt)
+9. RCT-Spawnwerte entschärfen (6.2.5): `maxTrainersTotal`, `forceBattleOnSight`.
+10. RCT-API-Version passend zu 0.18.1 (6.3).
+11. NVIDIA-Treiber gegen den Sodium-Workaround testen (6.0).
+12. Heap ggf. von 8192 auf 6144 (nur 30 % belegt, 3.5).
+13. Standard-Audiogerät auf die USB-Soundkarte (6.2.6).
+14. EWE anschreiben (9).
+
+### Dauerhaft offen
+* **`dxdiag` von Paul** — UHD 620 oder MX330? Blockiert 8.1.
+* **Tatsächliche Bildwiederholrate des Gigabyte G27Q2** (das Limit 190 ist aktuell geraten).
+* HWiNFO-Log vom 5090 über 10 Minuten: Takt, Temperaturen, Power-Limit.
+* VBS/HVCI-Status des 5090.
+* F3-Biomecheck in bekannten Terralith-Gegenden (6.1).
 
 **Danach:**
 3. **Neuer F3-Screenshot** — die alte Baseline ist ungültig (5.1).
