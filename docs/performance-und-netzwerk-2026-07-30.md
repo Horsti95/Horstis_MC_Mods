@@ -1,4 +1,20 @@
-# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 3)
+# Performance- & Netzwerk-Analyse — 30.07.2026 (Rev. 4)
+
+> **Rev. 4, Stand 16:11 Uhr — was sich geändert hat:**
+> **Terralith ist gelöst.** Der 16:10-Start zeigt `Applied 1823 biome modifications to 159 of 159
+> new biomes` (vorher 64) und **null** `Unknown registry key`-Fehler. Die Biom-Registry ist heil,
+> Version 2.6.2 ist die richtige.
+> **Die Welt lädt trotzdem nicht** — neue, quantifizierte Hypothese in 6.2: bei Sichtweite 20 sind
+> es 1681 Chunks, die mit Terralith neu generiert **2–4 Minuten** brauchen. Beide Abbrüche kamen
+> nach 8 bzw. 30 Sekunden.
+> **Meine Iris-Empfehlung war falsch** — Iris ist jetzt auf 1.8.14-beta.1 und die Uniform-Fehler
+> sind unverändert da. Ursache ist eine andere, siehe 6.4.
+> **spark ist installiert** (1.10.109). **Minecraft läuft bestätigt auf der 5090**, nicht auf der iGPU.
+> Alle Abschnitte unterhalb sind auf diesem Stand; Abschnitte 1–5 sind unverändert gültig.
+
+---
+
+# Rev. 3 (Basis)
 
 > Messreport, **kein** Plan. Grundlage: 6 Speedtest-CSVs (13:42–15:20), F3-Screenshot,
 > FRITZ!Box-DSL-Informationen, Systeminfos dreier Rechner, vollständige Modliste (41 aktiv /
@@ -337,6 +353,43 @@ Erst 6.1 klären, dann messen, dann eventuell Noisium.
 
 ## 6. Log-Analyse
 
+### 6.0 Stand 16:11 — was der neue Start zeigt (Rev. 4)
+
+**Terralith ist erledigt.** Beweis aus dem 16:10-Start:
+
+```
+16:11:23  Applied 1823 biome modifications to 159 of 159 new biomes in 12.23 ms
+```
+
+Vorher waren es `616 biome modifications to 64 of 64 new biomes`. **159 statt 64 Biome, und im
+ganzen Log keine einzige `Unknown registry key`-Zeile mehr.** Damit ist auch die Frage nach der
+Terralith-Version beantwortet: **2.6.2 ist die richtige.** Hätte die Welt Biom-IDs aus einer
+anderen Version, würden die Fehler weiterhin auftauchen. Kein Grund, 2.5.8 zu testen.
+
+**Bestätigt:** Minecraft läuft auf der dGPU, nicht auf der iGPU —
+`OpenGL Renderer: NVIDIA GeForce RTX 5090 Laptop GPU/PCIe/SSE2`, Treiber 610.74. Beide Adapter
+werden erkannt, gewählt wird die richtige.
+
+**spark ist jetzt installiert** (`spark 1.10.109`) und läuft mit Hintergrund-Profiler. Hinweis aus
+dem Log: `async-profiler engine is not supported for windows11/amd64, built-in Java engine will be
+used instead` — etwas gröber, für unsere Zwecke ausreichend.
+
+**Neuer Fund — NVIDIA-Treiber-Workaround kostet Leistung:**
+```
+Sodium has applied one or more workarounds …: [NVIDIA_THREADED_OPTIMIZATIONS_BROKEN]
+Enabling GL_DEBUG_OUTPUT_SYNCHRONOUS to force the NVIDIA driver to disable threaded command submission
+```
+Sodium 0.8.13-beta stuft die Threaded Optimizations des Treibers 610.74 als defekt ein und schaltet
+sie ab. Das ist ein echter Leistungsverlust im Draw-Call-Pfad — genau dort, wo Minecraft
+CPU-limitiert ist. **Treiberwechsel testen** (älterer Studio-/Game-Ready-Zweig), dann prüfen ob die
+Zeile verschwindet.
+
+**Nebenbei aus dem Log:** Die Instanz heißt `…\ModrinthApp\profiles\Preset_to_clone\`. Falls das
+die Vorlage für Pauls Kopie ist und nicht die echte Spielinstanz — bitte prüfen, dass hier
+überhaupt die richtige Welt liegt. Und: das Audiogerät heißt `OpenAL Soft on G27Q2` — der Monitor
+ist ein Gigabyte G27Q2. **Dessen tatsächliche Bildwiederholrate in Windows nachsehen**, die Zahl
+200 Hz ist bisher nur eine Annahme.
+
 ### 6.1 Terralith — und eine Warnung vor Datenverlust
 
 ```
@@ -364,7 +417,63 @@ der Terralith-losen Sessions geladen und gespeichert wurde, insbesondere die Sta
 **Wenn Terralith aktiv ist, muss Paul es ebenfalls installiert haben** — es ist ein
 Worldgen-/Registry-Mod, das ist keine Wahl.
 
-### 6.2 Warum die Welt nicht mehr lädt — Arbeitshypothese
+### 6.2 Warum die Welt nicht lädt — neue Hypothese nach dem 16:11-Start
+
+Die Terralith-Erklärung aus Rev. 3 ist **widerlegt**: die Fehler sind weg, die Welt lädt trotzdem
+nicht. Der neue Ablauf:
+
+```
+16:11:24  Starting integrated minecraft server / Preparing start region
+16:11:25  Preparing spawn area: 0%  →  Time elapsed: 961 ms
+16:11:28  Registered 1559 trainers
+16:11:28  Changing view distance to 20, from 10
+16:11:28  Changing simulation distance to 8, from 0
+16:11:28  Can't keep up! Running 2995ms or 59 ticks behind
+16:11:28  @Redirect conflict … e4mc          ← Open to LAN gestartet
+16:11:58  Can't keep up! Running 492707648ms or 9854152 ticks behind
+16:11:58  Shutting down culling task! / Stopping!
+```
+
+**Es gibt keinen Absturz und keine Exception.** Der Server startet sauber, die Spawn-Region ist in
+961 ms fertig, die Trainer sind registriert. Dann wird die Sichtweite auf 20 gesetzt — und ab da
+passiert 30 Sekunden lang nichts mehr im Log, bis `Stopping!`.
+
+Die absurde Zahl `492707648ms` (= 5,7 Tage) steht in **derselben Sekunde** wie `Stopping!`. Das ist
+kein echter Messwert, sondern ein Artefakt beim Herunterfahren, wenn der Server-Thread nach langer
+Blockade zurückkommt. **Nicht die Ursache, sondern eine Folge.**
+
+**Leitende Hypothese: die Welt lädt einfach länger, als gewartet wurde.** Bei Sichtweite 20 muss
+der Server 41 × 41 = **1681 Chunks** bereitstellen. Rechnung:
+
+| Renderdistanz | Chunks | nur laden (~2 ms) | mit Terralith neu generieren (80–150 ms) |
+|---|---|---|---|
+| **20** | **1681** | 3,4 s | **2,2 – 4,2 min** |
+| 16 | 1089 | 2,2 s | 1,5 – 2,7 min |
+| 12 | 625 | 1,2 s | 0,8 – 1,6 min |
+| **8** | **289** | 0,6 s | **0,4 – 0,7 min** |
+
+Abgebrochen wurde nach **8 Sekunden** (14:59) bzw. **30 Sekunden** (16:11). Beide Male viel zu
+früh, falls Chunks neu generiert werden müssen — und das müssen sie, weil Terralith gerade erst
+wieder aktiv ist und der Terralith-Generator deutlich teurer rechnet als Vanilla.
+
+**Vorgehen, in dieser Reihenfolge:**
+
+1. **Renderdistanz im Hauptmenü auf 8 stellen**, *bevor* die Welt geöffnet wird. Das reduziert die
+   Arbeit um 83 %.
+2. **Mindestens 5 Minuten warten.** Nicht 30 Sekunden.
+3. **Währenddessen prüfen, ob es arbeitet oder hängt:**
+   * Task-Manager → `javaw.exe`: dauerhaft hohe CPU-Last = es rechnet, weiterwarten.
+     Nahe 0 % = echter Deadlock.
+   * `latest.log` mit einem Editor öffnen, der live nachlädt: kommen noch Zeilen? Dann läuft es.
+4. Wenn es wirklich hängt: **neue Testwelt** (kleiner Vanilla-Seed) anlegen. Lädt die sofort, liegt
+   es an der bestehenden Welt und nicht an den Mods.
+5. Erst dann Mods halbieren. Reihenfolge der Verdächtigen: **Xaero's Minimap** (scannt beim Join
+   Chunks), **ModernFix** (greift in Weltlade- und Ressourcenpfade ein), **Radical Cobblemon
+   Trainers** (1559 Trainer beim Start).
+6. **Was ich dafür brauche:** das `latest.log` **während** des Hängens, nicht nach dem Beenden —
+   plus die CPU-Last von `javaw.exe` aus Schritt 3.
+
+### 6.2.1 Alte Hypothese (Rev. 3, widerlegt)
 
 Aus dem Log, in dieser Reihenfolge:
 
@@ -429,14 +538,62 @@ Model validation failure for 'elite_four_lorelei_004e' — invalid held item 'me
 Optionale Integration von RCT, der Mod ist nicht installiert. Betroffene Trainer spawnen ohne das
 Item. Ignorieren oder Mega Showdown nachinstallieren (kostet zusätzliche Last).
 
-**Iris ↔ Complementary — Update verfügbar**
+### 6.4 Iris-Uniforms — meine Empfehlung aus Rev. 3 war falsch
+
 ```
 Failed to resolve uniform inPaleGarden … Unknown variable: BIOME_PALE_GARDEN
 Failed to resolve uniform endFlashFactor0 … Unknown variable: endFlashIntensity
 ```
-Complementary r5.8.1 erwartet Uniforms, die Iris 1.8.8 nicht liefert → Pale-Garden-Nebel und
-End-Blitz funktionieren nicht. **Iris auf 1.8.14-beta.1 aktualisieren**, das passt auch besser zur
-Sodium-Beta 0.8.13. Die Warnungen zu `IViewRotMat` und `Sampler2` sind normales Iris-Rauschen.
+
+Iris ist inzwischen auf **1.8.14-beta.1** — und **die Meldungen sind unverändert da**. Das Update
+war also nicht die Lösung. Die tatsächliche Ursache:
+
+* **`BIOME_PALE_GARDEN`**: Der Pale Garden ist ein Biom aus **1.21.4**. Auf **1.21.1 existiert es
+  nicht**, also kann Iris die Biom-Variable nicht auflösen.
+* **`endFlashIntensity`**: dasselbe Muster, ein Uniform aus einer neueren Iris-/MC-Generation.
+
+**Complementary r5.8.1 ist für neuere Minecraft-Versionen gebaut** und referenziert Dinge, die es
+auf 1.21.1 schlicht nicht gibt. Das ist **kein Fehler und nicht behebbar** — außer man nimmt eine
+ältere Complementary-Version, was sich für zwei kosmetische Effekte (Pale-Garden-Nebel,
+End-Blitz) nicht lohnt. **Ignorieren.**
+
+Ebenfalls normales Rauschen und nicht behebbar: `IViewRotMat`, `Sampler2`,
+`Force-disabling mixin 'features.render.world.sky.*' … added by mods [iris]` (Iris übernimmt den
+Himmel von Sodium — gewollt), `[Indigo] Different rendering plugin detected` (Sodium übernimmt).
+
+### 6.5 Was harmlos ist und ignoriert werden kann
+
+Aus den 16:10-Logs, damit nicht weiter danach gesucht wird:
+
+| Meldung | Bewertung |
+|---|---|
+| `No data fixer registered for cobblemon:pokemon` u. v. a. (ERROR!) | **Völlig normal.** Modded Entities registrieren keine DataFixer; Vanilla loggt das als ERROR. Betrifft jeden modded Server. |
+| ~150× `Missing sound for event: cobblemontrainerbattle:battle.leader.*` | Der Mod referenziert Kampfmusik, die er nicht mitliefert — dafür gibt es ein separates Musik-Resourcepack. Ohne das bleibt es still. Kosmetisch. |
+| `File cobblemon:sounds/…/galarian_ponyta_cry.ogg does not exist` | Fehlender Cry, kosmetisch. |
+| `Unable to load model 'minecraft:track_arrow' … cobblenav:item/track_arrow` | Bug in cobblenav, kosmetisch. |
+| `Found 'parent' loop while loading model 'minecraft:item/carved_pumpkin'` | Modelschleife, kosmetisch. |
+| `Missing textures in model cobblemon:relic_coin_pouch` | kosmetisch. |
+| `Reference map '…refmap.json' could not be read` | Normal bei Release-Builds mancher Mods. |
+| `@Mixin target … was not found` für JEI, Adorn, Controlify, SuperMartijn642, quick.battle | Optionale Kompatibilitäts-Mixins für Mods, die nicht installiert sind. Genau so gedacht. |
+| `Removed resource pack spark from options because it is no longer compatible` | Harmlos. |
+| `Compression will use Java, encryption will use Java` | Krypton findet auf Windows keine nativen Velocity-Bibliotheken und fällt auf Java zurück. Auf Windows normal. |
+| `Update available for fabric-api@0.116.14 (-> 0.116.15)` | Kann mitgenommen werden, eilt nicht. |
+
+**Eine Beobachtung mit Substanz:** Lithium schaltet beim Start mehrere eigene Optimierungen ab:
+```
+Option 'mixin.entity.collisions.fluid' requires 'mixin.util.block_tracking=true' but found 'false'
+Option 'mixin.experimental.entity.block_caching.*' … Setting … =false
+```
+Bei `150 options available, 0 override(s) found` sind das Lithiums eigene Defaults, keine
+Fehlkonfiguration. Ein Teil des Entity-Block-Cachings ist damit inaktiv. Nicht dramatisch, aber
+gut zu wissen, wenn das spark-Profil später Entity-Kollisionen weit oben zeigt.
+
+**Neuer Mixin-Konflikt, harmlos:**
+```
+Method overwrite conflict for method_21740 in modernfix … remove_biome_temperature_cache.BiomeMixin
+… previously written by lithium … Skipping method.
+```
+Wie schon bei `removeIf`: beide optimieren dasselbe, Lithium gewinnt.
 
 ---
 
@@ -637,19 +794,22 @@ Vielen Dank und viele Gruesse
 
 ## 10. Testprotokoll
 
-### 10.1 Reihenfolge — bitte so und nicht anders
+### 10.1 Reihenfolge — Stand Rev. 4
 
-1. **Welt sichern** (6.1)
-2. **Terralith aktivieren**, Welt starten, F3-Biome prüfen
-3. **Neuen F3-Screenshot** machen — die alte Baseline ist ungültig (5.1)
-4. **spark installieren** (fehlt in der Modliste!) und erst dann messen
-5. **Entity Shadows OFF** testen (3.2) — vermutlich der größte Einzelgewinn
-6. Dann erst der Rest
+1. ~~Welt sichern~~ · ~~Terralith aktivieren~~ · ~~spark installieren~~ — **erledigt**
+2. **Renderdistanz auf 8 stellen, Welt öffnen, 5 Minuten warten** (6.2). Ohne das geht nichts
+   weiter.
+3. Drin? Dann **F3-Screenshot** — die alte Baseline ist ungültig (5.1). Und F3-Biome prüfen,
+   ob die Terralith-Biome wieder stimmen (6.1).
+4. **`/spark profiler start --timeout 120 --only-ticks-over 20`** laufen lassen, Report-Link
+   schicken.
+5. **Entity Shadows OFF** testen (3.2) — vermutlich der größte Einzelgewinn.
+6. Danach Renderdistanz schrittweise wieder hoch, bis es sich falsch anfühlt.
+7. Nebenbei: RCT-API-Version fixen (6.3), NVIDIA-Treiber gegen den Sodium-Workaround testen (6.0).
 
 ### 10.2 spark
 
-**spark ist nicht installiert.** `/spark profiler --timeout 120` kann daher nicht funktionieren.
-Zuerst spark (lucko) für Fabric 1.21.1 installieren, dann:
+Installiert als `spark 1.10.109`. Befehle:
 
 ```
 /spark profiler start --timeout 120 --only-ticks-over 20   # interner Server
@@ -698,15 +858,24 @@ Portfreigabe 25565 — die Differenz ist der Relay-Aufschlag · EWE anschreiben 
 
 ---
 
-## 11. Was noch offen ist
+## 11. Was noch offen ist (Stand Rev. 4)
 
-1. **`dxdiag` von Paul** — UHD 620 oder MX330? Blockiert 8.1.
-2. **Vollständiges `latest.log`** der hängenden Session — der interessante Teil ist die letzte
-   Minute, nicht der Start.
-3. **Neuer F3-Screenshot** nach dem Terralith-Fix (5.1).
-4. **spark-Reports** aus Test A und B.
-5. **Video-Einstellungen des 5090** als Screenshot.
-6. **HWiNFO-Log** vom 5090 über 10 Minuten: CPU-/GPU-Takt, Temperaturen, Power-Limit.
-7. **VBS/HVCI-Status** des 5090.
-8. **`config/cobblemon/`** — die Spawn-Caps sind ein direkter Performance-Regler.
-9. Gibt es eine **Weltsicherung aus der Zeit vor dem Deaktivieren von Terralith**? (6.1)
+**Blockiert alles andere:**
+1. **Lädt die Welt mit Renderdistanz 8 und 5 Minuten Geduld?** (6.2)
+2. Falls nein: `latest.log` **während** des Hängens + CPU-Last von `javaw.exe` aus dem
+   Task-Manager.
+
+**Danach:**
+3. **Neuer F3-Screenshot** — die alte Baseline ist ungültig (5.1).
+4. **spark-Report** (`/spark profiler start --timeout 120 --only-ticks-over 20`).
+5. **F3-Biomecheck** in bekannten Terralith-Gegenden — steht dort wieder ein Terralith-Biom, oder
+   `minecraft:plains`? (6.1)
+
+**Unabhängig davon:**
+6. **`dxdiag` von Paul** — UHD 620 oder MX330? Blockiert 8.1.
+7. **Tatsächliche Bildwiederholrate des Gigabyte G27Q2** in Windows (6.0).
+8. **Video-Einstellungen des 5090** als Screenshot.
+9. **HWiNFO-Log** vom 5090 über 10 Minuten: CPU-/GPU-Takt, Temperaturen, Power-Limit.
+10. **VBS/HVCI-Status** des 5090.
+11. **`config/cobblemon/`** — die Spawn-Caps sind ein direkter Performance-Regler.
+12. Liegt in der Instanz `Preset_to_clone` überhaupt die richtige Welt? (6.0)
