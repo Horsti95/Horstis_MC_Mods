@@ -14,6 +14,9 @@
 > **Cobblemon-Zweig läuft** (Abschnitt 9.1): eigener 1.21.1-Build, `cobble-keys` **gebaut, CI grün**.
 > **Nächster Schritt: Horstis Playtest der fertigen Mods → pro Mod entscheiden: privat behalten
 > oder veröffentlichen (Abschnitt 6.1).**
+>
+> Messreports (Hardware/Netzwerk/Fremdmods, kein Status zu unseren Mods) liegen unter `docs/`:
+> [`docs/performance-und-netzwerk-2026-07-30.md`](docs/performance-und-netzwerk-2026-07-30.md).
 
 ---
 
